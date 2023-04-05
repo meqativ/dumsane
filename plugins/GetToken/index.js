@@ -1,5 +1,4 @@
-(function (plugin) {
-	plugin.default = {
+export default {
 		onLoad: function () {
 			const { metro, commands, logger } = vendetta;
 
@@ -41,6 +40,3 @@
 			});
 		},
 	};
-	Object.defineProperty(plugin, "__esModule", { value: true });
-	return plugin;
-})({});
