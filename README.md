@@ -1,3 +1,3 @@
 detta plugins
 
-## [GetToken](/GetToken)
+## [GetToken](/dumsane/GetToken)
