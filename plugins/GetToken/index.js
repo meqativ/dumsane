@@ -3,27 +3,34 @@
 		onLoad: function () {
 			const { metro, commands, logger } = vendetta;
 
-			const { sendBotMessage } = metro.findByProps("sendBotMessage");
+			const { sendBotMessage: sendEphemeralClydeMessage } =
+				metro.findByProps("sendBotMessage");
 			const { getToken } = metro.findByProps("getToken");
-			/*const { sendMessage } = metro.findByProps(
-				"sendMessage",
-				"receiveMessage"
-			);
+			//  const { sendMessage } = metro.findByProps(
+			//		"sendMessage",
+			//		"receiveMessage"
+			//	);
 
-			function exeCute(args, ctx) {
-				const options = new Map(args.map((option) => [option.name, option]));*/
-				const content = `Token: ${getToken()}`;
-				/*const send = options.filter(o=>o.name.startsWith("send")).every(o=>o.value === true);
-				if (send) {
-					sendMessage(ctx.channel.id, { content });
-				} else {*/
-					sendBotMessage(ctx.channel.id, content);
-				//}
-			}
+			//	function exeCute(args, ctx) {
+			//		const options = new Map(args.map((option) => [option.name, option]));
+			//		const content = `Token: ${getToken()}`;
+			//		const send = options.filter(o=>o.name.startsWith("send")).every(o=>o.value === true);
+			//		if (send) {
+			//			sendMessage(ctx.channel.id, { content });
+			//		} else {
+			//			sendBotMessage(ctx.channel.id, content);
+			//		}
+			//	}
 
-			this.onUnload = commands.registerCommand(
-				{
-				execute: exeCute,
+			this.onUnload = commands.registerCommand({
+				// execute: exeCute,
+				execute: () => {
+					try {
+						sendEphemeralClydeMessage(ctx.channel.id, `Token: ${getToken()}`);
+					} catch {
+						return { content: "woopsie :3 " };
+					}
+				},
 				name: "token",
 				displayName: "token",
 				description: "View your token",
