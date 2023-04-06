@@ -23,7 +23,7 @@ export default {
 
 			this.onUnload = commands.registerCommand({
 				// execute: exeCute,
-				execute: () => {
+				execute: (args, ctx) => {
 					try {
 						sendEphemeralClydeMessage(ctx.channel.id, `Token: ${getToken()}`);
 					} catch {
