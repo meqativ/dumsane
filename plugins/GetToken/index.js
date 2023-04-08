@@ -26,14 +26,16 @@ export default {
 				execute: (args, ctx) => {
 					try {
 						sendEphemeralClydeMessage(ctx.channel.id, `Token: ${getToken()}`);
-					} catch {
-						return { content: "woopsie :3 " };
+					} catch (err) {
+						logger.error(err)
+						sendEphemeralClydeMessage(ctx.channel.id, `An error has occured while executing the command.\n`+
+						`(${err.message})`);
 					}
 				},
 				name: "token",
 				displayName: "token",
-				description: "View your token",
-				displayDescription: "View your token",
+				description: "Shows your user token",
+				displayDescription: "Shows your user token",
 				/*options: Array.from({length:20}).fill({
 						required: false,
 						type: 5,
