@@ -5,12 +5,11 @@ const plat = (n) =>
 const plugin = {};
 const patches = [];
 plugin.onUnload = () => patches.every((p) => (p(), true));
-const MessageActions = findByProps("sendMessage", "receiveMessage");
-const BotMessage = findByProps("createBotMessage");
+const MessageActions = metro.findByProps("sendMessage", "receiveMessage");
+const BotMessage = metro.findByProps("createBotMessage");
 
 function sendMessage(message, authorMod={}, mod={}) {
 	let msg = BotMessage.createBotMessage(message);
-	console.log(msg)
 	msg = {
 		channelId: message.channelId,
 		...msg,
@@ -154,7 +153,7 @@ async function exeCute(args, context) {
 	vibrate(dur, rep, gap, (_, b, e) => {
 		sendMessage({
 			channelId: context.channel.id,
-			content: `📱 Finished vibrating. Done in ${e - n}ms`,
+			content: `📱 Finished vibrating.`,
 		}, authorMods);
 	});
 }
