@@ -1,11 +1,35 @@
 const { metro, logger, commands } = vendetta;
 const { vibrate } = metro.findByProps("vibrate");
-const plat = (n) => metro.findByProps("View").Platform.select({ ios: [n], android: n });
+const plat = (n) =>
+	metro.findByProps("View").Platform.select({ ios: [n], android: n });
+const { sendBotMessage } = metro.findByProps("sendBotMessage");
 const plugin = {};
 const patches = [];
 plugin.onUnload = () => patches.every((p) => (p(), true));
 plugin.onLoad = () => {
 	patches[0] = commands.registerCommand({
+		execute: exeCute,
+		type: 1,
+		inputType: 1,
+		applicationId: 0,
+		name: "vibrate",
+		displayName: "vibrate",
+		description: "b" + "r".repeat(50),
+		displayDescription: "b" + "r".repeat(50),
+		options: [
+			{
+				type: 4,
+				required: true,
+				name: "duration",
+				displayName: "duration",
+				description: "Duration of one vibration (in milliseconds)",
+				displayDescription: "Duration of one vibration (in milliseconds)",
+				min_value: 1,
+				max_value: 9999,
+			},
+		],
+	});
+	/*patches[0] = commands.registerCommand({
 		execute: exeCute,
 		name: "vibrate",
 		displayName: "vibrate",
@@ -87,11 +111,17 @@ plugin.onLoad = () => {
 		// applicationId: -1,
 		inputType: 1,
 		type: 1,
-	});
+	}); */
 };
 function exeCute(args, context) {
 	const options = new Map(args.map((option) => [option.name, option]));
-	return { content: "helo from exeCute" };
+	vibrate(options.get("duration").value);
+	sendBotMessage(
+		context.channel.id,
+		`Vibrating for ${options.get("duration").value}ms`
+	);
 }
-
+function vibrate(duration, repeat, gap) {
+	vibrate(plat(duration), true);
+}
 export default plugin;
