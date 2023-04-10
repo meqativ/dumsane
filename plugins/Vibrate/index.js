@@ -1,5 +1,5 @@
 const { metro, logger, commands } = vendetta;
-const { vibrate } = metro.findByProps("vibrate");
+const { vibrate: vibro } = metro.findByProps("vibrate");
 const plat = (n) =>
 	metro.findByProps("View").Platform.select({ ios: [n], android: n });
 const { sendBotMessage } = metro.findByProps("sendBotMessage");
@@ -122,6 +122,6 @@ function exeCute(args, context) {
 	);
 }
 function vibrate(duration, repeat, gap) {
-	vibrate(plat(duration), true);
+	vibro(plat(duration), true);
 }
 export default plugin;
