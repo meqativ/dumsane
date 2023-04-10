@@ -12,6 +12,7 @@ function sendMessage(message, authorMod, mod) {
 	let msg = BotMessage.createBotMessage({ message });
 	console.log(msg)
 	msg = {
+		channelId: message.channelId,
 		...msg,
 		...authorMod,
 		...mod,
