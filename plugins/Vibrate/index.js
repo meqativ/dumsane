@@ -6,6 +6,8 @@ const { sendBotMessage } = metro.findByProps("sendBotMessage");
 const plugin = {};
 const patches = [];
 plugin.onUnload = () => patches.every((p) => (p(), true));
+
+
 plugin.onLoad = () => {
 	patches[0] = commands.registerCommand({
 		execute: exeCute,
@@ -121,10 +123,10 @@ async function exeCute(args, context) {
 		context.channel.id,
 		`Vibrating for ${options.get("duration").value}ms`
 	);
-	console.log(
-		options.get("duration").value,
-		options.get("repeat").value,
-		options.get("gap").value,
+	vibrate(
+		options.get("duration")?.value,
+		options.get("repeat")?.value,
+		options.get("gap")?.value,
 		() => {
 			sendBotMessage(context.channel.id, "Finished vibrating");
 		}
