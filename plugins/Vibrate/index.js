@@ -8,15 +8,16 @@ plugin.onUnload = () => patches.every((p) => (p(), true));
 const MessageActions = findByProps("sendMessage", "receiveMessage");
 const BotMessage = findByProps("createBotMessage");
 
-function sendBotMessage(message, authorMod, mod) {
+function sendMessage(message, authorMod, mod) {
 	let msg = BotMessage.createBotMessage({ message });
+	console.log(msg)
 	msg = {
 		...msg,
 		...authorMod,
 		...mod,
 	};
 
-	MessageActions.receiveMessage(message.channelId, msg);
+	return MessageActions.receiveMessage(message.channelId, msg);
 }
 
 plugin.onLoad = () => {
