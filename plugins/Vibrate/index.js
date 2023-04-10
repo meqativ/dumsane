@@ -9,7 +9,7 @@ const MessageActions = findByProps("sendMessage", "receiveMessage");
 const BotMessage = findByProps("createBotMessage");
 
 function sendBotMessage(message, authorMod, mod) {
-	const msg = BotMessage.createBotMessage({ message });
+	let msg = BotMessage.createBotMessage({ message });
 	msg = {
 		...msg,
 		...authorMod,
