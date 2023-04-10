@@ -9,15 +9,17 @@ const MessageActions = findByProps("sendMessage", "receiveMessage");
 const BotMessage = findByProps("createBotMessage");
 
 function sendMessage(message, authorMod, mod) {
-	let msg = BotMessage.createBotMessage({ message });
+	let msg = BotMessage.createBotMessage(message);
 	console.log(msg)
 	msg = {
 		channelId: message.channelId,
 		...msg,
-		...authorMod,
 		...mod,
 	};
-
+	msg.author = {
+		...msg.author,
+		...authorMod
+	}
 	return MessageActions.receiveMessage(message.channelId, msg);
 }
 
