@@ -2,18 +2,29 @@ const { metro, logger, commands } = vendetta;
 const { vibrate: vibro } = metro.findByProps("vibrate");
 const plat = (n) =>
 	metro.findByProps("View").Platform.select({ ios: [n], android: n });
-const { sendBotMessage } = metro.findByProps("sendBotMessage");
 const plugin = {};
 const patches = [];
 plugin.onUnload = () => patches.every((p) => (p(), true));
+const MessageActions = findByProps("sendMessage", "receiveMessage");
+const BotMessage = findByProps("createBotMessage");
 
+function sendBotMessage(message, authorMod, mod) {
+	const msg = BotMessage.createBotMessage({ message });
+	msg = {
+		...msg,
+		...authorMod,
+		...mod,
+	};
+
+	MessageActions.receiveMessage(message.channelId, msg);
+}
 
 plugin.onLoad = () => {
 	patches[0] = commands.registerCommand({
 		execute: exeCute,
 		type: 1,
 		inputType: 1,
-		applicationId: 0,
+		applicationId: "-1",
 		name: "vibrate",
 		displayName: "vibrate",
 		description: "b" + "r".repeat(50),
@@ -27,7 +38,7 @@ plugin.onLoad = () => {
 				description: "Duration of one vibration (in milliseconds)",
 				displayDescription: "Duration of one vibration (in milliseconds)",
 				min_value: 1,
-				max_value: 9999,
+				max_value: 9_999,
 			},
 			{
 				type: 4,
@@ -117,30 +128,42 @@ plugin.onLoad = () => {
 		type: 1,
 	}); */
 };
+const authorMods = {
+	username: "/vibrate",
+	avatar: "clyde",
+};
+
 async function exeCute(args, context) {
 	const options = new Map(args.map((option) => [option.name, option]));
-	sendBotMessage(
-		context.channel.id,
-		`Vibrating for ${options.get("duration").value}ms`
-	);
-	vibrate(
-		options.get("duration")?.value,
-		options.get("repeat")?.value,
-		options.get("gap")?.value,
-		() => {
-			sendBotMessage(context.channel.id, "Finished vibrating");
-		}
-	);
+	const dur = options.get("duration").value;
+	const rep = options.get("repeat")?.value;
+	const gap = options.get("gap")?.value;
+
+	sendMessage({
+		channelId: context.channel.id,
+		content:
+			`📳 Vibrating for ${dur}ms` +
+			(rep ? `, ${rep} time${rep === 1 ? "" : "s"}` : "") +
+			"." +
+			(gap ? `With a gap of ${gap}ms.` : ""),
+	});
+	vibrate(dur, rep, gap, (_, b, e) => {
+		sendMessage({
+			channelId: context.channel.id,
+			content: `📱 Finished vibrating. Done in ${e - n}ms`,
+		});
+	});
 }
 async function vibrate(duration, repeat = 1, gap = 0, cb) {
-	let id = +Date.now();
 	const wait = (ms) => new Promise((res) => setTimeout(res, ms));
-
+	const id = `${+Date.now()}`;
+	const begin = Date.now();
 	for (let i = 0; i < repeat; i++) {
 		vibro(plat(duration), true);
 		await wait(duration);
 		await wait(gap);
 	}
-	cb();
+	const end = Date.now();
+	cb(id, begin, end);
 }
 export default plugin;
