@@ -8,7 +8,7 @@ plugin.onUnload = () => patches.every((p) => (p(), true));
 const MessageActions = findByProps("sendMessage", "receiveMessage");
 const BotMessage = findByProps("createBotMessage");
 
-function sendMessage(message, authorMod, mod) {
+function sendMessage(message, authorMod={}, mod={}) {
 	let msg = BotMessage.createBotMessage(message);
 	console.log(msg)
 	msg = {
@@ -150,12 +150,12 @@ async function exeCute(args, context) {
 			(rep ? `, ${rep} time${rep === 1 ? "" : "s"}` : "") +
 			"." +
 			(gap ? `With a gap of ${gap}ms.` : ""),
-	});
+	}, authorMods);
 	vibrate(dur, rep, gap, (_, b, e) => {
 		sendMessage({
 			channelId: context.channel.id,
 			content: `📱 Finished vibrating. Done in ${e - n}ms`,
-		});
+		}, authorMods);
 	});
 }
 async function vibrate(duration, repeat = 1, gap = 0, cb) {
