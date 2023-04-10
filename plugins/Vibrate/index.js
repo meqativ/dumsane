@@ -121,7 +121,7 @@ async function exeCute(args, context) {
 		context.channel.id,
 		`Vibrating for ${options.get("duration").value}ms`
 	);
-	vibrate(
+	console.log(
 		options.get("duration").value,
 		options.get("repeat").value,
 		options.get("gap").value,
