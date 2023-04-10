@@ -27,6 +27,24 @@ plugin.onLoad = () => {
 				min_value: 1,
 				max_value: 9999,
 			},
+			{
+				type: 4,
+				name: "repeat",
+				displayName: "repeat",
+				description: "Number of times to repeat",
+				displayDescription: "Number of times to repeat",
+				min_value: 1,
+				max_value: 9_999_999,
+			},
+			{
+				type: 4,
+				name: "gap",
+				displayName: "gap",
+				description:
+					"Wait between vibrates (only matters if you have more than 1 repeat)",
+				displayDescription:
+					"Wait between vibrates (only matters if you have more than 1 repeat)",
+			},
 		],
 	});
 	/*patches[0] = commands.registerCommand({
@@ -82,22 +100,6 @@ plugin.onLoad = () => {
 						max_value: 9999,
 					},
 					{
-						type: 4,
-						name: "repeat",
-						displayName: "repeat",
-						description: "Number of times to repeat",
-						displayDescription: "Number of times to repeat",
-					},
-					{
-						type: 4,
-						name: "gap",
-						displayName: "gap",
-						description:
-							"Wait between vibrates (only matters if you have more than 1 repeat)",
-						displayDescription:
-							"Wait between vibrates (only matters if you have more than 1 repeat)",
-					},
-					{
 						type: 3,
 						name: "raw_preset",
 						displayName: "raw_preset",
@@ -113,15 +115,30 @@ plugin.onLoad = () => {
 		type: 1,
 	}); */
 };
-function exeCute(args, context) {
+async function exeCute(args, context) {
 	const options = new Map(args.map((option) => [option.name, option]));
-	vibrate(options.get("duration").value);
 	sendBotMessage(
 		context.channel.id,
 		`Vibrating for ${options.get("duration").value}ms`
 	);
+	vibrate(
+		options.get("duration").value,
+		options.get("repeat").value,
+		options.get("gap").value,
+		() => {
+			sendBotMessage(context.channel.id, "Finished vibrating");
+		}
+	);
 }
-function vibrate(duration, repeat, gap) {
-	vibro(plat(duration), true);
+async function vibrate(duration, repeat = 1, gap = 0, cb) {
+	let id = +Date.now();
+	const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+
+	for (let i = 0; i < repeat; i++) {
+		vibro(plat(duration), true);
+		await wait(duration);
+		await wait(gap);
+	}
+	cb();
 }
 export default plugin;
