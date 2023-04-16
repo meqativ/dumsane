@@ -7,28 +7,25 @@ const patches = [];
 plugin.onUnload = () => patches.every((p) => (p(), true));
 const MessageActions = metro.findByProps("sendMessage", "receiveMessage");
 const BotMessage = metro.findByProps("createBotMessage");
+const Avatars = metro.findByProps("BOT_AVATARS");
 
-function sendMessage(message, authorMod={}, mod={}) {
-	let msg = BotMessage.createBotMessage(message);
-	msg = {
-		channelId: message.channelId,
-		...msg,
-		...mod,
-	};
-	msg.author = {
-		...msg.author,
-		...authorMod
-	}
-	return MessageActions.receiveMessage(message.channelId, msg);
+function sendMessage(message, mod) {
+    if (mod?.author.avatar && mod?.author?.avatarURL) {
+        Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
+        delete mod.author.avatarURL;
+    }
+    let msg = BotMessage.createBotMessage(message);
+    msg = metro.findByProps("merge").merge(msg, mod);
+    MessageActions.receiveMessage(message.channelId, msg);
+    return msg;
 }
-
 plugin.onLoad = () => {
 	patches[0] = commands.registerCommand({
 		execute: exeCute,
 		type: 1,
 		inputType: 1,
 		applicationId: "-1",
-		name: "vibrate",
+		name: "vibrate begin",
 		displayName: "vibrate",
 		description: "b" + "r".repeat(50),
 		displayDescription: "b" + "r".repeat(50),
@@ -141,11 +138,10 @@ async function exeCute(args, context) {
 	const dur = options.get("duration").value;
 	const rep = options.get("repeat")?.value;
 	const gap = options.get("gap")?.value;
-
 	sendMessage({
 		channelId: context.channel.id,
 		content:
-			`📳 Vibrating for ${dur}ms` +
+			`<:vibrating:1095354969965731921> Vibrating for ${dur}ms` +
 			(rep ? `, ${rep} time${rep === 1 ? "" : "s"}` : "") +
 			"." +
 			(gap ? `With a gap of ${gap}ms.` : ""),
@@ -153,7 +149,7 @@ async function exeCute(args, context) {
 	vibrate(dur, rep, gap, (_, b, e) => {
 		sendMessage({
 			channelId: context.channel.id,
-			content: `📱 Finished vibrating.`,
+			content: `<:still:1095977283212296194> Finished vibrating.`,
 		}, authorMods);
 	});
 }

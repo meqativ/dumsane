@@ -17,7 +17,7 @@ export default (props) => {
 			<FormSection title="NoDelete settings">
 				<FormRow
 					label="Time of deletion"
-					trailing={
+					leading={
 						<FormSwitch
 							value={storage["timestamps"] ?? false}
 							onValueChange={(value) => (storage["timestamps"] = value)}
@@ -26,7 +26,7 @@ export default (props) => {
 				/>
 				<FormRow
 					label="Use emojis"
-					trailing={
+					leading={
 						<FormSwitch
 							value={storage["emojis"] ?? false}
 							onValueChange={(value) => (storage["emojis"] = value)}
