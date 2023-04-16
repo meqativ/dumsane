@@ -9,6 +9,7 @@ plugin.onLoad = () => plugin.onUnload = before("dispatch", vendetta.metro.common
 	const [dispatched] = args;
 
 	if (dispatched.type === "MESSAGE_DELETE") {
+		console.log("[Vendy]", dispatched)
 		if (deleteable.includes(dispatched.id)) return (delete deleteable[deleteable.indexOf(dispatched.id)], args);
 		let message = "This message was deleted."
 		message += (!storage["timestamps"]) ? "" : ` (${vendetta.metro.common.moment(new Date()).toLocaleString()})`
