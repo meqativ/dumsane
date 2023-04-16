@@ -24,14 +24,13 @@
 */
 const plugin = {};
 const {
-	logger,
 	patcher: { before },
 } = vendetta;
 
 plugin.onLoad = () => plugin.onUnload = before("dispatch", vendetta.metro.common.FluxDispatcher, (args) => {
 	const [dispatched] = args;
 	if (dispatched.type === "MESSAGE_DELETE") {
-		logger.log("🅰️ deleted msg", dispatched)
+		console.log("[ Vendetta › NoDelete ]", "🅰️ deleted msg", dispatched)
 		args[0] = {
 			type: "MESSAGE_EDIT_FAILED_AUTOMOD",
 			messageData: {
