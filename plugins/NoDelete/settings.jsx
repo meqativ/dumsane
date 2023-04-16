@@ -13,7 +13,7 @@ export default (props) => {
 	useProxy(storage);
 	console.log("[NoDelete]", props)
 	return (
-		<ReactNative.ScrollView style={{ flex: true }}>
+		<ReactNative.ScrollView style={{ flex: 1 }}>
 			<FormSection title="NoDelete settings">
 				<FormRow
 					label="Time of deletion"
