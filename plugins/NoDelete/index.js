@@ -26,11 +26,17 @@ const plugin = {};
 const {
 	patcher: { before },
 } = vendetta;
+let deleteable = [] //shitcode (idk how to do otherwise)
 
 plugin.onLoad = () => plugin.onUnload = before("dispatch", vendetta.metro.common.FluxDispatcher, (args) => {
 	const [dispatched] = args;
 	if (dispatched.type === "MESSAGE_DELETE") {
-		console.log("[ Vendetta › NoDelete ]", "🅰️ deleted msg", args)
+		if (deleteable.includes(dispatched.id)) {
+			delete deleteable[deleteable.indexOf(dispatched.id)];
+			return args;
+		}
+		// console.log("[ Vendetta › NoDelete ]", "🅰️ deleted msg", args)
+		deleteable.push(dispatched.id); 
 		args[0] = {
 			type: "MESSAGE_EDIT_FAILED_AUTOMOD",
 			messageData: {
@@ -42,9 +48,10 @@ plugin.onLoad = () => plugin.onUnload = before("dispatch", vendetta.metro.common
 			},
 			errorResponseBody: {
 				code: 200000,
-				message: `This message was deleted. (it's showing what was before the edit)`,
+				message: "🇹᠎🇭᠎🇮᠎🇸᠎   ᠎🇲᠎🇪᠎🇸᠎🇸᠎🇦᠎🇬᠎🇪᠎   ᠎🇼᠎🇦᠎🇸᠎   ᠎🇩᠎🇪᠎🇱᠎🇪᠎🇹᠎🇪᠎🇩" || `This message was deleted`,
 			},
 		};
+		return args;
 	}
 });
 
