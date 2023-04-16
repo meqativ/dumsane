@@ -37,11 +37,12 @@ plugin.onLoad = () => plugin.onUnload = before("dispatch", vendetta.metro.common
 				message: {
 					channelId: dispatched.channelId,
 					messageId: dispatched.id,
+					content: "abob",
 				},
 			},
 			errorResponseBody: {
 				code: 200000,
-				message: `This message was deleted.`,
+				message: `This message was deleted. (it's showing what was before the edit)`,
 			},
 		};
 		return args;
