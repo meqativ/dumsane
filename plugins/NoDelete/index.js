@@ -30,7 +30,7 @@ const {
 plugin.onLoad = () => plugin.onUnload = before("dispatch", vendetta.metro.common.FluxDispatcher, (args) => {
 	const [dispatched] = args;
 	if (dispatched.type === "MESSAGE_DELETE") {
-		console.log("[ Vendetta › NoDelete ]", "🅰️ deleted msg", dispatched)
+		console.log("[ Vendetta › NoDelete ]", "🅰️ deleted msg", args)
 		args[0] = {
 			type: "MESSAGE_EDIT_FAILED_AUTOMOD",
 			messageData: {
