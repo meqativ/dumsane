@@ -11,25 +11,15 @@ const { FormRow, FormSection, FormSwitch } = Forms;
 
 export default (props) => {
 	useProxy(storage);
-	console.log("[NoDelete]", props)
 	return (
 		<ReactNative.ScrollView style={{ flex: 1 }}>
 			<FormSection title="NoDelete settings">
 				<FormRow
-					label="Time of deletion"
+					label="Show the time of deletion"
 					leading={
 						<FormSwitch
 							value={storage["timestamps"] ?? false}
-							onValueChange={(value) => (storage["timestamps"] = value)}
-						/>
-					}
-				/>
-				<FormRow
-					label="Use emojis"
-					leading={
-						<FormSwitch
-							value={storage["emojis"] ?? false}
-							onValueChange={(value) => (storage["emojis"] = value)}
+							onValueChange={(value) => storage["timestamps"] = value}
 						/>
 					}
 				/>
