@@ -19,7 +19,7 @@ export default (props) => {
 					label="Time of deletion"
 					trailing={
 						<FormSwitch
-							value={storage["timestamps"]}
+							value={storage["timestamps"] ?? false}
 							onValueChange={(value) => (storage["timestamps"] = value)}
 						/>
 					}
@@ -28,7 +28,7 @@ export default (props) => {
 					label="Use emojis"
 					trailing={
 						<FormSwitch
-							value={storage["emojis"]}
+							value={storage["emojis"] ?? false}
 							onValueChange={(value) => (storage["emojis"] = value)}
 						/>
 					}
