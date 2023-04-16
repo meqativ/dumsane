@@ -12,8 +12,7 @@ const { FormRow, FormSection, FormSwitch } = Forms;
 export default (props) => {
 	useProxy(storage);
 	return (
-		<ReactNative.ScrollView style={{ flex: 1 }}>
-			<FormSection title="NoDelete settings">
+	//	<ReactNative.ScrollView style={{ flex: 1 }}>
 				<FormRow
 					label="Show the time of deletion"
 					leading={
@@ -23,7 +22,6 @@ export default (props) => {
 						/>
 					}
 				/>
-			</FormSection>
-		</ReactNative.ScrollView>
+	//	</ReactNative.ScrollView>
 	);
 };
