@@ -23,7 +23,7 @@ plugin.onLoad = () => plugin.onUnload = before("dispatch", vendetta.metro.common
 			},
 			errorResponseBody: {
 				code: 200000,
-				message: (storage["emojis"]) ? "tha messg got delted 💀" : "This message was deleted." + (!storage["timestamps"]) ? "" : ` (${vendetta.metro.common.moment(new Date()).toLocaleString()})`,
+				message: ((storage["emojis"]) ? "tha messg got delted 💀" : "This message was deleted.") + ((!storage["timestamps"]) ? "" : ` (${vendetta.metro.common.moment(new Date()).toLocaleString()})`),
 			},
 		};
 		return args;
