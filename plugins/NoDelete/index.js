@@ -10,7 +10,9 @@ plugin.onLoad = () => plugin.onUnload = before("dispatch", vendetta.metro.common
 
 	if (dispatched.type === "MESSAGE_DELETE") {
 		if (deleteable.includes(dispatched.id)) return (delete deleteable[deleteable.indexOf(dispatched.id)], args);
-
+		const message = (storage["emojis"]) ? "tha messg got delted 💀" : "This message was deleted."
+		message += (!storage["timestamps"]) ? "" : ` (${vendetta.metro.common.moment(new Date()).toLocaleString()})`
+		console.log(message)
 		deleteable.push(dispatched.id); 
 		args[0] = {
 			type: "MESSAGE_EDIT_FAILED_AUTOMOD",
@@ -23,7 +25,7 @@ plugin.onLoad = () => plugin.onUnload = before("dispatch", vendetta.metro.common
 			},
 			errorResponseBody: {
 				code: 200000,
-				message: ((storage["emojis"]) ? "tha messg got delted 💀" : "This message was deleted.") + ((!storage["timestamps"]) ? "" : ` (${vendetta.metro.common.moment(new Date()).toLocaleString()})`),
+				message
 			},
 		};
 		return args;
