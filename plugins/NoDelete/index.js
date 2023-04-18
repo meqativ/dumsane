@@ -16,11 +16,11 @@ plugin.onLoad = () =>
 			const [dispatched] = args;
 
 			if (dispatched.type === "MESSAGE_DELETE") {
-				console.log("[Vendy]", dispatched);
-				if (deleteable.includes(dispatched.id)) delete deleteable[deleteable.indexOf(dispatched.id)], args;
+				if (deleteable.includes(dispatched.id)) return delete deleteable[deleteable.indexOf(dispatched.id)], args;
+
+
 				let message = "This message was deleted.";
 				if (storage["timestamps"]) message += ` (${vendetta.metro.common.moment(new Date()).toLocaleString()})`;
-
 				deleteable.push(dispatched.id);
 				args[0] = {
 					type: "MESSAGE_EDIT_FAILED_AUTOMOD",
@@ -32,7 +32,7 @@ plugin.onLoad = () =>
 						},
 					},
 					errorResponseBody: {
-						code: 200000,
+						//code: 200000,
 						message,
 					},
 				};
