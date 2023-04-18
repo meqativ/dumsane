@@ -23,9 +23,7 @@ export default (props) => {
 
 	const buttonStyle = {
 		paddingTop: 5,
-		paddingBottom: 5,
-		marginBottom: 15,
-		marginTop: 15,
+		margin: 8,
 	};
 
 	return (
@@ -43,7 +41,7 @@ title: "New scheme",
             onConfirm: (name) => {
 							schemes.push(name); 
 							showToast(`Created ${name}`, getAsset("check"))
-							alert(JSON.stringify(schemes))
+							alert(JSON.stringify(storage["schemes"]))
 						},
             confirmText: "Create",
             confirmColor: undefined,
