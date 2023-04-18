@@ -32,7 +32,7 @@ plugin.onLoad = () =>
 						},
 					},
 					errorResponseBody: {
-						//code: 200000,
+						code: 200000,
 						message,
 					},
 				};
