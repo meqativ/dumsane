@@ -36,7 +36,7 @@ export default (props) => {
 				onPress={(h) => alert(storage["test"])}
 			/>
 			<FormInput
-				title="storage[\"test\"]"
+				title={"storage[\"test\"]"}
 				value={storage["test"]}
 				placeholder="useless placeholder"
 				onChange={(v) => (storage["test"] = v)}
