@@ -22,7 +22,7 @@ export default (props) => {
 	useProxy(storage);
 
 	const buttonStyle = {
-		paddingTop: 5,
+		//paddingTop: 5,
 		margin: 8,
 	};
 
