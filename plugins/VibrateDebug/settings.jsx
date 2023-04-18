@@ -24,7 +24,7 @@ export default (props) => {
 				style={buttonStyle}
 				text="hey"
 				color="brand"
-				size="big"
+				size="small"
 				disabled={false}
 				onPress={(h) => console.log("pressed", h)}
 			/>
