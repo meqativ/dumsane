@@ -39,7 +39,7 @@ title: "New scheme",
             initialValue: "",
             placeholder: "Name",
             onConfirm: (name) => {
-							schemes.push(name); 
+							storage["schemes"].push(name); 
 							showToast(`Created ${name}`, getAsset("check"))
 							alert(JSON.stringify(storage["schemes"]))
 						},
