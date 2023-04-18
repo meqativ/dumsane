@@ -6,6 +6,7 @@ const {
 		components: { Forms },
 	},
 } = vendetta;
+if (!("timestamps" in storage)) storage["timestamps"] = false;
 
 const { FormRow, FormSection, FormSwitch } = Forms;
 
