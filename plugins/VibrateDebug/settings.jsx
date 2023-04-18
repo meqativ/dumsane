@@ -16,7 +16,7 @@ const { FormSection, FormInput, FormRow, FormSwitch, FormText } = Forms;
 export default (props) => {
 	useProxy(storage);
 
-	const buttonStyle = { marginBottom: 5, marginTop: 5 };
+	const buttonStyle = { paddingTop: 5, paddingBottom: 5, marginBottom: 15, marginTop: 15 };
 
 	return (
 		<ReactNative.ScrollView>
