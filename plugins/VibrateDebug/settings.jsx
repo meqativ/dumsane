@@ -3,10 +3,13 @@ const {
 	plugin: { storage },
 	storage: { useProxy },
 	ui: {
+		alerts: { showInputAlert },
+		toasts: { showToast },
 		components: { Forms },
+		assets: { getAssetIDByName: getAsset }
 	},
 } = vendetta;
-if (!("test" in storage)) storage["test"] = "";
+if (true || !("schemes" in storage)) storage["schemes"] = [];
 
 const Button = vendetta.metro.findByProps(
 	"ButtonColors",
@@ -26,22 +29,29 @@ export default (props) => {
 	};
 
 	return (
-		<ReactNative.ScrollView>
-			<Button
+			<>
+		<Button
 				style={buttonStyle}
 				text="hey"
 				color="brand"
 				size="small"
 				disabled={false}
-				onPress={(h) => alert(storage["test"])}
+				onPress={(elem) => showInputAlert({
+title: "New scheme",
+            initialValue: "",
+            placeholder: "Name",
+            onConfirm: (name) => {
+							schemes.push(name); 
+							showToast(`Created ${name}`, getAsset("check"))
+							alert(JSON.stringify(schemes))
+						},
+            confirmText: "Create",
+            confirmColor: undefined,
+            cancelText: "Cancel"
+				})}
 			/>
-			<FormInput
-				title={"storage[\"test\"]"}
-				value={storage["test"]}
-				placeholder="useless placeholder"
-				onChange={(v) => (storage["test"] = v)}
-				multiline={true}
-			/>
+		 <ReactNative.ScrollView>
 		</ReactNative.ScrollView>
+		</>
 	);
 };
