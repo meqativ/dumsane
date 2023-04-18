@@ -7,7 +7,7 @@ const {
 } = vendetta;
 
 let deleteable = []; //shitcode (idk how to do otherwise)
-
+const double = {}
 plugin.onLoad = () =>
 	(plugin.onUnload = before(
 		"dispatch",
@@ -17,10 +17,11 @@ plugin.onLoad = () =>
 
 			if (dispatched.type === "MESSAGE_DELETE") {
 				if (deleteable.includes(dispatched.id)) {
-					delete deleteable[deleteable.indexOf(dispatched.id)], args;
+					if (double[dispatched.id]) delete deleteable[deleteable.indexOf(dispatched.id)], args;
 					return args
 				}
-
+				
+				double[dispatched.id] = true;
 				let message = "This message was deleted.";
 				if (storage["timestamps"]) message += ` (${vendetta.metro.common.moment(new Date()).toLocaleString()})`;
 				deleteable.push(dispatched.id);
