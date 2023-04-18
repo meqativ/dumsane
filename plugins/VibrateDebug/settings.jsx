@@ -5,7 +5,7 @@ const {
 } = vendetta;
 if (!("test" in storage)) storage["test"] = "";
 
-const Button = vendetta.metro.getByProps(
+const Button = vendetta.metro.findByProps(
 	"ButtonColors",
 	"ButtonLooks",
 	"ButtonSizes"
