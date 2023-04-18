@@ -23,3 +23,5 @@ export function cmd(obj) {
 export function vibrateScheme(scheme) {
 	
 }
+
+export default { cmd, vibrateScheme }
