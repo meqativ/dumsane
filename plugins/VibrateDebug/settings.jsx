@@ -6,7 +6,7 @@ const {
 		alerts: { showInputAlert },
 		toasts: { showToast },
 		components: { Forms },
-		assets: { getAssetIDByName: getAsset }
+		assets: { getAssetIDByName: getAsset },
 	},
 } = vendetta;
 if (true || !("schemes" in storage)) storage["schemes"] = [];
@@ -27,29 +27,34 @@ export default (props) => {
 	};
 
 	return (
-			<>
-		<Button
+		<>
+			<Button
 				style={buttonStyle}
 				text="hey"
 				color="brand"
 				size="small"
 				disabled={false}
-				onPress={(elem) => showInputAlert({
-title: "New scheme",
-            initialValue: "",
-            placeholder: "Name",
-            onConfirm: (name) => {
-							storage["schemes"].push(name); 
-							showToast(`Created ${name}`, getAsset("check"))
-							alert(JSON.stringify(storage["schemes"]))
+				onPress={(elem) =>
+					showInputAlert({
+						title: "New scheme",
+						initialValue: "",
+						placeholder: "Name",
+						onConfirm: (name) => {
+							storage["schemes"].push({name});
+							showToast(`Created ${name}`, getAsset("check"));
+							alert(JSON.stringify(storage["schemes"],0,4));
 						},
-            confirmText: "Create",
-            confirmColor: undefined,
-            cancelText: "Cancel"
-				})}
+						confirmText: "Create",
+						confirmColor: undefined,
+						cancelText: "Cancel",
+					})
+				}
 			/>
-		 <ReactNative.ScrollView>
-		</ReactNative.ScrollView>
+			<ReactNative.ScrollView>
+				{storage["schemes"].map((scheme) => {
+					return <FormText>{scheme.name}</FormText>;
+				})}
+			</ReactNative.ScrollView>
 		</>
 	);
 };
