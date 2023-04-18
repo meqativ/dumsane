@@ -15,16 +15,16 @@ export default (props) => {
 		<ReactNative.ScrollView style={{ flex: 1 }}>
 			{[
 				{ label: "Show the time of deletion", default: false, id: "timestamps" },
-				{ label: "Keep your own messages", default: true, id: "kys" },
+				{ label: "The plugin does not keep the messages you've deleted", },
 			].map((config) => {
 				return (
 					<FormRow
 						label={config.label}
 						trailing={
-							<FormSwitch
+							("id" in config) ? (<FormSwitch
 								value={storage[config.id] ?? config.default}
 								onValueChange={(value) => (storage[config.id] = value)}
-							/>
+							/>) : undefined
 						}
 					/>
 				);
