@@ -1,5 +1,5 @@
 
-const { ReactNative as RN, stylesheet } = vendetta.metro.common
+const { ReactNative: RN, stylesheet } = vendetta.metro.common
 const { getAssetIDByName } vendetta.ui.assets
 const { Forms } = vendetta.ui.components
 
