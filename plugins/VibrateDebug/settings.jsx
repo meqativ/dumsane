@@ -1,4 +1,5 @@
 const { React, ReactNative } = vendetta.metro.common;
+import Card from "./Card.tsx"
 const {
 	plugin: { storage },
 	storage: { useProxy },
@@ -7,9 +8,6 @@ const {
 		toasts: { showToast },
 		components: { Forms },
 		assets: { getAssetIDByName: getAsset },
-		settings: {
-			components: { Card },
-		},
 	},
 } = vendetta;
 if (true || !("schemes" in storage)) storage["schemes"] = [];
