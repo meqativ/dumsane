@@ -1,6 +1,6 @@
 
 import { ReactNative as RN, stylesheet } from "@vendetta/metro/common";
-import { findByProps } from "@vendetta/metro/filters";
+import { findByProps } from "@vendetta/metro";
 import { getAssetIDByName } from "@vendetta/ui/assets";
 import { semanticColors } from "@vendetta/ui/color";
 import { Forms } from "@vendetta/ui/components";
