@@ -1,8 +1,8 @@
 
-import { ReactNative as RN, stylesheet } from "@vendetta/metro/common";
-import { getAssetIDByName } from "@vendetta/ui/assets";
-import { semanticColors } from "@vendetta/ui/color";
-import { Forms } from "@vendetta/ui/components";
+const { ReactNative as RN, stylesheet } = vendetta.metro.common
+const { getAssetIDByName } vendetta.ui.assets
+const { semanticColors } = vendetta.ui
+const { Forms } = vendetta.ui.components
 
 const { FormRow, FormSwitch, FormRadio } = Forms;
 const { hideActionSheet } = vendetta.metro.findByProps("openLazy", "hideActionSheet");
