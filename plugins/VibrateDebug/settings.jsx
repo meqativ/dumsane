@@ -72,7 +72,7 @@ export default (props) => {
 							headerLabel={scheme?.name}
 							descriptionLabel={scheme?.description}
 							headerIcon={"check"}
-							toggleValue=false
+							toggleValue={false}
 							toggleType={
 								<Button
 									style={buttonStyle}
