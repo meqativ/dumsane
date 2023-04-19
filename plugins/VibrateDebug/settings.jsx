@@ -7,6 +7,9 @@ const {
 		toasts: { showToast },
 		components: { Forms },
 		assets: { getAssetIDByName: getAsset },
+		settings: {
+			components: { Card },
+		},
 	},
 } = vendetta;
 if (true || !("schemes" in storage)) storage["schemes"] = [];
@@ -23,6 +26,7 @@ export default (props) => {
 
 	const buttonStyle = {
 		//paddingTop: 5,
+		height: 5,
 		margin: 8,
 	};
 
@@ -40,9 +44,9 @@ export default (props) => {
 						initialValue: "",
 						placeholder: "Name",
 						onConfirm: (name) => {
-							storage["schemes"].push({name});
+							storage["schemes"].push({ name });
 							showToast(`Created ${name}`, getAsset("check"));
-							alert(JSON.stringify(storage["schemes"],0,4));
+							alert(JSON.stringify(storage["schemes"], 0, 4));
 						},
 						confirmText: "Create",
 						confirmColor: undefined,
@@ -51,8 +55,37 @@ export default (props) => {
 				}
 			/>
 			<ReactNative.ScrollView>
-				{storage["schemes"].map((scheme) => {
-					return <FormText>{scheme.name}</FormText>;
+				{storage["schemes"].map((scheme, i) => {
+					const h = {
+						toggleValue, // true/false
+						index,
+						headerLabel,
+						descriptionLabel,
+						overflowActions, // ••• button actions array
+						overflowTitle, // ••• popup title
+						actions, // [{icon, onPress}] // icon: asset id
+						headerIcon, //either react element or asset id
+						toggleType, // "switch", if not uses RN.Pressable
+						onToggleChange, // {?pressableState}
+					};
+					return (
+						<Card
+							index={i}
+							headerLabel={scheme?.name}
+							descriptionLabel={scheme?.description}
+							headerIcon={"check"}
+							toggleType={
+								<Button
+									style={buttonStyle}
+									color="brand"
+									text="Run"
+									size="small"
+									disabled={false}
+									onPress={() => scheme?.run?.()}
+								/>
+							}
+						/>
+					);
 				})}
 			</ReactNative.ScrollView>
 		</>
