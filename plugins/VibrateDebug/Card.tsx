@@ -54,8 +54,7 @@ interface CardProps {
 	index?: number;
 	headerLabel: string | React.ComponentType;
 	headerIcon?: string;
-	toggleType?: "switch" | "radio";
-	toggleValue?: boolean;
+	button: object;
 	onToggleChange?: (v: boolean) => void;
 	descriptionLabel?: string | React.ComponentType;
 	actions?: Action[];
@@ -64,7 +63,7 @@ interface CardProps {
 }
 
 export default function Card(props: CardProps) {
-	let pressableState = props.toggleValue ?? false;
+	let pressableState = true;
 
 	return (
 		<RN.View style={[styles.card, { marginTop: props.index !== 0 ? 10 : 0 }]}>
@@ -77,24 +76,7 @@ export default function Card(props: CardProps) {
 					)
 				}
 				trailing={
-					props.toggleType &&
-					(props.toggleType === "switch" ? (
-						<FormSwitch
-							style={RN.Platform.OS === "android" && { marginVertical: -15 }}
-							value={props.toggleValue}
-							onValueChange={props.onToggleChange}
-						/>
-					) : (
-						<RN.Pressable
-							onPress={() => {
-								pressableState = !pressableState;
-								props.onToggleChange?.(pressableState);
-							}}
-						>
-							{/* TODO: Look into making this respect brand color */}
-							<FormRadio selected={props.toggleValue} />
-						</RN.Pressable>
-					))
+					props.button 
 				}
 			/>
 			<FormRow
