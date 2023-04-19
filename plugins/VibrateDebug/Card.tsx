@@ -1,7 +1,6 @@
 
 const { ReactNative as RN, stylesheet } = vendetta.metro.common
 const { getAssetIDByName } vendetta.ui.assets
-const { semanticColors } = vendetta.ui
 const { Forms } = vendetta.ui.components
 
 const { FormRow, FormSwitch, FormRadio } = Forms;
@@ -11,12 +10,12 @@ const { showSimpleActionSheet } = vendetta.metro.findByProps("showSimpleActionSh
 // TODO: These styles work weirdly. iOS has cramped text, Android with low DPI probably does too. Fix?
 const styles = stylesheet.createThemedStyleSheet({
     card: {
-        backgroundColor: semanticColors?.BACKGROUND_SECONDARY,
+        backgroundColor: vendetta.ui.semanticColors?.BACKGROUND_SECONDARY,
         borderRadius: 5,
     },
     header: {
         padding: 0,
-        backgroundColor: semanticColors?.BACKGROUND_TERTIARY,
+        backgroundColor: vendetta.ui.semanticColors?.BACKGROUND_TERTIARY,
         borderTopLeftRadius: 5,
         borderTopRightRadius: 5,
     },
@@ -28,7 +27,7 @@ const styles = stylesheet.createThemedStyleSheet({
         width: 22,
         height: 22,
         marginLeft: 5,
-        tintColor: semanticColors?.INTERACTIVE_NORMAL,
+        tintColor: vendetta.ui.semanticColors?.INTERACTIVE_NORMAL,
     },
 })
 
