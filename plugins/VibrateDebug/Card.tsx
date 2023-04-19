@@ -1,13 +1,12 @@
 
 import { ReactNative as RN, stylesheet } from "@vendetta/metro/common";
-import { findByProps } from "@vendetta/metro";
 import { getAssetIDByName } from "@vendetta/ui/assets";
 import { semanticColors } from "@vendetta/ui/color";
 import { Forms } from "@vendetta/ui/components";
 
 const { FormRow, FormSwitch, FormRadio } = Forms;
-const { hideActionSheet } = findByProps("openLazy", "hideActionSheet");
-const { showSimpleActionSheet } = findByProps("showSimpleActionSheet");
+const { hideActionSheet } = vendetta.metro.findByProps("openLazy", "hideActionSheet");
+const { showSimpleActionSheet } = vendetta.metro.findByProps("showSimpleActionSheet");
 
 // TODO: These styles work weirdly. iOS has cramped text, Android with low DPI probably does too. Fix?
 const styles = stylesheet.createThemedStyleSheet({
