@@ -41,7 +41,6 @@ export default {
 					event.messages = event.messages.map(transformMessagePK);
 					return [event];
 				} else if (event.type === "MESSAGE_CREATE") {
-					if (event.optimistic) return;
 					event.message = transformMessagePK(event.message);
 					return [event];
 				}
