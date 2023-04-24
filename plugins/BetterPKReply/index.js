@@ -26,8 +26,9 @@ function transformMessagePK(message) {
 				username: e.author.name.substring(0,e.author.name-2),
 			},
 			content: e.description.substring(e.indexOf(")"), e.description.length)
-		};}
+		};
 	if (message.id === "1099648298723332176") console.log(message)
+	}
 	return message;
 }
 export default {
