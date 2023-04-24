@@ -47,7 +47,7 @@ export default {
 				}
 			}
 		);*/
-		this.onUnload = vendetta.patcher.before("updateRows", vendetta.metro.common.ReactNative.modules.DCDChatManager, ([rows]) => {
+		this.onUnload = vendetta.patcher.before("updateRows", vendetta.metro.common.ReactNative.NativeModules.DCDChatManager, ([rows]) => {
 			const rowsa = JSON.parse(rows);
 			console.log(rowsa);
 			// return [JSON.stringify(rowsa)]
