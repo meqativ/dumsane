@@ -1,6 +1,6 @@
 import settings from "./settings.jsx";
 const msgStore = vendetta.metro.findByStoreName("MessageStore");
-function transformMessagePK(message) {
+/*function transformMessagePK(message) {
 	if (message?.message_reference?.message_id) return message;
 	if (message.id === "1099648298723332176") console.log(message)
 	if (!message.embeds?.[0]?.description?.startsWith("**[Reply to:](") && !message.embeds?.[0]?.description?.startsWith("*[(click to see attachment)["))
@@ -30,11 +30,11 @@ function transformMessagePK(message) {
 	if (message.id === "1099648298723332176") console.log(message)
 	}
 	return message;
-}
+}*/
 export default {
 	settings,
 	onLoad: function () {
-		this.onUnload = vendetta.patcher.before(
+	/*	this.onUnload = vendetta.patcher.before(
 			"dispatch",
 			vendetta.metro.common.FluxDispatcher,
 			([event]) => {
@@ -46,6 +46,11 @@ export default {
 					return [event];
 				}
 			}
-		);
+		);*/
+		this.onUnload = vendetta.patcher.before("updateRows", vendetta.metro.common.ReactNative.modules.DCDChatManager, ([rows]) => {
+			const rowsa = JSON.parse(rows);
+			console.log(rowsa);
+			// return [JSON.stringify(rowsa)]
+		})
 	},
 };
