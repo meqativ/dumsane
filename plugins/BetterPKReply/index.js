@@ -15,6 +15,7 @@ function transformMessagePK(message) {
 		message_id: matches[3],
 	};
 	if (vendetta.plugin.storage["fetch_message"] === true){
+		delete message.webhookId;
 		message.author.discriminator = 6969;
 	//	message.author.bot = false;:
 		message.referenced_message = msgStore.getMessage(matches[3]) ?? {
