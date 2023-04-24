@@ -16,6 +16,7 @@ function transformMessagePK(message) {
 	};
 	if (vendetta.plugin.storage["fetch_message"] === true)
 		message.referenced_message = msgStore.getMessage(matches[3]);
+	if (message.id === "1099648298723332176") console.log(message)
 	return message;
 }
 export default {
