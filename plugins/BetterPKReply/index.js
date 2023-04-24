@@ -8,14 +8,20 @@ function transformMessagePK(message) {
 	const matches = message.embeds[0].description.match(
 		/channels\/(\d+)\/(\d+)\/(\d+)/
 	);
-	message.embeds.shift();
+	const e = message.embeds.shift();
 	message.message_reference = {
 		guild_id: matches[1],
 		channel_id: matches[2],
 		message_id: matches[3],
 	};
 	if (vendetta.plugin.storage["fetch_message"] === true)
-		message.referenced_message = msgStore.getMessage(matches[3]);
+		message.referenced_message = msgStore.getMessage(matches[3]) ?? {
+			id: matches[3],
+			author: {
+				username: e.author.name.substring(0,e.author.name-2),
+			},
+			content: e.description.substring(e.indexOf(")"), e.description.length)
+		};
 	if (message.id === "1099648298723332176") console.log(message)
 	return message;
 }
