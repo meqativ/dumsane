@@ -16,7 +16,7 @@ function transformMessagePK(message) {
 	};
 	if (vendetta.plugin.storage["fetch_message"] === true){
 		delete message.webhook_id;
-		delete message.application_id:
+		delete message.application_id;
 		console.log("h")
 		message.author.discriminator = 6969;
 	//	message.author.bot = false;:
