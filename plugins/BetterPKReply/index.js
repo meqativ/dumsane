@@ -25,7 +25,7 @@ export default {
 			"dispatch",
 			vendetta.metro.common.FluxDispatcher,
 			([event]) => {
-				if (event.type === "LOAD_MESSAGES_SUCCES") {
+				if (event.type === "LOAD_MESSAGES_SUCCESS") {
 					event.messages = event.messages.map(transformMessagePK);
 					return [event];
 				} else if (event.type === "MESSAGE_CREATE") {
