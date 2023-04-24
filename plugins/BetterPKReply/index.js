@@ -2,7 +2,7 @@ import settings from "./settings.jsx";
 const msgStore = vendetta.metro.findByStoreName("MessageStore");
 function transformMessagePK(message) {
 	if (message?.message_reference?.message_id) return message;
-	if (!message.embeds?.[0]?.description?.startsWith("**[Reply to:]("))
+	if (!message.embeds?.[0]?.description?.startsWith("**[Reply to:](") && !message.embeds?.[0]?.description?.startsWith("*[(click to see attachment)["))
 		return message;
 	const matches = message.embeds[0].description.match(
 		/channels\/(\d+)\/(\d+)\/(\d+)/
