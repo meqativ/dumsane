@@ -1,0 +1,7 @@
+{
+	"name": "Better PluralKit Replies (BetterPKReply)",
+	"description": "Makes the PluralKit's proxy messages look better when someone replies",
+	"authors": [{ "name": "meqativ :3", "id": "744276454946242723" }],
+	"main": "./index.js",
+	"vendetta": { "icon": "ic_swipe_reply_24px" }
+}
