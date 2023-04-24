@@ -1,9 +1,9 @@
 import settings from "./settings.jsx";
 const msgStore = vendetta.metro.findByStoreName("MessageStore");
-function transformMessagePK(msg) {
-	if (message?.message_reference?.message_id) return msg;
+function transformMessagePK(message) {
+	if (message?.message_reference?.message_id) return message;
 	if (!message.embeds?.[0]?.description?.startsWith("**[Reply to:]("))
-		return msg;
+		return message;
 	const matches = message.embeds[0].description.match(
 		/channels\/(\d+)\/(\d+)\/(\d+)/
 	);
@@ -15,7 +15,7 @@ function transformMessagePK(msg) {
 	};
 	if (vendetta.plugin.storage["fetch_message"] === true)
 		message.referenced_message = msgStore.getMessage(matches[3]);
-	return msg;
+	return message;
 }
 export default {
 	settings,
