@@ -14,14 +14,16 @@ function transformMessagePK(message) {
 		channel_id: matches[2],
 		message_id: matches[3],
 	};
-	if (vendetta.plugin.storage["fetch_message"] === true)
+	if (vendetta.plugin.storage["fetch_message"] === true){
+		message.author.discriminator = 6969;
+	//	message.author.bot = false;:
 		message.referenced_message = msgStore.getMessage(matches[3]) ?? {
 			id: matches[3],
 			author: {
 				username: e.author.name.substring(0,e.author.name-2),
 			},
 			content: e.description.substring(e.indexOf(")"), e.description.length)
-		};
+		};}
 	if (message.id === "1099648298723332176") console.log(message)
 	return message;
 }
