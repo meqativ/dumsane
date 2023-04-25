@@ -23,7 +23,7 @@ plugin.onLoad = () =>
 
 				let message = "This message was deleted.";
 				if (storage["timestamps"]) message += ` (${vendetta.metro.common.moment(new Date()).toLocaleString()})`;
-
+				console.log("[NoDelete]", args[0])
 				args[0] = {
 					type: "MESSAGE_EDIT_FAILED_AUTOMOD",
 					messageData: {
@@ -38,6 +38,7 @@ plugin.onLoad = () =>
 						message,
 					},
 				};
+				console.log("[NoDelete]", args[0])
 				return args;
 			}
 		}
