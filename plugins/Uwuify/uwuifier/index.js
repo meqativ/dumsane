@@ -32,6 +32,8 @@ export default class Uwuifier {
                 "^-^",
                 ":3",
                 "x3",
+								";3",
+								":3c"
             ]
         });
         Object.defineProperty(this, "exclamations", {
@@ -54,11 +56,11 @@ export default class Uwuifier {
                 "*runs away*",
                 "*screeches*",
                 "*walks away*",
-                "*sees bulge*",
+             //   "*sees bulge*",
                 "*looks at you*",
-                "*notices buldge*",
+               // "*notices buldge*",
                 "*starts twerking*",
-                "*huggles tightly*",
+                "*huggles tightly*",//:trolleyzoom:
                 "*boops your nose*",
             ]
         });
