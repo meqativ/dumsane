@@ -1,4 +1,4 @@
-import Uwuifier from "./uwuifier/index.ts";
+import Uwuifier from "./uwuifier/index.js";
 import Settings from "./settings.jsx";
 import { cmd } from "../VibrateDebug/helpers.js";
 let uwuifier = new Uwuifier();
