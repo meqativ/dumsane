@@ -1,47 +1,53 @@
-import settings from "./settings.jsx";
-
-const plugin = { settings };
+import settings from "./settings.jsx"
 const {
 	plugin: { storage },
-	patcher: { before },
 } = vendetta;
-let deleteable = []; //shitcode (idk how to do otherwise)
-plugin.onLoad = () =>
-	(plugin.onUnload = before(
-		"dispatch",
-		vendetta.metro.common.FluxDispatcher,
-		(args) => {
-			const [dispatched] = args;
+let deleteable = []; // shitcode (idk how to do otherwise)
 
-			if (dispatched.type === "MESSAGE_DELETE") {
-				if (deleteable.includes(dispatched.id)) {
-					delete deleteable[deleteable.indexOf(dispatched.id)], args;
-					return args
-				}
-				deleteable.push(dispatched.id);
+const plugin = {
+	settings,
+	onLoad() {
+		const me = vendetta.metro.findByStoreName("UserStore").getCurrentUer().id === "7442764549462427238";
 
+		this.onUnload = vendetta.patcher.before(
+			"dispatch",
+			vendetta.metro.common.FluxDispatcher,
+			(args) => {
+				const [event] = args;
 
-				let message = "This message was deleted.";
-				if (storage["timestamps"]) message += ` (${vendetta.metro.common.moment(new Date()).toLocaleString()})`;
-				console.log("[NoDelete]", args[0])
-				args[0] = {
-					type: "MESSAGE_EDIT_FAILED_AUTOMOD",
-					messageData: {
-						type: 1,
-						message: {
-							channelId: dispatched.channelId,
-							messageId: dispatched.id,
+				if (event.type === "MESSAGE_DELETE") {
+					if (deleteable.includes(event.id)) {
+						delete deleteable[deleteable.indexOf(event.id)], args;
+						return args;
+					}
+					deleteable.push(event.id);
+
+					let message = "This message was deleted";
+					if (storage["timestamps"])
+						message += ` (${vendetta.metro.common
+							.moment(new Date())
+							.toLocaleString()})`;
+					if (me || window?.debugpls) console.log("[NoDelete › before]", args);
+					args[0] = {
+						type: "MESSAGE_EDIT_FAILED_AUTOMOD",
+						messageData: {
+							type: 1,
+							message: {
+								channelId: event.channelId,
+								messageId: event.id,
+							},
 						},
-					},
-					errorResponseBody: {
-						code: 200000,
-						message,
-					},
-				};
-				console.log("[NoDelete]", args[0])
-				return args;
+						errorResponseBody: {
+							code: 200000,
+							message,
+						},
+					};
+					if (me || window?.debugpls) console.log("[NoDelete] › after", args);
+					return args;
+				}
 			}
-		}
-	));
+		);
+	},
+};
 
 export default plugin;
