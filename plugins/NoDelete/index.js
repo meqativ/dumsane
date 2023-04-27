@@ -1,4 +1,4 @@
-import settings from "./settings.jsx"
+import settings from "./settings.jsx";
 const {
 	plugin: { storage },
 } = vendetta;
@@ -7,7 +7,9 @@ let deleteable = []; // shitcode (idk how to do otherwise)
 const plugin = {
 	settings,
 	onLoad() {
-		const me = vendetta.metro.findByStoreName("UserStore").getCurrentUer().id === "7442764549462427238";
+		const me =
+			vendetta.metro.findByStoreName("UserStore").getCurrentUser().id ===
+			"7442764549462427238";
 
 		this.onUnload = vendetta.patcher.before(
 			"dispatch",
