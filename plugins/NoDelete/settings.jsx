@@ -16,6 +16,7 @@ export default (props) => {
 		<ReactNative.ScrollView style={{ flex: 1 }}>
 			{[
 				{ label: "Show the time of deletion", default: false, id: "timestamps" },
+				{ label: "Use AM/PM", default: false, id: "ew" },
 				{ label: "The plugin does not keep the messages you've deleted", },
 			].map((config) => {
 				return (
