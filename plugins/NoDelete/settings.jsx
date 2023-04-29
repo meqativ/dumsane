@@ -8,15 +8,15 @@ const {
 } = vendetta;
 if (!("timestamps" in storage)) storage["timestamps"] = false;
 
-const { FormRow, FormSection, FormSwitch } = Forms;
+const { FormRow, FormSwitch } = Forms;
 
-export default (props) => {
+export default () => {
 	useProxy(storage);
 	return (
 		<ReactNative.ScrollView style={{ flex: 1 }}>
 			{[
 				{ label: "Show the time of deletion", default: false, id: "timestamps" },
-				{ label: "Use AM/PM", default: false, id: "ew" },
+				{ label: "Use AM/PM", default: false, id: "dateformat" },
 				{ label: "The plugin does not keep the messages you've deleted", },
 			].map((config) => {
 				return (
