@@ -1,7 +1,7 @@
 {
 	"name": "NoDelete",
-	"description": "Marks the deleted messages with a red background",
+	"description": "Keeps deleted messages untill you restart the app or  dissmiss them",
 	"authors": [{ "name": "meqativ :3", "id": "744276454946242723" }],
 	"main": "./index.js",
-	"vendetta": { "icon": "ic_application_command_24px" }
+	"vendetta": { "icon": "ic_hide_24px" }
 }
