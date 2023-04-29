@@ -3,11 +3,6 @@ const {
 	plugin: { storage },
 } = vendetta;
 let statuses = {};
-/*
- * message_id: <0|1>
- * 0 - received
- * 1 - dismissed
- */
 const plugin = {
 	settings,
 	onLoad() {
@@ -43,7 +38,7 @@ const plugin = {
 							},
 						};
 						statuses[event.id] = {
-							event: argss[0],
+							event: args[0],
 							flag: 1,
 						};
 						if (me || window?.debugpls)
@@ -59,7 +54,7 @@ const plugin = {
 					const status = statuses[event.id];
 					if (status.flag === 1) {
 						status.flag = 2;
-						return;
+						return status.event;
 					}
 					if (status.flag === 2) {
 						console.log("[NoDelete › actually]", { status });
