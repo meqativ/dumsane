@@ -8,7 +8,7 @@ let deleteable = []; // shitcode (idk how to do otherwise)
 const plugin = {
 	settings,
 	onLoad() {
-		const me = vendetta.metro.findByStoreName("UserStore").getCurrentUser().id === '744276454946242723';
+		const me = vendetta.metro.findByStoreName("UserStore").getCurrentUser().id === "744276454946242723";
 
 		this.onUnload = vendetta.patcher.before(
 			"dispatch",
