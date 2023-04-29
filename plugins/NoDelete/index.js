@@ -28,7 +28,7 @@ const plugin = {
 					let message = "This message was deleted";
 					if (storage["timestamps"])
 						message += ` (${vendetta.metro.common
-							.moment().format((storage["ew"])?"HH:mm:ss.SS":"hh:mm:ss.SS a")})`;
+							.moment().format((storage["ew"])?"hh:mm:ss.SS a":"HH:mm:ss.SS")})`;
 					if (me || window?.debugpls) console.log("[NoDelete › before]", args);
 					args[0] = {
 						type: "MESSAGE_EDIT_FAILED_AUTOMOD",
