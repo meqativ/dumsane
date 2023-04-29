@@ -1,4 +1,3 @@
-
 import settings from "./settings.jsx";
 const {
 	plugin: { storage },
@@ -24,13 +23,11 @@ const plugin = {
 
 				if (event.type === "MESSAGE_DELETE") {
 					if (me || window?.debugpls) console.log("[NoDelete › before]", args);
-					if (typeof statuses[event.id] === "undefined") {
+					if (!statuses[event.id]) {
 						let message = "This message was deleted";
 						if (storage["timestamps"])
 							message += ` (${vendetta.metro.common
-								.moment(new Date())
-								.toLocaleString()})`;
-
+								.moment().format("HH:mm:ss.SS")})`;
 						args[0] = {
 							type: "MESSAGE_EDIT_FAILED_AUTOMOD",
 							messageData: {
@@ -45,16 +42,30 @@ const plugin = {
 								message,
 							},
 						};
-						statuses[event.id] = 0;
-					if (me || window?.debugpls) console.log("[NoDelete › after]", {status: statuses[event.id], args});
-					} else if (statuses[event.id] === 0) {
-						statuses[event.id] = 1;
-						return [{type: "nodelet"}]
-					} else if (statuses[event.id] === 1) {
-						delete statuses[event.id];
+						statuses[event.id] = {
+							event: argss[0],
+							flag: 1,
+						};
+						if (me || window?.debugpls)
+							console.log("[NoDelete › after]", {
+								status: statuses[event.id],
+								args,
+							});
+						return args;
 					}
 
-					return args;
+					// received another delete event for the same message
+					// happens when you delete a message or when you press dismiss
+					const status = statuses[event.id];
+					if (status.flag === 1) {
+						status.flag = 2;
+						return;
+					}
+					if (status.flag === 2) {
+						console.log("[NoDelete › actually]", { status });
+						delete statuses[event.id];
+						return args;
+					}
 				}
 			}
 		);
