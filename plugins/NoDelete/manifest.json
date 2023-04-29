@@ -1,7 +1,10 @@
 {
 	"name": "NoDelete",
 	"description": "Marks the deleted messages with a red background",
-	"authors": [{ "name": "meqativ :3", "id": "744276454946242723" }],
+	"authors": [
+		{ "name": "meqativ :3", "id": "744276454946242723" },
+		{ "name": "Angelix", "id": "692632336961110087" }
+	],
 	"main": "./index.js",
 	"vendetta": { "icon": "ic_application_command_24px" }
 }
