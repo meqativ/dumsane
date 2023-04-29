@@ -49,6 +49,8 @@ const plugin = {
 					if (me || window?.debugpls) console.log("[NoDelete › after]", {status: statuses[event.id], args});
 					} else if (statuses[event.id] === 0) {
 						statuses[event.id] = 1
+						return []
+					} else id (statuses[event.id] === 1) {
 						delete statuses[event.id];
 					}
 
