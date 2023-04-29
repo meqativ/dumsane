@@ -21,9 +21,9 @@ const plugin = {
 			vendetta.metro.common.FluxDispatcher,
 			(args) => {
 				const [event] = args;
+					if (me || window?.debugpls) console.log("[NoDelete › before]", args);
 
 				if (event.type === "MESSAGE_DELETE") {
-					if (me || window?.debugpls) console.log("[NoDelete › before]", args);
 					if (typeof statuses[event.id] === "undefined") {
 						let message = "This message was deleted";
 						if (storage["timestamps"])
@@ -48,9 +48,9 @@ const plugin = {
 						statuses[event.id] = 0;
 					if (me || window?.debugpls) console.log("[NoDelete › after]", {status: statuses[event.id], args});
 					} else if (statuses[event.id] === 0) {
-						statuses[event.id] = 1
+						statuses[event.id] = 1;
 						return []
-					} else id (statuses[event.id] === 1) {
+					} else if (statuses[event.id] === 1) {
 						delete statuses[event.id];
 					}
 
