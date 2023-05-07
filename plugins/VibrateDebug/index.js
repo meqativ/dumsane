@@ -1,5 +1,5 @@
 import settings from "./settings.jsx";
-import help from "./helpers.js";
+import { cmdDisplays } from "../../helpers/index.js";
 
 const {
   logger,
@@ -20,7 +20,7 @@ function exeCute(subcmd, args, ctx) {
 
 plugin.onLoad = () => {
   patches[0] = registerCommand(
-    help.cmd({
+    cmdDisplays({
       execute: (a, c) => exeCute("basic", a, c),
 
       name: "vibrate basic",
