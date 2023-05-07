@@ -1,6 +1,6 @@
 import Uwuifier from "./uwuifier/index.js";
 import Settings from "./settings.jsx";
-import { cmd } from "../VibrateDebug/helpers.js";
+import { cmdDisplays } from "../helpers/index.js";
 let uwuifier = new Uwuifier();
 const pluwugin = {
   reloadUwuifier,
@@ -34,7 +34,7 @@ const pluwugin = {
     } = vendetta;
 
     this.patches[0] = commands.registerCommand(
-      cmd({
+      cmdDisplays({
         execute: (optionsA, context) => {
           const options = new Map(
             optionsA.map((option) => [option.name, option])
