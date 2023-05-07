@@ -8,9 +8,7 @@ let deleteable = []; // shitcode (idk how to do otherwise)
 const plugin = {
 	settings,
 	onLoad() {
-		const me =
-			vendetta.metro.findByStoreName("UserStore").getCurrentUser().id ===
-			"7442764549462427238";
+		const me = vendetta.metro.findByStoreName("UserStore").getCurrentUser().id === "744276454946242723";
 
 		this.onUnload = vendetta.patcher.before(
 			"dispatch",
@@ -27,8 +25,7 @@ const plugin = {
 
 					let message = "This message was deleted";
 					if (storage["timestamps"])
-						message += ` (${vendetta.metro.common
-							.moment().format((storage["ew"])?"hh:mm:ss.SS a":"HH:mm:ss.SS")})`;
+						message += ` (${vendetta.metro.common.moment().format((storage["ew"])?"hh:mm:ss.SS a":"HH:mm:ss.SS")})`;
 					if (me || window?.debugpls) console.log("[NoDelete › before]", args);
 					args[0] = {
 						type: "MESSAGE_EDIT_FAILED_AUTOMOD",
