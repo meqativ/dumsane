@@ -1,6 +1,6 @@
 {
 	"name": "NoBandwidthKick",
-	"description": "Makes so that it doesn't kick you when you're in the vc alone for a long while (ported from the enmity plugin)",
+	"description": "Disables the bandwidth kick which happens when you're alone in a DM vc for a while (ported from a enmity plugin)",
 	"authors": [
 		{ "name": "mafu",       "id": "519760564755365888" },
 		{ "name": "meqativ :3", "id": "744276454946242723" }
