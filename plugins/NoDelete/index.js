@@ -6,14 +6,17 @@ let deleteable = []; // shitcode (idk how to do otherwise)
 
 const plugin = {
 	settings,
-	onUnload() {},
+	onUnload() {
+		this.unsub()
+	},
 	onLoad() {
 		vendetta.metro.common.FluxDispatcher.subscribe("CONNECTION_OPEN", run);
+		plugin.unsub = vendetta.metro.common.FluxDispatcher.unsubscribe("CONNECTION_OPEN", run);
+
 		function run(data) {
-				vendetta.metro.common.FluxDispatcher.unsubscribe(
-					"CONNECTION_OPEN",
-					run
-				);
+			console.info(data);
+			vendetta.metro.common.toasts.open({ content: "NoDelete initialised" });
+			plugin.unsub();
 			try {
 				const me =
 					vendetta.metro.findByStoreName("UserStore").getCurrentUser().id ===
