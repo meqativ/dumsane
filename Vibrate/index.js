@@ -1,2 +1,310 @@
-(function(h){"use strict";function b(e,r,d){if(!e.name||!e?.description)throw new Error(`No name(${e?.name}) or description(${e?.description}) in the passed command. (command name: ${e?.name})`);return e.displayName=r?.names?.[d]??e.name,e.displayDescription=r?.names?.[d]??e.description,e.options&&(e.options=e.options.map(function(t,n){if(!t?.name||!t?.description)throw new Error(`No name(${t?.name}) or description(${t?.description} in the option with index ${n}`);return t.displayName=r?.options?.[n]?.names?.[d]??t.name,t.displayDescription=r?.options?.[n]?.descriptions?.[d]??t.description,t})),e}const g={loadingDiscordSpinner:":loading:1105495814073229393",aol:"a:aol:1108834296359301161",linuth:":linuth:1110531631409811547",fuckyoy:":fuckyoy:1108360628302782564",getLoading(){return Math.random()<.01?this?.aol:this.loadingDiscordSpinner},getFailure(){return Math.random()<.01?this?.fuckyoy:this.linuth},getSuccess(){return""}},{metro:l,logger:D,commands:v}=vendetta,y=vendetta.metro.common.ReactNative.Vibration,{triggerHaptic:w}=vendetta.metro.findByProps("triggerHaptic"),I=function(e){return l.findByProps("View").Platform.select(typeof e=="object"&&(e.hasOwnProperty("ios")||e.hasOwnProperty("android"))?e:{ios:[e],android:e})},f=function(e){return new Promise(function(r){return setTimeout(r,e)})},$=I({ios:!0,android:!1})??!1,p=[];async function A(e,r,d){typeof e>"u"&&(e={}),e.repeat||(e.repeat=1);const t={id:+Date.now(),aborting:!1,aborted:!1};p.push(t),r(t);for(let n=0;n<e.repeat;n++){if($){const c=setInterval(w,5);await f(e.duration),clearInterval(c)}else y.vibrate(1e69),await f(e.duration),y.clear();if(t.aborting===!0){t.aborted=!0;break}e.gap&&await f(e.gap)}t.deleted=delete p[p.findIndex(function(n){return n.id===t.id})],d(t)}const P={patches:[function(){for(var e=0;e<p.length;e++)p[e].aborting=!0}],onUnload(){this.patches.every(function(e){return e(),!0})},onLoad(){try{let e=function(c,a){typeof a<"u"&&"author"in a&&"avatar"in a.author&&"avatarURL"in a.author&&(t.BOT_AVATARS[a.author.avatar]=a.author.avatarURL,delete a.author.avatarURL);let i=d(c);return typeof a=="object"&&(i=l.findByProps("merge").merge(i,a)),r(c.channelId,i),i};const{receiveMessage:r}=l.findByProps("sendMessage","receiveMessage"),{createBotMessage:d}=l.findByProps("createBotMessage"),t=l.findByProps("BOT_AVATARS"),n={begin(c,a){const i={author:{username:"/vibrate begin",avatar:"command",avatarURL:AVATARS.command}};try{const o=new Map(c.map(function(u){return[u.name,u]})),s={duration:o.get("duration").value,repeat:o.get("repeat")?.value,gap:o.get("gap")?.value},m=`for ${s.duration}ms`+(s?.repeat?`, ${s.repeat} time${s.repeat===1?"":"s"}`:"")+(s?.gap?`. With a gap of ${s?.gap}ms.`:"");A(s,async function(u){e({channelId:a.channel.id,embeds:[{type:"rich",title:"<:vibrating:1095354969965731921> Started vibrating",description:m,fields:[{value:`${u.id}`,name:"Vibration ID"}]}]},i)},async function(u){e({channelId:a.channel.id,embeds:[{type:"rich",title:`<:still:1095977283212296194> ${u.aborted?"Abort":"Finish"}ed vibrating`,fields:[{value:`${u.id}`,name:"Vibration ID"}]}]},i)})}catch(o){console.error(o),e({channelId:a.channel.id,content:`\`\`\`
-${o.stack}\`\`\``,embeds:[{type:"rich",title:`<${g.getFailure()}> An error ocurred while running the command`.trim(),description:`Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`}]},i)}},abort(c,a){const i={author:{username:"/vibrate abort",avatar:"command",avatarURL:AVATARS.command}},o=new Map(c.map(function(m){return[m.name,m]})).get("id").value,s=p.findIndex(function(m){return m.id===o});if(s===-1){e({channelId:a.channel.id,embeds:{type:"rich",title:`<${g.getFailure()}> Invalid vibration ID`.trim,fields:[{value:`${o}`,name:"Vibration ID"}]}},i);return}p[s].aborting=!0,e({channelId:a.channel.id,embeds:[{type:"rich",title:`<${g.getLoading()}> Aborting vibration\u2026`,fields:[{value:`${o}`,name:"Vibration ID"}]}]},i)}};this.patches.push(v.registerCommand(b({execute:n.begin,type:1,inputType:1,applicationId:"-1",name:"vibrate begin",description:"Begin a brrr",options:[{type:4,required:!0,name:"duration",description:"Duration of one vibration (in milliseconds)",min_value:1,max_value:9999},{type:4,name:"repeat",description:"Number of times to repeat",min_value:1,max_value:9999999},{type:4,name:"gap",description:"Wait between vibrates (only matters if you have more than 1 repeat)"}]}))),this.patches.push(v.registerCommand(b({execute:n.abort,type:1,inputType:1,applicationId:"-1",name:"vibrate abort",description:"Abort a brrr",options:[{type:4,required:!0,name:"id",description:"Vibration id which you receive when running </vibrate begin:0>"}]})))}catch(e){alert(e.stack)}}};return h.default=P,Object.defineProperty(h,"__esModule",{value:!0}),h})({});
+(function (exports) {
+  'use strict';
+
+  function cmdDisplays(obj, translations, locale) {
+    if (!obj.name || !obj?.description)
+      throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command. (command name: ${obj?.name})`);
+    obj.displayName = translations?.names?.[locale] ?? obj.name;
+    obj.displayDescription = translations?.names?.[locale] ?? obj.description;
+    if (obj.options) {
+      obj.options = obj.options.map(function(option, optionIndex) {
+        if (!option?.name || !option?.description)
+          throw new Error(`No name(${option?.name}) or description(${option?.description} in the option with index ${optionIndex}`);
+        option.displayName = translations?.options?.[optionIndex]?.names?.[locale] ?? option.name;
+        option.displayDescription = translations?.options?.[optionIndex]?.descriptions?.[locale] ?? option.description;
+        return option;
+      });
+    }
+    return obj;
+  }
+  const EMOJIS = {
+    loadingDiscordSpinner: ":loading:1105495814073229393",
+    aol: "a:aol:1108834296359301161",
+    linuth: ":linuth:1110531631409811547",
+    fuckyoy: ":fuckyoy:1108360628302782564",
+    getLoading() {
+      return Math.random() < 0.01 ? this?.aol : this.loadingDiscordSpinner;
+    },
+    getFailure() {
+      return Math.random() < 0.01 ? this?.fuckyoy : this.linuth;
+    },
+    getSuccess() {
+      return "";
+    }
+  };
+
+  const { metro, logger, commands } = vendetta;
+  const Vibration = vendetta.metro.common.ReactNative.Vibration;
+  const { triggerHaptic } = vendetta.metro.findByProps("triggerHaptic");
+  const plat = function(n) {
+    return metro.findByProps("View").Platform.select(typeof n === "object" && (n.hasOwnProperty("ios") || n.hasOwnProperty("android")) ? n : {
+      ios: [
+        n
+      ],
+      android: n
+    });
+  };
+  const wait = function(ms) {
+    return new Promise(function(res) {
+      return setTimeout(res, ms);
+    });
+  };
+  const ios = plat({
+    ios: true,
+    android: false
+  }) ?? false;
+  const vibrations = [];
+  async function vibrate(options, startCb, finishCb) {
+    if (typeof options === "undefined")
+      options = {};
+    if (!options.repeat)
+      options.repeat = 1;
+    const vibration = {
+      id: +Date.now(),
+      aborting: false,
+      aborted: false
+    };
+    vibrations.push(vibration);
+    startCb(vibration);
+    for (let i = 0; i < options.repeat; i++) {
+      if (ios) {
+        const interval = setInterval(triggerHaptic, 5);
+        await wait(options.duration);
+        clearInterval(interval);
+      } else {
+        Vibration.vibrate(1e69);
+        await wait(options.duration);
+        Vibration.clear();
+      }
+      if (vibration.aborting === true) {
+        vibration.aborted = true;
+        break;
+      }
+      if (options.gap)
+        await wait(options.gap);
+    }
+    vibration.deleted = delete vibrations[vibrations.findIndex(function(v) {
+      return v.id === vibration.id;
+    })];
+    finishCb(vibration);
+  }
+  const plugin = {
+    patches: [
+      function() {
+        for (var i = 0; i < vibrations.length; i++) {
+          vibrations[i].aborting = true;
+        }
+      }
+    ],
+    onUnload() {
+      this.patches.every(function(p) {
+        return p(), true;
+      });
+    },
+    onLoad() {
+      try {
+        let sendMessage = function(message, mod) {
+          if (typeof mod !== "undefined" && "author" in mod) {
+            if ("avatar" in mod.author && "avatarURL" in mod.author) {
+              Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
+              delete mod.author.avatarURL;
+            }
+          }
+          let msg = createBotMessage(message);
+          if (typeof mod === "object")
+            msg = metro.findByProps("merge").merge(msg, mod);
+          receiveMessage(message.channelId, msg);
+          return msg;
+        };
+        const { receiveMessage } = metro.findByProps("sendMessage", "receiveMessage");
+        const { createBotMessage } = metro.findByProps("createBotMessage");
+        const Avatars = metro.findByProps("BOT_AVATARS");
+        const exeCute = {
+          begin(args, context) {
+            const authorMods = {
+              author: {
+                username: "/vibrate begin",
+                avatar: "command",
+                avatarURL: AVATARS.command
+              }
+            };
+            try {
+              const cmdOptions = new Map(args.map(function(option) {
+                return [
+                  option.name,
+                  option
+                ];
+              }));
+              const options = {
+                duration: cmdOptions.get("duration").value,
+                repeat: cmdOptions.get("repeat")?.value,
+                gap: cmdOptions.get("gap")?.value
+              };
+              const description = `for ${options.duration}ms` + (options?.repeat ? `, ${options.repeat} time${options.repeat === 1 ? "" : "s"}` : "") + (options?.gap ? `. With a gap of ${options?.gap}ms.` : "");
+              vibrate(options, async function(vibration) {
+                sendMessage({
+                  channelId: context.channel.id,
+                  embeds: [
+                    {
+                      type: "rich",
+                      title: `<:vibrating:1095354969965731921> Started vibrating`,
+                      description,
+                      fields: [
+                        {
+                          value: `${vibration.id}`,
+                          name: "Vibration ID"
+                        }
+                      ]
+                    }
+                  ]
+                }, authorMods);
+              }, async function(vibration) {
+                sendMessage({
+                  channelId: context.channel.id,
+                  embeds: [
+                    {
+                      type: "rich",
+                      title: `<:still:1095977283212296194> ${vibration.aborted ? "Abort" : "Finish"}ed vibrating`,
+                      fields: [
+                        {
+                          value: `${vibration.id}`,
+                          name: "Vibration ID"
+                        }
+                      ]
+                    }
+                  ]
+                }, authorMods);
+              });
+            } catch (error) {
+              console.error(error);
+              sendMessage({
+                channelId: context.channel.id,
+                content: `\`\`\`
+${error.stack}\`\`\``,
+                embeds: [
+                  {
+                    type: "rich",
+                    title: `<${EMOJIS.getFailure()}> An error ocurred while running the command`.trim(),
+                    description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`
+                  }
+                ]
+              }, authorMods);
+            }
+          },
+          abort(args, context) {
+            const authorMods = {
+              author: {
+                username: "/vibrate abort",
+                avatar: "command",
+                avatarURL: AVATARS.command
+              }
+            };
+            const options = new Map(args.map(function(option) {
+              return [
+                option.name,
+                option
+              ];
+            }));
+            const id = options.get("id").value;
+            const vibrationIndex = vibrations.findIndex(function(vibration) {
+              return vibration.id === id;
+            });
+            if (vibrationIndex === -1) {
+              sendMessage({
+                channelId: context.channel.id,
+                embeds: {
+                  type: "rich",
+                  title: `<${EMOJIS.getFailure()}> Invalid vibration ID`.trim,
+                  fields: [
+                    {
+                      value: `${id}`,
+                      name: "Vibration ID"
+                    }
+                  ]
+                }
+              }, authorMods);
+              return;
+            }
+            vibrations[vibrationIndex].aborting = true;
+            sendMessage({
+              channelId: context.channel.id,
+              embeds: [
+                {
+                  type: "rich",
+                  title: `<${EMOJIS.getLoading()}> Aborting vibration\u2026`,
+                  fields: [
+                    {
+                      value: `${id}`,
+                      name: "Vibration ID"
+                    }
+                  ]
+                }
+              ]
+            }, authorMods);
+          }
+        };
+        this.patches.push(
+          /* /vibrate begin */
+          commands.registerCommand(cmdDisplays({
+            execute: exeCute.begin,
+            type: 1,
+            inputType: 1,
+            applicationId: "-1",
+            name: "vibrate begin",
+            description: `Begin a brrr`,
+            options: [
+              {
+                type: 4,
+                required: true,
+                name: "duration",
+                description: "Duration of one vibration (in milliseconds)",
+                min_value: 1,
+                max_value: 9999
+              },
+              {
+                type: 4,
+                name: "repeat",
+                description: "Number of times to repeat",
+                min_value: 1,
+                max_value: 9999999
+              },
+              {
+                type: 4,
+                name: "gap",
+                description: "Wait between vibrates (only matters if you have more than 1 repeat)"
+              }
+            ]
+          }))
+        );
+        this.patches.push(
+          /* /vibrate abort */
+          commands.registerCommand(cmdDisplays({
+            execute: exeCute.abort,
+            type: 1,
+            inputType: 1,
+            applicationId: "-1",
+            name: "vibrate abort",
+            description: `Abort a brrr`,
+            options: [
+              {
+                type: 4,
+                required: true,
+                name: "id",
+                description: "Vibration id which you receive when running </vibrate begin:0>"
+              }
+            ]
+          }))
+        );
+      } catch (e) {
+        alert(e.stack);
+      }
+    }
+  };
+
+  exports.default = plugin;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
+
+  return exports;
+
+})({});
