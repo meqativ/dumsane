@@ -47,7 +47,7 @@ plugin.onLoad = () => {
     const BotMessage = metro.findByProps("createBotMessage");
     const Avatars = metro.findByProps("BOT_AVATARS");
     function sendMessage(message, mod) {
-      if (mod?.author.avatar && mod?.author?.avatarURL) {
+      if (mod?.author?.avatar && mod?.author?.avatarURL) {
         Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
         delete mod.author.avatarURL;
       }
