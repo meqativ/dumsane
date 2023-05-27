@@ -1,7 +1,7 @@
 import { cmdDisplays, EMOJIS } from "../../helpers/index.js";
 const { metro, logger, commands } = vendetta;
 const { vibrate: vibro } = metro.findByProps("vibrate");
-
+const PLUGIN_FORUM_POST_URL = "||not proxied||";
 const plat = (n) =>
 	metro
 		.findByProps("View")
@@ -46,8 +46,11 @@ async function vibrate(options, startCb, finishCb) {
 
 plugin.onLoad = () => {
 	try {
-		const MessageActions = metro.findByProps("sendMessage", "receiveMessage");
-		const BotMessage = metro.findByProps("createBotMessage");
+		const { receiveMessage } = metro.findByProps(
+			"sendMessage",
+			"receiveMessage"
+		);
+		const { createBotMessage } = metro.findByProps("createBotMessage");
 		const Avatars = metro.findByProps("BOT_AVATARS");
 		function sendMessage(message, mod) {
 			if (typeof mod !== "undefined" && "author" in mod) {
@@ -56,10 +59,10 @@ plugin.onLoad = () => {
 					delete mod.author.avatarURL;
 				}
 			}
-			let msg = BotMessage.createBotMessage(message);
+			let msg = createBotMessage(message);
 			if (typeof mod === "object")
 				msg = metro.findByProps("merge").merge(msg, mod);
-			MessageActions.receiveMessage(message.channelId, msg);
+			receiveMessage(message.channelId, msg);
 			return msg;
 		}
 		const vibrateExeCute = {
@@ -120,7 +123,15 @@ plugin.onLoad = () => {
 						repeat: cmdOptions.get("repeat")?.value,
 						gap: cmdOptions.get("gap")?.value,
 					};
-					console.log("VIBATE", { cmdOptions, options });
+					const description =
+						`for ${options.duration}ms` +
+						(options?.repeat
+							? `, ${options.repeat} time${options.repeat === 1 ? "" : "s"}`
+							: "") +
+						"." +
+						(options?.gap ? `With a gap of ${options?.gap}ms.` : "");
+
+					console.log("VIBATE", { cmdOptions, options, description });
 					vibrate(
 						options,
 						(vibration) => {
@@ -133,18 +144,7 @@ plugin.onLoad = () => {
 										{
 											type: "rich",
 											title: `<:vibrating:1095354969965731921> Started vibrating`,
-											description:
-												`for ${options.duration}ms` +
-												(options?.repeat
-													? `, ${options.repeat} time${
-															options.repeat === 1 ? "" : "s"
-													  }`
-													: "") +
-												"." +
-												(options?.gap
-													? `With a gap of ${options?.gap}ms.`
-													: ""),
-
+											description,
 											fields: [{ value: vibration.id, name: "Vibration ID" }],
 										},
 									],
