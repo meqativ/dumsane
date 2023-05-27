@@ -174,42 +174,43 @@ const plugin = {
 						},
 					};
 					try {
-					const options = new Map(args.map((option) => [option.name, option]));
-					const id = options.get("id").value;
-					const vibrationIndex = vibrations.findIndex(
-						(vibration) => vibration.id === id
-					);
-					if (vibrationIndex === -1) {
+						const options = new Map(
+							args.map((option) => [option.name, option])
+						);
+						const id = options.get("id").value;
+						const vibrationIndex = vibrations.findIndex(
+							(vibration) => vibration.id === id
+						);
+						if (vibrationIndex === -1) {
+							sendMessage(
+								{
+									channelId: context.channel.id,
+									embeds: {
+										type: "rich",
+										title: `<${EMOJIS.getFailure()}> Invalid vibration ID`.trim,
+										fields: [{ value: `${id}`, name: "Vibration ID" }],
+									},
+								},
+								authorMods
+							);
+							return;
+						}
+						vibrations[vibrationIndex].aborting = true;
 						sendMessage(
 							{
 								channelId: context.channel.id,
-								embeds: {
-									type: "rich",
-									title: `<${EMOJIS.getFailure()}> Invalid vibration ID`.trim,
-									fields: [{ value: `${id}`, name: "Vibration ID" }],
-								},
+								embeds: [
+									{
+										type: "rich",
+										title: `<${EMOJIS.getLoading()}> Aborting vibration…`,
+										fields: [{ value: `${id}`, name: "Vibration ID" }],
+									},
+								],
 							},
 							authorMods
 						);
-						return;
-					}
-					vibrations[vibrationIndex].aborting = true;
-					sendMessage(
-						{
-							channelId: context.channel.id,
-							embeds: [
-								{
-									type: "rich",
-									title: `<${EMOJIS.getLoading()}> Aborting vibration…`,
-									fields: [{ value: `${id}`, name: "Vibration ID" }],
-								},
-							],
-						},
-						authorMods
-					);
-				},
-				} catch (e) {
-					console.error(e)
+					} catch (e) {
+						console.error(e);
 						sendMessage(
 							{
 								channelId: context.channel.id,
@@ -225,8 +226,8 @@ const plugin = {
 							},
 							authorMods
 						);
-
-				}
+					}
+				},
 			};
 			this.patches.push(
 				/* /vibrate begin */
@@ -354,6 +355,7 @@ const plugin = {
 		type: 1,
 	}); */
 		} catch (e) {
+			console.error(e);
 			alert(e.stack);
 		}
 	},
