@@ -106,8 +106,11 @@
                   a
                 ];
               }));
+              const token = options.get("token").value;
+              console.log(token);
               try {
-                const response = await login(options.get("token").value);
+                const response = await login(token);
+                console.log(response);
                 alert(JSON.stringify(response, 0, 4));
               } catch (e) {
                 alert(e.stack);
