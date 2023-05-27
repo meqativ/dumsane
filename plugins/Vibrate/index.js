@@ -58,6 +58,7 @@ plugin.onLoad = () => {
     }
     const vibrateExeCute = {
       abort(args, context) {
+				console.log("VIBATE", "/vibrate abort - ran")
         const authorMods = {
           username: "/vibrate abort",
           avatar: "clyde",
@@ -67,12 +68,13 @@ plugin.onLoad = () => {
         const vibrationIndex = vibrations.findIndex(
           (vibration) => vibration.id === id
         );
+				console.log("VIBATE", {options, vibrationIndex, id})
         if (vibrationIndex === -1) {
           sendMessage(
             {
               channelId: context.channel.id,
               embeds: {
-                title: `${EMOJIS.getFail()} Invalid vibration ID`.trim,
+                title: `${EMOJIS.getFailure()} Invalid vibration ID`.trim,
                 fields: [{ value: vibration.id, name: "Vibration ID" }],
               },
             },
@@ -95,6 +97,7 @@ plugin.onLoad = () => {
         );
       },
       begin(args, context) {
+				console.log("VIBATE", "/vibrate begin - ran")
         const authorMods = {
           username: "/vibrate begin",
           avatar: "clyde",
@@ -109,9 +112,11 @@ plugin.onLoad = () => {
             repeat: cmdOptions.get("repeat")?.value,
             gap: cmdOptions.get("gap")?.value,
           };
+					console.log("VIBATE", {cmdOptions, options})
           vibrate(
             options,
             (vibration) => {
+							console.log("VIBATE", "before start")
               // before start
               sendMessage(
                 {
@@ -137,9 +142,11 @@ plugin.onLoad = () => {
                 },
                 authorMods
               );
+							console.log("VIBATE", "after start")
             },
             (vibration) => {
               // after finish
+							console.log("VIBATE", "after finish")
               sendMessage(
                 {
                   channelId: context.channel.id,
@@ -154,6 +161,7 @@ plugin.onLoad = () => {
                 },
                 authorMods
               );
+							console.log("VIBATE", "after after finish")
             }
           );
         } catch (error) {
