@@ -3,10 +3,12 @@
 
   function cmdDisplays(obj, translations, locale) {
     if (!obj.name || !obj?.description)
-      throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command. (command name: ${obj?.name})`);
+      throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command (command name: ${obj?.name})`);
     obj.displayName = translations?.names?.[locale] ?? obj.name;
     obj.displayDescription = translations?.names?.[locale] ?? obj.description;
     if (obj.options) {
+      if (!Array.isArray(obj.options))
+        throw new Error(`Options is not an array (received: ${typeof obj.options})`);
       obj.options = obj.options.map(function(option, optionIndex) {
         if (!option?.name || !option?.description)
           throw new Error(`No name(${option?.name}) or description(${option?.description} in the option with index ${optionIndex}`);
@@ -68,7 +70,9 @@
     startCb(vibration);
     for (let i = 0; i < options.repeat; i++) {
       if (ios) {
-        const interval = setInterval(triggerHaptic, 5);
+        const interval = setInterval(function() {
+          return triggerHaptic();
+        }, 5);
         await wait(options.duration);
         clearInterval(interval);
       } else {
@@ -175,12 +179,12 @@
                   ]
                 }, authorMods);
               });
-            } catch (error) {
-              console.error(error);
+            } catch (e) {
+              console.error(e);
               sendMessage({
                 channelId: context.channel.id,
                 content: `\`\`\`
-${error.stack}\`\`\``,
+${e.stack}\`\`\``,
                 embeds: [
                   {
                     type: "rich",
@@ -199,48 +203,64 @@ ${error.stack}\`\`\``,
                 avatarURL: AVATARS.command
               }
             };
-            const options = new Map(args.map(function(option) {
-              return [
-                option.name,
-                option
-              ];
-            }));
-            const id = options.get("id").value;
-            const vibrationIndex = vibrations.findIndex(function(vibration) {
-              return vibration.id === id;
-            });
-            if (vibrationIndex === -1) {
+            try {
+              const options = new Map(args.map(function(option) {
+                return [
+                  option.name,
+                  option
+                ];
+              }));
+              const id = options.get("id").value;
+              const vibrationIndex = vibrations.findIndex(function(vibration) {
+                return vibration.id === id;
+              });
+              if (vibrationIndex === -1) {
+                sendMessage({
+                  channelId: context.channel.id,
+                  embeds: {
+                    type: "rich",
+                    title: `<${EMOJIS.getFailure()}> Invalid vibration ID`.trim,
+                    fields: [
+                      {
+                        value: `${id}`,
+                        name: "Vibration ID"
+                      }
+                    ]
+                  }
+                }, authorMods);
+                return;
+              }
+              vibrations[vibrationIndex].aborting = true;
               sendMessage({
                 channelId: context.channel.id,
-                embeds: {
-                  type: "rich",
-                  title: `<${EMOJIS.getFailure()}> Invalid vibration ID`.trim,
-                  fields: [
-                    {
-                      value: `${id}`,
-                      name: "Vibration ID"
-                    }
-                  ]
-                }
+                embeds: [
+                  {
+                    type: "rich",
+                    title: `<${EMOJIS.getLoading()}> Aborting vibration\u2026`,
+                    fields: [
+                      {
+                        value: `${id}`,
+                        name: "Vibration ID"
+                      }
+                    ]
+                  }
+                ]
               }, authorMods);
-              return;
+            } catch (e) {
+              console.error(e);
+              sendMessage({
+                channelId: context.channel.id,
+                content: `\`\`\`
+${e.stack}\`\`\``,
+                embeds: [
+                  {
+                    type: "rich",
+                    title: `<${EMOJIS.getFailure()}> An error ocurred while running the command`.trim(),
+                    description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`
+                  }
+                ]
+              }, authorMods);
             }
-            vibrations[vibrationIndex].aborting = true;
-            sendMessage({
-              channelId: context.channel.id,
-              embeds: [
-                {
-                  type: "rich",
-                  title: `<${EMOJIS.getLoading()}> Aborting vibration\u2026`,
-                  fields: [
-                    {
-                      value: `${id}`,
-                      name: "Vibration ID"
-                    }
-                  ]
-                }
-              ]
-            }, authorMods);
           }
         };
         this.patches.push(
@@ -296,6 +316,7 @@ ${error.stack}\`\`\``,
           }))
         );
       } catch (e) {
+        console.error(e);
         alert(e.stack);
       }
     }
