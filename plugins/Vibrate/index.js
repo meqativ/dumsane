@@ -24,8 +24,8 @@ async function vibrate(options, startCb = () => {}, finishCb = () => {}) {
   if (plat({ ios: true }) && duration > 400) duration = 400;
 
   const vibrationId = +Date.now();
-  const vibration = { id: vibrationId, aborting: false };
-  cb1(vibration);
+  const vibration = { id: vibrationId, aborting: false, aborted: false };
+  startCb(vibration);
   for (let i = 0; i < repeat; i++) {
     vibro(plat(options.duration), true);
     await wait(options.duration);
@@ -35,7 +35,7 @@ async function vibrate(options, startCb = () => {}, finishCb = () => {}) {
     }
     await wait(options.gap);
   }
-  cb(vibration);
+  finishCb(vibration);
 }
 
 plugin.onLoad = () => {
@@ -54,7 +54,7 @@ plugin.onLoad = () => {
       return msg;
     }
     const vibrateExeCute = {
-      abort() {
+      abort(args, context) {
         const authorMods = {
           username: "/vibrate abort",
           avatar: "clyde",
@@ -135,7 +135,7 @@ plugin.onLoad = () => {
                 authorMods
               );
             },
-            (vibration, aborted) => {
+            (vibration) => {
               // after finish
               sendMessage(
                 {
@@ -143,7 +143,7 @@ plugin.onLoad = () => {
                   embeds: [
                     {
                       title: `<:still:1095977283212296194> ${
-                        aborted ? "Abort" : "Finish"
+                        vibration.aborted ? "Abort" : "Finish"
                       }ed vibrating`,
                       fields: [{ value: vibration.id, name: "Vibration ID" }],
                     },
