@@ -16,7 +16,6 @@ const plugin = {
     this.patches.every((p) => (p(), true));
   },
 };
-in
 const vibrations = [];
 async function vibrate(options, startCb, finishCb) {
   try {
