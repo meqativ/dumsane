@@ -6,7 +6,10 @@ const plat = (n) =>
   metro
     .findByProps("View")
     .Platform.select(
-      typeof n === "object" && (n.hasOwnProperty("ios") || n.hasOwnProperty("android")) ? n : { ios: [n], android: n }
+      typeof n === "object" &&
+        (n.hasOwnProperty("ios") || n.hasOwnProperty("android"))
+        ? n
+        : { ios: [n], android: n }
     );
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
@@ -17,33 +20,34 @@ const plugin = {
   },
 };
 const vibrations = [];
-plugin.patches.push(()=>{
-	for (var i = 0; i < vibrations.length; i++) {
-		vibrations[i].aborting = true;
-	}
-}) // abort all vibrations on plugin turn off
+plugin.patches.push(() => {
+  for (var i = 0; i < vibrations.length; i++) {
+    vibrations[i].aborting = true;
+  }
+}); // abort all vibrations on plugin turn off
 async function vibrate(options, startCb, finishCb) {
-    if (typeof options === "undefined") options = {};
-    if (!options.hasOwnProperty("duration")) options.duration = 400;
-    if (!options.repeat) options.repeat = 1;
-    if (!options.hasOwnProperty("gap")) options.gap = 0;
-    if (plat({ ios: true, android: false }) && duration > 400) duration = 400;
+  if (typeof options === "undefined") options = {};
+  if (!options.hasOwnProperty("duration")) options.duration = 400;
+  if (!options.repeat) options.repeat = 1;
+  if (!options.hasOwnProperty("gap")) options.gap = 0;
+  if (plat({ ios: true, android: false }) && duration > 400) duration = 400;
 
-    const vibrationId = +Date.now();
-    const vibration = { id: vibrationId, aborting: false, aborted: false };
-		vibrations.push(vibration)
-    startCb(vibration);
-    for (let i = 0; i < options.repeat; i++) {
-      vibro(plat(options.duration), true);
-      await wait(options.duration);
-      if (vibration.aborting === true) {
-        vibration.aborted = true;
-        break;
-      }
-      await wait(options.gap);
+  const vibrationId = +Date.now();
+  const vibration = { id: vibrationId, aborting: false, aborted: false };
+  vibrations.push(vibration);
+  startCb(vibration);
+  for (let i = 0; i < options.repeat; i++) {
+    vibro(plat(options.duration), true);
+    await wait(options.duration);
+    if (vibration.aborting === true) {
+      vibration.aborted = true;
+      break;
     }
-		vibration.deleted = delete vibrations[vibrations.findIndex(v=>v.id === vibrationId)]
-    finishCb(vibration);
+    await wait(options.gap);
+  }
+  vibration.deleted =
+    delete vibrations[vibrations.findIndex((v) => v.id === vibrationId)];
+  finishCb(vibration);
 }
 
 plugin.onLoad = () => {
@@ -70,8 +74,11 @@ plugin.onLoad = () => {
     const vibrateExeCute = {
       abort(args, context) {
         const authorMods = {
-          username: "/vibrate abort",
-          avatar: "clyde",
+					author: {
+						username: "/vibrate abort",
+						avatar: "command",
+						avatarURL: AVATARS.command,
+					},
         };
         const options = new Map(args.map((option) => [option.name, option]));
         const id = options.get("id").value;
@@ -109,8 +116,11 @@ plugin.onLoad = () => {
       },
       begin(args, context) {
         const authorMods = {
-          username: "/vibrate begin",
-          avatar: "clyde",
+					author: {
+						username: "/vibrate begin",
+						avatar: "command",
+						avatarURL: AVATARS.command,
+					},
         };
 
         try {
@@ -131,7 +141,8 @@ plugin.onLoad = () => {
 
           vibrate(
             options,
-            async (vibration) => { // Before starting the vibration
+            async (vibration) => {
+              // Before starting the vibration
               sendMessage(
                 {
                   channelId: context.channel.id,
@@ -149,7 +160,8 @@ plugin.onLoad = () => {
                 authorMods
               );
             },
-            async (vibration) => { // After ending the vibration
+            async (vibration) => {
+              // After ending the vibration
               sendMessage(
                 {
                   channelId: context.channel.id,
