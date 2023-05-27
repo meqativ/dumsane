@@ -109,16 +109,9 @@
               try {
                 const response = await login(options.get("token").value);
                 alert(JSON.stringify(response, 0, 4));
-                sendMessage({
-                  channelId: ctx.channel.id,
-                  embeds: [
-                    {
-                      type: "rich",
-                      title: `<${EMOJIS.getLoading()}> Switching accounts\u2026`
-                    }
-                  ]
-                }, authorMods);
               } catch (e) {
+                alert(e.stack);
+                console.error(e);
                 sendMessage({
                   channelId: ctx.channel.id,
                   embeds: [
@@ -129,7 +122,6 @@
                     }
                   ]
                 }, authorMods);
-                console.error(e);
               }
             } catch (err) {
               console.error(err);
