@@ -6,7 +6,7 @@ const plat = (n) =>
   metro
     .findByProps("View")
     .Platform.select(
-      "ios" in n || "android" in n ? n : { ios: [n], android: n }
+      typeof n === "object" && ("ios" in n || "android" in n) ? n : { ios: [n], android: n }
     );
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
@@ -16,7 +16,7 @@ const plugin = {
     this.patches.every((p) => (p(), true));
   },
 };
-
+in
 const vibrations = [];
 async function vibrate(options, startCb, finishCb) {
   try {
