@@ -17,10 +17,13 @@ const plugin = {
   },
 };
 const vibrations = [];
+patches.push(()=>{
+	for (var i = 0; i < vibrations.length; i++) {
+		vibrations[i].aborting = true;
+	}
+}) // abort all vibrations on plugin turn off
 async function vibrate(options, startCb, finishCb) {
-  try {
     if (typeof options === "undefined") options = {};
-    console.log("VIBATE", { options, typeof: typeof options });
     if (!options.hasOwnProperty("duration")) options.duration = 400;
     if (!options.repeat) options.repeat = 1;
     if (!options.hasOwnProperty("gap")) options.gap = 0;
@@ -39,10 +42,8 @@ async function vibrate(options, startCb, finishCb) {
       }
       await wait(options.gap);
     }
+		vibration.deleted = delete vibrations[vibrations.findIndex(v=>v.id === vibrationId)]
     finishCb(vibration);
-  } catch (e) {
-    alert(e.stack);
-  }
 }
 
 plugin.onLoad = () => {
@@ -64,12 +65,10 @@ plugin.onLoad = () => {
       if (typeof mod === "object")
         msg = metro.findByProps("merge").merge(msg, mod);
       receiveMessage(message.channelId, msg);
-      console.log("VIBATE SEND MESSAGE", { msg, message });
       return msg;
     }
     const vibrateExeCute = {
       abort(args, context) {
-        console.log("VIBATE", "/vibrate abort - ran");
         const authorMods = {
           username: "/vibrate abort",
           avatar: "clyde",
@@ -79,7 +78,6 @@ plugin.onLoad = () => {
         const vibrationIndex = vibrations.findIndex(
           (vibration) => vibration.id === id
         );
-        console.log("VIBATE", { options, vibrationIndex, id });
         if (vibrationIndex === -1) {
           sendMessage(
             {
@@ -110,7 +108,6 @@ plugin.onLoad = () => {
         );
       },
       begin(args, context) {
-        console.log("VIBATE", "/vibrate begin - ran");
         const authorMods = {
           username: "/vibrate begin",
           avatar: "clyde",
@@ -132,12 +129,9 @@ plugin.onLoad = () => {
               : "") +
             (options?.gap ? `. With a gap of ${options?.gap}ms.` : "");
 
-          console.log("VIBATE", { cmdOptions, options, description });
           vibrate(
             options,
-            async (vibration) => {
-              console.log("VIBATE", "before start");
-              // before start
+            async (vibration) => { // Before starting the vibration
               sendMessage(
                 {
                   channelId: context.channel.id,
@@ -154,11 +148,8 @@ plugin.onLoad = () => {
                 },
                 authorMods
               );
-              console.log("VIBATE", "after start");
             },
-            async (vibration) => {
-              // after finish
-              console.log("VIBATE", "after finish");
+            async (vibration) => { // After ending the vibration
               sendMessage(
                 {
                   channelId: context.channel.id,
@@ -176,7 +167,6 @@ plugin.onLoad = () => {
                 },
                 authorMods
               );
-              console.log("VIBATE", "after after finish");
             }
           );
         } catch (error) {
