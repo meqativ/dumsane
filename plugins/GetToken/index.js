@@ -7,7 +7,7 @@ export default {
   },
   onLoad() {
 		try {
-    const { metro, commands, logger } = vendetta;
+    const { metro, commands} = vendetta;
     const { receiveMessage } = metro.findByProps(
       "sendMessage",
       "receiveMessage"
@@ -110,7 +110,7 @@ export default {
         }
       },
     };
-
+console.log("meow 66")
     this.patches.push(
       commands.registerCommand(
         cmdDisplays({
@@ -123,11 +123,12 @@ export default {
         })
       )
     );
+			console.log("meow 77")
     this.patches.push(
       commands.registerCommand(
         cmdDisplays({
           execute: exeCute.login,
-          name: "token get",
+          name: "token login",
           description: "Logs into an account using a token",
           options: {
             required: true,
