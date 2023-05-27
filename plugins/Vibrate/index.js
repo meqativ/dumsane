@@ -100,7 +100,7 @@ plugin.onLoad = () => {
               {
                 type: "rich",
                 title: `${EMOJIS.getLoading()} Aborting vibration…`,
-                fields: [{ value: id, name: "Vibration ID" }],
+                fields: [{ value: `${id}`, name: "Vibration ID" }],
               },
             ],
           },
