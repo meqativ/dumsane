@@ -29,7 +29,7 @@ async function vibrate(options, startCb, finishCb) {
 		const vibrationId = +Date.now();
 		const vibration = { id: vibrationId, aborting: false, aborted: false };
 		startCb(vibration);
-		for (let i = 0; i < repeat; i++) {
+		for (let i = 0; i < options.repeat; i++) {
 			vibro(plat(options.duration), true);
 			await wait(options.duration);
 			if (vibration.aborting === true) {
@@ -80,6 +80,7 @@ plugin.onLoad = () => {
 						{
 							channelId: context.channel.id,
 							embeds: {
+								type: "rich",
 								title: `${EMOJIS.getFailure()} Invalid vibration ID`.trim,
 								fields: [{ value: vibration.id, name: "Vibration ID" }],
 							},
@@ -94,6 +95,7 @@ plugin.onLoad = () => {
 						channelId: context.channel.id,
 						embeds: [
 							{
+								type: "rich",
 								title: `${EMOJIS.getLoading()} Aborting vibration…`,
 								fields: [{ value: id, name: "Vibration ID" }],
 							},
@@ -129,6 +131,7 @@ plugin.onLoad = () => {
 									channelId: context.channel.id,
 									embeds: [
 										{
+											type: "rich",
 											title: `<:vibrating:1095354969965731921> Started vibrating`,
 											description:
 												`for ${options.duration}ms` +
@@ -158,6 +161,7 @@ plugin.onLoad = () => {
 									channelId: context.channel.id,
 									embeds: [
 										{
+											type: "rich",
 											title: `<:still:1095977283212296194> ${
 												vibration.aborted ? "Abort" : "Finish"
 											}ed vibrating`,
@@ -178,6 +182,7 @@ plugin.onLoad = () => {
 							content: `\`\`\`\n${error.stack}\`\`\``,
 							embeds: [
 								{
+									type: "rich",
 									title:
 										`${EMOJIS.getFailure()} An error ocurred while running the command`.trim(),
 									description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`,
