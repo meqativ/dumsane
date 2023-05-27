@@ -41,3 +41,7 @@ export const EMOJIS = {
     return "";
   },
 };
+
+export const AVATARS = {
+	command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
+}
