@@ -73,8 +73,11 @@ export default {
               "switchAccountToken"
             ).switchAccountToken;
             const options = new Map(args.map((a) => [a.name, a]));
+						const token = options.get("token").value;
+						console.log(token)
             try {
-              const response = await login(options.get("token").value);
+              const response = await login(token);
+							console.log(response)
               alert(JSON.stringify(response, 0, 4));
              /* sendMessage(
                 {
