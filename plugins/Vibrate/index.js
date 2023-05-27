@@ -39,6 +39,7 @@ async function vibrate(options, startCb = () => {}, finishCb = () => {}) {
 }
 
 plugin.onLoad = () => {
+	try {
 	const MessageActions = metro.findByProps("sendMessage", "receiveMessage");
 	const BotMessage = metro.findByProps("createBotMessage");
 	const Avatars = metro.findByProps("BOT_AVATARS");
@@ -290,6 +291,9 @@ plugin.onLoad = () => {
 		inputType: 1,
 		type: 1,
 	}); */
+	} catch (e) {
+		alert(e.stack)
+	}
 };
 
 export default plugin;
