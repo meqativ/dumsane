@@ -63,6 +63,7 @@ plugin.onLoad = () => {
 			if (typeof mod === "object")
 				msg = metro.findByProps("merge").merge(msg, mod);
 			receiveMessage(message.channelId, msg);
+			console.log("VIBATE SEND MESSAGE", {msg, message})
 			return msg;
 		}
 		const vibrateExeCute = {
@@ -85,7 +86,7 @@ plugin.onLoad = () => {
 							embeds: {
 								type: "rich",
 								title: `${EMOJIS.getFailure()} Invalid vibration ID`.trim,
-								fields: [{ value: vibration.id, name: "Vibration ID" }],
+								fields: [{ value: `${vibration.id}`, name: "Vibration ID" }],
 							},
 						},
 						authorMods
@@ -128,8 +129,7 @@ plugin.onLoad = () => {
 						(options?.repeat
 							? `, ${options.repeat} time${options.repeat === 1 ? "" : "s"}`
 							: "") +
-						"." +
-						(options?.gap ? `With a gap of ${options?.gap}ms.` : "");
+						(options?.gap ? `. With a gap of ${options?.gap}ms.` : "");
 
 					console.log("VIBATE", { cmdOptions, options, description });
 					vibrate(
@@ -145,7 +145,7 @@ plugin.onLoad = () => {
 											type: "rich",
 											title: `<:vibrating:1095354969965731921> Started vibrating`,
 											description,
-											fields: [{ value: vibration.id, name: "Vibration ID" }],
+											fields: [{ value: `${vibration.id}`, name: "Vibration ID" }],
 										},
 									],
 								},
@@ -165,7 +165,7 @@ plugin.onLoad = () => {
 											title: `<:still:1095977283212296194> ${
 												vibration.aborted ? "Abort" : "Finish"
 											}ed vibrating`,
-											fields: [{ value: vibration.id, name: "Vibration ID" }],
+											fields: [{ value: `${vibration.id}`, name: "Vibration ID" }],
 										},
 									],
 								},
