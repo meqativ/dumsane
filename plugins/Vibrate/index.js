@@ -17,7 +17,7 @@ const plugin = {
   },
 };
 const vibrations = [];
-patches.push(()=>{
+plugin.patches.push(()=>{
 	for (var i = 0; i < vibrations.length; i++) {
 		vibrations[i].aborting = true;
 	}
