@@ -6,6 +6,7 @@ export default {
     this.patches.every((p) => (p(), true));
   },
   onLoad() {
+		try {
     const { metro, commands, logger } = vendetta;
     const { receiveMessage } = metro.findByProps(
       "sendMessage",
@@ -102,7 +103,6 @@ export default {
               authorMods
             );
 						console.error(e)
-            // TODO: failed switch handle
           }
         } catch (err) {
           console.error(err);
@@ -126,7 +126,7 @@ export default {
     this.patches.push(
       commands.registerCommand(
         cmdDisplays({
-          // execute: exeCute.login,
+          execute: exeCute.login,
           name: "token get",
           description: "Logs into an account using a token",
           options: {
@@ -141,5 +141,8 @@ export default {
         })
       )
     );
+	} catch (e) {
+		alert(e)
+	}
   },
 };
