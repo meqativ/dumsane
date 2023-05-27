@@ -2,10 +2,10 @@ import { cmdDisplays, EMOJIS } from "../../helpers/index.js";
 const { metro, logger, commands } = vendetta;
 const { vibrate: vibro } = metro.findByProps("vibrate");
 
-const plat = (n) =>
-  "ios" in n || "android" in n
-    ? metro.findByProps("View").Platform.select
-    : metro.findByProps("View").Platform.select({ ios: [n], android: n });
+const plat = (n) => metro.findByProps("View").Platform.select(
+	  ("ios" in n || "android" in n)
+	? n
+    : { ios: [n], android: n });
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
 const plugin = {
@@ -16,7 +16,8 @@ const plugin = {
 };
 
 const vibrations = [];
-async function vibrate(options, startCb = () => {}, finishCb = () => {}) {
+async function vibrate(options, startCb, finishCb) {
+	try {
   if (typeof options === "undefined") options = {};
   if (!("duration" in options)) options.duration = 400;
   if (!("repeat" in options)) options.repeat = 1;
@@ -36,6 +37,8 @@ async function vibrate(options, startCb = () => {}, finishCb = () => {}) {
     await wait(options.gap);
   }
   finishCb(vibration);
+	} catch (e) {
+	alert(e.stack)}
 }
 
 plugin.onLoad = () => {
