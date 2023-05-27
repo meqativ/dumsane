@@ -133,7 +133,7 @@ export default {
             options: [
               {
                 required: true,
-                type: 1,
+                type: 3,
                 name: "token",
                 description: "Token of the account to login into",
               },
