@@ -1,52 +1,133 @@
+import { cmdDisplays, EMOJIS, AVATARS } from "../../helpers/index.js";
+
 export default {
-		onLoad: function () {
-			const { metro, commands, logger } = vendetta;
+	patches: [],
+	onUnload() {
+		this.patches.every((p) => (p(), true));
+	},
+	onLoad() {
+		const { metro, commands, logger } = vendetta;
+		const { receiveMessage } = metro.findByProps(
+			"sendMessage",
+			"receiveMessage"
+		);
+		const { createBotMessage } = metro.findByProps("createBotMessage");
+		const Avatars = metro.findByProps("BOT_AVATARS");
+		function sendMessage(message, mod) {
+			if (typeof mod !== "undefined" && "author" in mod) {
+				if ("avatar" in mod.author && "avatarURL" in mod.author) {
+					Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
+					delete mod.author.avatarURL;
+				}
+			}
+			let msg = createBotMessage(message);
+			if (typeof mod === "object")
+				msg = metro.findByProps("merge").merge(msg, mod);
+			receiveMessage(message.channelId, msg);
+			return msg;
+		}
 
-			const { sendBotMessage: sendEphemeralClydeMessage } =
-				metro.findByProps("sendBotMessage");
-			const { getToken } = metro.findByProps("getToken");
-			//  const { sendMessage } = metro.findByProps(
-			//		"sendMessage",
-			//		"receiveMessage"
-			//	);
+		const exeCute = {
+			get(args, ctx) {
+				const authorMods = {
+					author: {
+						username: "/token get",
+						avatar: "command",
+						avatarURL: AVATARS.command,
+					},
+				};
+				try {
+					const { getToken } = metro.findByProps("getToken");
 
-			//	function exeCute(args, ctx) {
-			//		const options = new Map(args.map((option) => [option.name, option]));
-			//		const content = `Token: ${getToken()}`;
-			//		const send = options.filter(o=>o.name.startsWith("send")).every(o=>o.value === true);
-			//		if (send) {
-			//			sendMessage(ctx.channel.id, { content });
-			//		} else {
-			//			sendBotMessage(ctx.channel.id, content);
-			//		}
-			//	}
-
-			this.onUnload = commands.registerCommand({
-				// execute: exeCute,
-				execute: (args, ctx) => {
+					sendMessage(
+						{
+							channelId: ctx.channel.id,
+							embeds: [
+								{
+									type: "rich",
+									title: "Token of the current account",
+									description: `${getToken()}`,
+								},
+							],
+						},
+						authorMods
+					);
+				} catch (err) {
+					console.error(err);
+					alert(err);
+				}
+			},
+			async login(args, ctx) {
+				const authorMods = {
+					author: {
+						username: "/token login",
+						avatar: "command",
+						avatarURL: AVATARS.command,
+					},
+				};
+				try {
+					const login = vendetta.metro.findByProps(
+						"login",
+						"logout",
+						"switchAccountToken"
+					).switchAccountToken;
+					const options = new Map(args.map((a) => [a.name, a]));
 					try {
-						sendEphemeralClydeMessage(ctx.channel.id, `Token: ${getToken()}`);
-					} catch (err) {
-						logger.error(err)
-						sendEphemeralClydeMessage(ctx.channel.id, `An error has occured while executing the command.\n`+
-						`(${err.message})`);
+						const response = await login(options.get("token").value);
+						alert(JSON.stringify(response, 0, 4));
+						sendMessage(
+							{
+								channelId: ctx.channel.id,
+								embeds: [
+									{
+										type: "rich",
+										title: "<${EMOJIS.getLoading()}> Switching accounts…",
+									},
+								],
+							},
+							authorMods
+						);
+					} catch (e) {
+						alert(e);
+
+						// TODO: failed switch handle
 					}
-				},
-				name: "token",
-				displayName: "token",
-				description: "Shows your user token",
-				displayDescription: "Shows your user token",
-				/*options: Array.from({length:20}).fill({
-						required: false,
-						type: 5,
-						name: "send",
-						displayName: "send",
-						description: "⛔⛔⛔ Send the token in channel or not?",
-						displayDescription: "⛔⛔⛔ Send the token in the channel or not?",
-					}).map((option,uwu)=>{const name = option.name+((uwu)?String.fromCharCode(64+uwu):""); return {...option, name: name, displayName: name}}),*/
-				applicationId: -1,
-				inputType: 1,
-				type: 1,
-			});
-		},
-	};
+				} catch (err) {
+					console.error(err);
+					alert(err);
+				}
+			},
+		};
+
+		this.patches.push(
+			commands.registerCommand(
+				cmdDisplays({
+					execute: exeCute.get,
+					name: "token get",
+					description: "Shows your current user token",
+					applicationId: "-1",
+					inputType: 1,
+					type: 1,
+				})
+			)
+		);
+		this.patches.push(
+			commands.registerCommand(
+				cmdDisplays({
+					// execute: exeCute.login,
+					name: "token get",
+					description: "Logs into an account using a token",
+					options: {
+						required: true,
+						type: 1,
+						name: "token",
+						description: "Token of the account to login into",
+					},
+					applicationId: "-1",
+					inputType: 1,
+					type: 1,
+				})
+			)
+		);
+	},
+};
