@@ -28,6 +28,7 @@ async function vibrate(options, startCb, finishCb) {
 
     const vibrationId = +Date.now();
     const vibration = { id: vibrationId, aborting: false, aborted: false };
+		vibrations.push(vibration)
     startCb(vibration);
     for (let i = 0; i < options.repeat; i++) {
       vibro(plat(options.duration), true);
