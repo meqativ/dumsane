@@ -169,8 +169,8 @@ plugin.onLoad = () => {
 		},
 	};
 	plugin.patches.push(
-		cmdDisplays(
-			commands.registerCommand({
+			commands.registerCommand(
+				cmdDisplays({
 				execute: vibrateExeCute.begin,
 				type: 1,
 				inputType: 1,
