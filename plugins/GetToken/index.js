@@ -55,7 +55,7 @@ export default {
           );
         } catch (err) {
           console.error(err);
-          alert(err);
+          alert(err.stack);
         }
       },
       async login(args, ctx) {
@@ -106,7 +106,7 @@ export default {
           }
         } catch (err) {
           console.error(err);
-          alert(err);
+          alert(err.stack);
         }
       },
     };
@@ -142,7 +142,7 @@ export default {
       )
     );
 	} catch (e) {
-		alert(e)
+		alert(e.stack)
 	}
   },
 };
