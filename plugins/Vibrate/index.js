@@ -52,7 +52,7 @@ plugin.onLoad = () => {
 		MessageActions.receiveMessage(message.channelId, msg);
 		return msg;
 	}
-	const vibrateExecute = {
+	const vibrateExeCute = {
 		abort() {
 			const authorMods = {
 				username: "/vibrate abort",
