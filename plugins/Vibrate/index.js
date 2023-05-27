@@ -84,7 +84,7 @@ plugin.onLoad = () => {
               channelId: context.channel.id,
               embeds: {
                 type: "rich",
-                title: `${EMOJIS.getFailure()} Invalid vibration ID`.trim,
+                title: `<${EMOJIS.getFailure()}> Invalid vibration ID`.trim,
                 fields: [{ value: `${id}`, name: "Vibration ID" }],
               },
             },
@@ -99,7 +99,7 @@ plugin.onLoad = () => {
             embeds: [
               {
                 type: "rich",
-                title: `${EMOJIS.getLoading()} Aborting vibration…`,
+                title: `<${EMOJIS.getLoading()}> Aborting vibration…`,
                 fields: [{ value: `${id}`, name: "Vibration ID" }],
               },
             ],
@@ -179,7 +179,7 @@ plugin.onLoad = () => {
                 {
                   type: "rich",
                   title:
-                    `${EMOJIS.getFailure()} An error ocurred while running the command`.trim(),
+                    `<${EMOJIS.getFailure()}> An error ocurred while running the command`.trim(),
                   description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`,
                 },
               ],
