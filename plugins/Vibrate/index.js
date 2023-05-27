@@ -27,7 +27,7 @@ async function vibrate(options, startCb, finishCb) {
 	// main vibration loop
 	for (let i = 0; i < options.repeat; i++) {
 		if (ios) {
-			const interval = setInterval(triggerHaptic, 5);
+			const interval = setInterval(() => triggerHaptic(), 5);
 			await wait(options.duration);
 			clearInterval(interval);
 		} else {
@@ -146,12 +146,12 @@ const plugin = {
 								);
 							}
 						);
-					} catch (error) {
-						console.error(error);
+					} catch (e) {
+						console.error(e);
 						sendMessage(
 							{
 								channelId: context.channel.id,
-								content: `\`\`\`\n${error.stack}\`\`\``,
+								content: `\`\`\`\n${e.stack}\`\`\``,
 								embeds: [
 									{
 										type: "rich",
@@ -173,6 +173,7 @@ const plugin = {
 							avatarURL: AVATARS.command,
 						},
 					};
+					try {
 					const options = new Map(args.map((option) => [option.name, option]));
 					const id = options.get("id").value;
 					const vibrationIndex = vibrations.findIndex(
@@ -207,6 +208,25 @@ const plugin = {
 						authorMods
 					);
 				},
+				} catch (e) {
+					console.error(e)
+						sendMessage(
+							{
+								channelId: context.channel.id,
+								content: `\`\`\`\n${e.stack}\`\`\``,
+								embeds: [
+									{
+										type: "rich",
+										title:
+											`<${EMOJIS.getFailure()}> An error ocurred while running the command`.trim(),
+										description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`,
+									},
+								],
+							},
+							authorMods
+						);
+
+				}
 			};
 			this.patches.push(
 				/* /vibrate begin */
