@@ -40,191 +40,195 @@ async function vibrate(options, startCb = () => {}, finishCb = () => {}) {
 
 plugin.onLoad = () => {
 	try {
-	const MessageActions = metro.findByProps("sendMessage", "receiveMessage");
-	const BotMessage = metro.findByProps("createBotMessage");
-	const Avatars = metro.findByProps("BOT_AVATARS");
-	function sendMessage(message, mod) {
-		if (mod?.author.avatar && mod?.author?.avatarURL) {
-			Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
-			delete mod.author.avatarURL;
-		}
-		let msg = BotMessage.createBotMessage(message);
-		msg = metro.findByProps("merge").merge(msg, mod);
-		MessageActions.receiveMessage(message.channelId, msg);
-		return msg;
-	}
-	const vibrateExeCute = {
-		abort() {
-			const authorMods = {
-				username: "/vibrate abort",
-				avatar: "clyde",
-			};
-			const options = new Map(args.map((option) => [option.name, option]));
-			const id = options.get("id").value;
-			const vibrationIndex = vibrations.findIndex(
-				(vibration) => vibration.id === id
-			);
-			if (vibrationIndex === -1) {
-				sendMessage(
-					{
-						channelId: context.channel.id,
-						embeds: {
-							title: `${EMOJIS.getFail()} Invalid vibration ID`.trim,
-							fields: [{ value: vibration.id, name: "Vibration ID" }],
-						},
-					},
-					authorMods
-				);
-				return;
+		const MessageActions = metro.findByProps("sendMessage", "receiveMessage");
+		const BotMessage = metro.findByProps("createBotMessage");
+		const Avatars = metro.findByProps("BOT_AVATARS");
+		function sendMessage(message, mod) {
+			if (mod?.author.avatar && mod?.author?.avatarURL) {
+				Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
+				delete mod.author.avatarURL;
 			}
-			vibrations[vibrationIndex].aborting = true;
-			sendMessage(
-				{
-					channelId: context.channel.id,
-					embeds: [
-						{
-							title: `${EMOJIS.getLoading()} Aborting vibration…`,
-							fields: [{ value: id, name: "Vibration ID" }],
-						},
-					],
-				},
-				authorMods
-			);
-		},
-		begin(args, context) {
-			const authorMods = {
-				username: "/vibrate begin",
-				avatar: "clyde",
-			};
-
-			try {
-				const cmdOptions = new Map(args.map((option) => [option.name, option]));
-				const options = {
-					duration: cmdOptions.get("duration").value,
-					repeat: cmdOptions.get("repeat")?.value,
-					gap: cmdOptions.get("gap")?.value,
+			let msg = BotMessage.createBotMessage(message);
+			msg = metro.findByProps("merge").merge(msg, mod);
+			MessageActions.receiveMessage(message.channelId, msg);
+			return msg;
+		}
+		const vibrateExeCute = {
+			abort() {
+				const authorMods = {
+					username: "/vibrate abort",
+					avatar: "clyde",
 				};
-				vibrate(
-					options,
-					(vibration) => {
-						// before start
-						sendMessage(
-							{
-								channelId: context.channel.id,
-								embeds: [
-									{
-										title: `<:vibrating:1095354969965731921> Started vibrating`,
-										description:
-											`for ${options.duration}ms` +
-											(options?.repeat
-												? `, ${options.repeat} time${
-														options.repeat === 1 ? "" : "s"
-												  }`
-												: "") +
-											"." +
-											(options?.gap ? `With a gap of ${options?.gap}ms.` : ""),
-
-										fields: [{ value: vibration.id, name: "Vibration ID" }],
-									},
-								],
-							},
-							authorMods
-						);
-					},
-					(vibration, aborted) => {
-						// after finish
-						sendMessage(
-							{
-								channelId: context.channel.id,
-								embeds: [
-									{
-										title: `<:still:1095977283212296194> ${
-											aborted ? "Abort" : "Finish"
-										}ed vibrating`,
-										fields: [{ value: vibration.id, name: "Vibration ID" }],
-									},
-								],
-							},
-							authorMods
-						);
-					}
+				const options = new Map(args.map((option) => [option.name, option]));
+				const id = options.get("id").value;
+				const vibrationIndex = vibrations.findIndex(
+					(vibration) => vibration.id === id
 				);
-			} catch (error) {
-				console.error(error);
+				if (vibrationIndex === -1) {
+					sendMessage(
+						{
+							channelId: context.channel.id,
+							embeds: {
+								title: `${EMOJIS.getFail()} Invalid vibration ID`.trim,
+								fields: [{ value: vibration.id, name: "Vibration ID" }],
+							},
+						},
+						authorMods
+					);
+					return;
+				}
+				vibrations[vibrationIndex].aborting = true;
 				sendMessage(
 					{
 						channelId: context.channel.id,
-						content: `\`\`\`\n${error.stack}\`\`\``,
 						embeds: [
 							{
-								title:
-									`${EMOJIS.getFailure()} An error ocurred while running the command`.trim(),
-								description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`,
+								title: `${EMOJIS.getLoading()} Aborting vibration…`,
+								fields: [{ value: id, name: "Vibration ID" }],
 							},
 						],
 					},
 					authorMods
 				);
-			}
-		},
-	};
-	plugin.patches.push(
+			},
+			begin(args, context) {
+				const authorMods = {
+					username: "/vibrate begin",
+					avatar: "clyde",
+				};
+
+				try {
+					const cmdOptions = new Map(
+						args.map((option) => [option.name, option])
+					);
+					const options = {
+						duration: cmdOptions.get("duration").value,
+						repeat: cmdOptions.get("repeat")?.value,
+						gap: cmdOptions.get("gap")?.value,
+					};
+					vibrate(
+						options,
+						(vibration) => {
+							// before start
+							sendMessage(
+								{
+									channelId: context.channel.id,
+									embeds: [
+										{
+											title: `<:vibrating:1095354969965731921> Started vibrating`,
+											description:
+												`for ${options.duration}ms` +
+												(options?.repeat
+													? `, ${options.repeat} time${
+															options.repeat === 1 ? "" : "s"
+													  }`
+													: "") +
+												"." +
+												(options?.gap
+													? `With a gap of ${options?.gap}ms.`
+													: ""),
+
+											fields: [{ value: vibration.id, name: "Vibration ID" }],
+										},
+									],
+								},
+								authorMods
+							);
+						},
+						(vibration, aborted) => {
+							// after finish
+							sendMessage(
+								{
+									channelId: context.channel.id,
+									embeds: [
+										{
+											title: `<:still:1095977283212296194> ${
+												aborted ? "Abort" : "Finish"
+											}ed vibrating`,
+											fields: [{ value: vibration.id, name: "Vibration ID" }],
+										},
+									],
+								},
+								authorMods
+							);
+						}
+					);
+				} catch (error) {
+					console.error(error);
+					sendMessage(
+						{
+							channelId: context.channel.id,
+							content: `\`\`\`\n${error.stack}\`\`\``,
+							embeds: [
+								{
+									title:
+										`${EMOJIS.getFailure()} An error ocurred while running the command`.trim(),
+									description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`,
+								},
+							],
+						},
+						authorMods
+					);
+				}
+			},
+		};
+		plugin.patches.push(
 			commands.registerCommand(
 				cmdDisplays({
-				execute: vibrateExeCute.begin,
-				type: 1,
-				inputType: 1,
-				applicationId: "-1",
-				name: "vibrate begin",
-				description: "b" + "r".repeat(50),
-				options: [
-					{
-						type: 4,
-						required: true,
-						name: "duration",
-						description: "Duration of one vibration (in milliseconds)",
-						min_value: 1,
-						max_value: 9_999,
-					},
-					{
-						type: 4,
-						name: "repeat",
-						description: "Number of times to repeat",
-						min_value: 1,
-						max_value: 9_999_999,
-					},
-					{
-						type: 4,
-						name: "gap",
-						description:
-							"Wait between vibrates (only matters if you have more than 1 repeat)",
-					},
-				],
-			})
-		)
-	);
-	plugin.patches.push(
-		cmdDisplays(
-			commands.registerCommand({
-				execute: vibrateExeCute.abort,
-				type: 1,
-				inputType: 1,
-				applicationId: "-1",
-				name: "vibrate abort",
-				description: "b" + "r".repeat(50),
-				options: [
-					{
-						type: 4,
-						required: true,
-						name: "id",
-						description:
-							"Vibration id, that you receive when running /vibrate begin",
-					},
-				],
-			})
-		)
-	);
-	/*patches[0] = commands.registerCommand({
+					execute: vibrateExeCute.begin,
+					type: 1,
+					inputType: 1,
+					applicationId: "-1",
+					name: "vibrate begin",
+					description: "b" + "r".repeat(50),
+					options: [
+						{
+							type: 4,
+							required: true,
+							name: "duration",
+							description: "Duration of one vibration (in milliseconds)",
+							min_value: 1,
+							max_value: 9_999,
+						},
+						{
+							type: 4,
+							name: "repeat",
+							description: "Number of times to repeat",
+							min_value: 1,
+							max_value: 9_999_999,
+						},
+						{
+							type: 4,
+							name: "gap",
+							description:
+								"Wait between vibrates (only matters if you have more than 1 repeat)",
+						},
+					],
+				})
+			)
+		);
+		plugin.patches.push(
+			commands.registerCommand(
+				cmdDisplays({
+					execute: vibrateExeCute.abort,
+					type: 1,
+					inputType: 1,
+					applicationId: "-1",
+					name: "vibrate abort",
+					description: "b" + "r".repeat(50),
+					options: [
+						{
+							type: 4,
+							required: true,
+							name: "id",
+							description:
+								"Vibration id, that you receive when running /vibrate begin",
+						},
+					],
+				})
+			)
+		);
+		/*patches[0] = commands.registerCommand({
 		execute: exeCute,
 		name: "vibrate",
 		displayName: "vibrate",
@@ -292,7 +296,7 @@ plugin.onLoad = () => {
 		type: 1,
 	}); */
 	} catch (e) {
-		alert(e.stack)
+		alert(e.stack);
 	}
 };
 
