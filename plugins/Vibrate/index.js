@@ -6,7 +6,7 @@ const plat = (n) =>
   metro
     .findByProps("View")
     .Platform.select(
-      typeof n === "object" && ("ios" in n || "android" in n) ? n : { ios: [n], android: n }
+      typeof n === "object" && (n.hasOwnProperty("ios") || n.hasOwnProperty("android")) ? n : { ios: [n], android: n }
     );
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
@@ -23,9 +23,9 @@ async function vibrate(options, startCb, finishCb) {
     if (typeof options === "undefined") options = {};
     console.log("VIBATE", { options, typeof: typeof options });
     if (!options.hasOwnProperty("duration")) options.duration = 400;
-    if (!options.hasOwnProperty("repeat")) options.repeat = 1;
+    if (!options.repeat) options.repeat = 1;
     if (!options.hasOwnProperty("gap")) options.gap = 0;
-    if (plat({ ios: true }) && duration > 400) duration = 400;
+    if (plat({ ios: true, android: false }) && duration > 400) duration = 400;
 
     const vibrationId = +Date.now();
     const vibration = { id: vibrationId, aborting: false, aborted: false };
@@ -135,7 +135,7 @@ plugin.onLoad = () => {
           console.log("VIBATE", { cmdOptions, options, description });
           vibrate(
             options,
-            (vibration) => {
+            async (vibration) => {
               console.log("VIBATE", "before start");
               // before start
               sendMessage(
@@ -156,7 +156,7 @@ plugin.onLoad = () => {
               );
               console.log("VIBATE", "after start");
             },
-            (vibration) => {
+            async (vibration) => {
               // after finish
               console.log("VIBATE", "after finish");
               sendMessage(
