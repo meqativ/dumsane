@@ -76,7 +76,7 @@ export default {
             try {
               const response = await login(options.get("token").value);
               alert(JSON.stringify(response, 0, 4));
-              sendMessage(
+             /* sendMessage(
                 {
                   channelId: ctx.channel.id,
                   embeds: [
@@ -87,8 +87,10 @@ export default {
                   ],
                 },
                 authorMods
-              );
+              );*/
             } catch (e) {
+							alert(e.stack)
+							console.error(e)
               sendMessage(
                 {
                   channelId: ctx.channel.id,
@@ -102,7 +104,6 @@ export default {
                 },
                 authorMods
               );
-              console.error(e);
             }
           } catch (err) {
             console.error(err);
