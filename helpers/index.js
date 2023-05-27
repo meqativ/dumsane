@@ -1,6 +1,6 @@
 export function cmdDisplays(obj, translations, locale) {
-	if (!("description" in obj) || !("name" in obj))
-		throw new Error("No name or description in the command guh");
+	if (!obj?.description || !obj?.name)
+		throw new Error(`No name(${obj?.name}) or description${obj?.description} in the command guh`);
 
 	obj.displayName = translations?.names?.[locale] ?? obj.name;
 	obj.displayDescription = translations?.names?.[locale] ?? obj.description;
