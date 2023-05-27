@@ -22,9 +22,9 @@ async function vibrate(options, startCb, finishCb) {
   try {
     if (typeof options === "undefined") options = {};
     console.log("VIBATE", { options, typeof: typeof options });
-    if (!("duration" in options)) options.duration = 400;
-    if (!("repeat" in options)) options.repeat = 1;
-    if (!("gap" in options)) options.gap = 0;
+    if (!options.hasOwnProperty("duration")) options.duration = 400;
+    if (!options.hasOwnProperty("repeat")) options.repeat = 1;
+    if (!options.hasOwnProperty("gap")) options.gap = 0;
     if (plat({ ios: true }) && duration > 400) duration = 400;
 
     const vibrationId = +Date.now();
