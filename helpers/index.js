@@ -34,7 +34,7 @@ export const EMOJIS = {
   getLoading() {
     return Math.random() < 0.01 ? this?.aol : this.loadingDiscordSpinner;
   },
-  getFail() {
+  getFailure() {
     return Math.random() < 0.01 ? this?.fuckyoy : this.linuth;
   },
   getSuccess() {
