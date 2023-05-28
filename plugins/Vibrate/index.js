@@ -1,6 +1,5 @@
 import { cmdDisplays, EMOJIS, AVATARS } from "../../helpers/index.js";
 const { metro, logger, commands } = vendetta;
-const Vibration = vendetta.metro.common.ReactNative.Vibration;
 const { triggerHaptic } = vendetta.metro.findByProps("triggerHaptic");
 const PLUGIN_FORUM_POST_URL = "||not proxied||";
 const plat = (n) =>
@@ -32,11 +31,11 @@ async function vibrate(options, startCb, finishCb) {
 		// main vibration loop
 		for (let i = 0; i < options.repeat; i++) {
 			if (vibration.ios) {
-				const interval = setInterval(() => triggerHaptic(), 5);
+				const interval = setInterval(triggerHaptic, 5);
 				await wait(options.duration);
 				clearInterval(interval);
 			} else {
-				Vibration.vibrate(options.duration);
+				vendetta.metro.common.ReactNative.Vibration.vibrate(options.duration);
 				await wait(options.duration);
 			}
 			if (vibration.stopping === true) {
