@@ -27,7 +27,7 @@ async function vibrate(options, startCb, finishCb) {
 		};
 		vibrations.push(vibration);
 		console.log(vibration);
-		startCb(vibration);
+		vibration.startCbO = startCb(vibration);
 
 		// main vibration loop
 		for (let i = 0; i < options.repeat; i++) {
@@ -86,15 +86,28 @@ export default {
 				console.log("VIBATE SEND MSG", { msg });
 				return msg;
 			}
+
+								const messageMods = {
+														author: {
+																					username: "vibrate",
+																					avatar: "command",
+																					avatarURL: AVATARS.command,
+																				},
+													};
+
+
+
 			const exeCute = {
 				start: (args, context) => {
-					const authorMods = {
-						author: {
-							username: "/vibrate start",
-							avatar: "command",
-							avatarURL: AVATARS.command,
-						},
-					};
+
+					const messageMods2 = {
+						...messageMods,
+												interaction: {
+																			name: "/vibrate start",
+																			user: vendetta.metro.findByStoreName("UserStore").getCurrentUser()
+																		}
+
+					}
 					try {
 						const cmdOptions = new Map(
 							args.map((option) => [option.name, option])
@@ -115,7 +128,7 @@ export default {
 							options,
 							async (vibration) => {
 								// Before starting the vibration
-								sendMessage(
+								return sendMessage(
 									{
 										channelId: context.channel.id,
 										embeds: [
@@ -127,11 +140,12 @@ export default {
 											},
 										],
 									},
-									authorMods
+									messageMods2
 								);
 							},
 							async (vibration) => {
 								// After ending the vibration
+								const replyId = vibration.startCbO.id;
 								sendMessage(
 									{
 										channelId: context.channel.id,
@@ -145,7 +159,14 @@ export default {
 											},
 										],
 									},
-									authorMods
+									{
+										...messageMods,
+										messageReference: {
+											channel_id: context.channel.id,
+											message_id: replyId,
+											guild_id: context?.guild?.id
+										}
+									}
 								);
 							}
 						);
@@ -165,17 +186,17 @@ export default {
 									},
 								],
 							},
-							authorMods
+							messageMods
 						);
 					}
 				},
 				stop: (args, context) => {
-					const authorMods = {
-						author: {
-							username: "/vibrate stop",
-							avatar: "command",
-							avatarURL: AVATARS.command,
-						},
+					const messageMods2 = {
+						...messageMods,
+						interaction: {
+							name: "/vibrate stop",
+							user: vendetta.metro.findByStoreName("UserStore").getCurrentUser()
+						}
 					};
 					try {
 						const options = new Map(
@@ -193,13 +214,13 @@ export default {
 											`<${EMOJIS.getFailure()}> Vibration with id \`${id}\` not found.`,
 									},
 								},
-								authorMods
+								messageMods2
 							);
 							return;
 						}
 						const vibration = vibrations[foundIndex];
 						vibration.stopping = true;
-						sendMessage(
+						vibration.startCbO = sendMessage(
 							{
 								channelId: context.channel.id,
 								embeds: [
@@ -210,7 +231,7 @@ export default {
 									},
 								],
 							},
-							authorMods
+							messageMods2
 						);
 					} catch (e) {
 						alert(e.stack);
@@ -228,7 +249,7 @@ export default {
 									},
 								],
 							},
-							authorMods
+							messageMods
 						);
 					}
 				},
