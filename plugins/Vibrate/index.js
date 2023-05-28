@@ -259,14 +259,11 @@ const plugin = {
 								name: "duration",
 								description: "Duration of one vibration (in milliseconds)",
 								min_value: 1,
-								max_value: 9_999,
 							},
 							{
 								type: 4,
 								name: "repeat",
 								description: "Number of times to repeat",
-								min_value: 1,
-								max_value: 9_999_999,
 							},
 							{
 								type: 4,
@@ -278,9 +275,7 @@ const plugin = {
 					})
 				)
 			);
-			this.patches.push(
-				/* /vibrate abort */
-				commands.registerCommand(
+				const vibabort = 
 					cmdDisplays({
 						execute: exeCute.abort,
 						type: 1,
@@ -298,9 +293,10 @@ const plugin = {
 							},
 						],
 					})
-				)
-			);
-			/*patches[0] = commands.registerCommand({
+			console.log(vibabort)
+			const vibrateabort = commands.registerCommand(
+								vibabort)
+			this.patches.push(vibrateabort);/*patches[0] = commands.registerCommand({
 		execute: exeCute,
 		name: "vibrate",
 		displayName: "vibrate",
