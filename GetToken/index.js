@@ -20,7 +20,7 @@
     return obj;
   }
   const EMOJIS = {
-    loadingDiscordSpinner: ":loading:1105495814073229393",
+    loadingDiscordSpinner: "a:loading:1105495814073229393",
     aol: "a:aol:1108834296359301161",
     linuth: ":linuth:1110531631409811547",
     fuckyoy: ":fuckyoy:1108360628302782564",
