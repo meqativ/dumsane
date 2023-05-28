@@ -62,8 +62,8 @@
         options.repeat = 1;
       const vibration = {
         id: +Date.now(),
-        stoping: false,
-        stoped: false,
+        stopping: false,
+        stopped: false,
         ios: plat({
           ios: true,
           android: false
@@ -84,8 +84,8 @@
           await wait(options.duration);
           Vibration.clear();
         }
-        if (vibration.stoping === true) {
-          vibration.stoped = true;
+        if (vibration.stopping === true) {
+          vibration.stopped = true;
           break;
         }
         if (options.gap)
@@ -104,7 +104,7 @@
     patches: [
       function() {
         for (var i = 0; i < vibrations.length; i++) {
-          vibrations[i].stoping = true;
+          vibrations[i].stopping = true;
         }
       }
     ],
@@ -181,7 +181,7 @@
                   embeds: [
                     {
                       type: "rich",
-                      title: `<:still:1095977283212296194> ${vibration.stoped ? "Abort" : "Finish"}ed vibrating`,
+                      title: `<:still:1095977283212296194> ${vibration.stopped ? "Abort" : "Finish"}ed vibrating`,
                       fields: [
                         {
                           value: `${vibration.id}`,
@@ -245,7 +245,7 @@ ${e.stack}\`\`\``,
                 }, authorMods);
                 return;
               }
-              vibrations[vibrationIndex].stoping = true;
+              vibrations[vibrationIndex].stopping = true;
               sendMessage({
                 channelId: context.channel.id,
                 embeds: [
@@ -279,7 +279,7 @@ ${e.stack}\`\`\``,
             }
           }
         };
-        const commands2 = [
+        [
           cmdDisplays({
             execute: this.exeCute.start,
             type: 1,
@@ -323,9 +323,8 @@ ${e.stack}\`\`\``,
               }
             ]
           })
-        ];
-        commands2.forEach(function(command) {
-          return _this.patches.push(commands2.registerCommand(command));
+        ].forEach(function(command) {
+          return _this.patches.push(commands.registerCommand(command));
         });
       } catch (e) {
         console.error(e);
