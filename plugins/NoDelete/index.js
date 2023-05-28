@@ -11,8 +11,8 @@ const plugin = {
 			const { FluxDispatcher } = vendetta.metro.common;
 			const getCurrentUser =
 				vendetta.metro.findByStoreName("UserStore").getCurrentUser;
-
-
+			
+			this?.onUnload?.();
 			let currentUser = getCurrentUser();
 			if (!currentUser) {
 				FluxDispatcher.subscribe("CONNECTION_OPEN", run);
