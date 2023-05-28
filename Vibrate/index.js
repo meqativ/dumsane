@@ -68,6 +68,7 @@
         })
       };
       vibrations.push(vibration);
+      console.log(vibration);
       startCb(vibration);
       for (let i = 0; i < options.repeat; i++) {
         if (vibration.ios) {
@@ -140,6 +141,7 @@
                 avatarURL: AVATARS.command
               }
             };
+            console.log(authorMods);
             try {
               const cmdOptions = new Map(args.map(function(option) {
                 return [
@@ -212,6 +214,7 @@ ${e.stack}\`\`\``,
                 avatarURL: AVATARS.command
               }
             };
+            console.log(authorMods);
             try {
               const options = new Map(args.map(function(option) {
                 return [
