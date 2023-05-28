@@ -101,7 +101,6 @@
               }
             };
             try {
-              const login = vendetta.metro.findByProps("login", "logout", "switchAccountToken").switchAccountToken;
               const options = new Map(args.map(function(a) {
                 return [
                   a.name,
@@ -111,9 +110,16 @@
               const token = options.get("token").value;
               console.log(token);
               try {
-                const response = await login(token);
-                console.log(response);
-                alert(JSON.stringify(response, 0, 4));
+                sendMessage({
+                  channelId: ctx.channel.id,
+                  embeds: [
+                    {
+                      type: "rich",
+                      title: `<${EMOJIS.getLoading()}> Switching accounts\u2026`
+                    }
+                  ]
+                }, authorMods);
+                vendetta.metro.findByProps("login", "logout", "switchAccountToken").switchAccountToken(token);
               } catch (e) {
                 alert(e.stack);
                 console.error(e);
