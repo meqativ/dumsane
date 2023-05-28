@@ -496,6 +496,7 @@
   }
 
   function cmdDisplays(obj, translations, locale) {
+    console.log(obj);
     if (!obj.name || !obj?.description)
       throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command (command name: ${obj?.name})`);
     obj.displayName = translations?.names?.[locale] ?? obj.name;
@@ -511,6 +512,7 @@
         return option;
       });
     }
+    console.log(obj);
     return obj;
   }
 
