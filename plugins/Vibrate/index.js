@@ -1,61 +1,5 @@
-import { cmdDisplays, EMOJIS } from "../../helpers/index.js";
-const { metro, logger, commands } = vendetta;
-const Vibration = vendetta.metro.common.ReactNative.Vibration;
-const { triggerHaptic } = vendetta.metro.findByProps("triggerHaptic");
-const PLUGIN_FORUM_POST_URL = "||not proxied||";
-const plat = (n) =>
-	metro
-		.findByProps("View")
-		.Platform.select(
-			typeof n === "object" &&
-				(n.hasOwnProperty("ios") || n.hasOwnProperty("android"))
-				? n
-				: { ios: [n], android: n }
-		);
-const wait = (ms) => new Promise((res) => setTimeout(res, ms));
-
 const vibrations = [];
-async function vibrate(options, startCb, finishCb) {
-	try {
-		if (typeof options === "undefined") options = {};
-		if (!options.repeat) options.repeat = 1;
-		const vibration = {
-			id: +Date.now(),
-			stopping: false,
-			stopped: false,
-			ios: plat({ ios: true, android: false }),
-		};
-		vibrations.push(vibration);
-		console.log(vibration);
-		startCb(vibration);
-
-		// main vibration loop
-		for (let i = 0; i < options.repeat; i++) {
-			if (vibration.ios) {
-				const interval = setInterval(() => triggerHaptic(), 5);
-				await wait(options.duration);
-				clearInterval(interval);
-			} else {
-				Vibration.vibrate(1e69);
-				await wait(options.duration);
-				Vibration.clear();
-			}
-			if (vibration.stopping === true) {
-				vibration.stopped = true;
-				break;
-			}
-			if (options.gap) await wait(options.gap);
-		}
-		vibration.deleted =
-			delete vibrations[vibrations.findIndex((v) => v.id === vibration.id)];
-		finishCb(vibration);
-	} catch (e) {
-		alert(e.stack);
-		console.error(e.stack);
-	}
-}
-
-const plugin = {
+export default {
 	patches: [
 		() => {
 			for (var i = 0; i < vibrations.length; i++) {
@@ -68,6 +12,64 @@ const plugin = {
 	},
 	onLoad() {
 		try {
+			import { cmdDisplays, EMOJIS } from "../../helpers/index.js";
+			const { metro, logger, commands } = vendetta;
+			const Vibration = vendetta.metro.common.ReactNative.Vibration;
+			const { triggerHaptic } = vendetta.metro.findByProps("triggerHaptic");
+			const PLUGIN_FORUM_POST_URL = "||not proxied||";
+			const plat = (n) =>
+				metro
+					.findByProps("View")
+					.Platform.select(
+						typeof n === "object" &&
+							(n.hasOwnProperty("ios") || n.hasOwnProperty("android"))
+							? n
+							: { ios: [n], android: n }
+					);
+			const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+
+			const vibrations = [];
+			async function vibrate(options, startCb, finishCb) {
+				try {
+					if (typeof options === "undefined") options = {};
+					if (!options.repeat) options.repeat = 1;
+					const vibration = {
+						id: +Date.now(),
+						stopping: false,
+						stopped: false,
+						ios: plat({ ios: true, android: false }),
+					};
+					vibrations.push(vibration);
+					console.log(vibration);
+					startCb(vibration);
+
+					// main vibration loop
+					for (let i = 0; i < options.repeat; i++) {
+						if (vibration.ios) {
+							const interval = setInterval(() => triggerHaptic(), 5);
+							await wait(options.duration);
+							clearInterval(interval);
+						} else {
+							Vibration.vibrate(1e69);
+							await wait(options.duration);
+							Vibration.clear();
+						}
+						if (vibration.stopping === true) {
+							vibration.stopped = true;
+							break;
+						}
+						if (options.gap) await wait(options.gap);
+					}
+					vibration.deleted =
+						delete vibrations[
+							vibrations.findIndex((v) => v.id === vibration.id)
+						];
+					finishCb(vibration);
+				} catch (e) {
+					alert(e.stack);
+					console.error(e.stack);
+				}
+			}
 			const { receiveMessage } = metro.findByProps(
 				"sendMessage",
 				"receiveMessage"
@@ -362,5 +364,3 @@ const plugin = {
 		}
 	},
 };
-
-export default plugin;
