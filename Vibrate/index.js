@@ -320,7 +320,7 @@ ${e.stack}\`\`\``,
               type: 4,
               required: true,
               name: "id",
-              description: "Vibration id which you receive when running </vibrate begin:0>"
+              description: "Vibration id which you receive when beginning a vibration"
             }
           ]
         });
