@@ -62,8 +62,8 @@
         options.repeat = 1;
       const vibration = {
         id: +Date.now(),
-        aborting: false,
-        aborted: false,
+        stoping: false,
+        stoped: false,
         ios: plat({
           ios: true,
           android: false
@@ -84,8 +84,8 @@
           await wait(options.duration);
           Vibration.clear();
         }
-        if (vibration.aborting === true) {
-          vibration.aborted = true;
+        if (vibration.stoping === true) {
+          vibration.stoped = true;
           break;
         }
         if (options.gap)
@@ -104,7 +104,7 @@
     patches: [
       function() {
         for (var i = 0; i < vibrations.length; i++) {
-          vibrations[i].aborting = true;
+          vibrations[i].stoping = true;
         }
       }
     ],
@@ -114,6 +114,7 @@
       });
     },
     onLoad() {
+      var _this = this;
       try {
         let sendMessage = function(message, mod) {
           if (typeof mod !== "undefined" && "author" in mod) {
@@ -134,11 +135,11 @@
         const { receiveMessage } = metro.findByProps("sendMessage", "receiveMessage");
         const { createBotMessage } = metro.findByProps("createBotMessage");
         const Avatars = metro.findByProps("BOT_AVATARS");
-        const exeCute = {
-          begin: function(args, context) {
+        this.exeCute = {
+          start(args, context) {
             const authorMods = {
               author: {
-                username: "/vibrate begin",
+                username: "/vibrate start",
                 avatar: "command",
                 avatarURL: AVATARS.command
               }
@@ -180,7 +181,7 @@
                   embeds: [
                     {
                       type: "rich",
-                      title: `<:still:1095977283212296194> ${vibration.aborted ? "Abort" : "Finish"}ed vibrating`,
+                      title: `<:still:1095977283212296194> ${vibration.stoped ? "Abort" : "Finish"}ed vibrating`,
                       fields: [
                         {
                           value: `${vibration.id}`,
@@ -208,10 +209,10 @@ ${e.stack}\`\`\``,
               }, authorMods);
             }
           },
-          abort: function(args, context) {
+          stop(args, context) {
             const authorMods = {
               author: {
-                username: "/vibrate abort",
+                username: "/vibrate stop",
                 avatar: "command",
                 avatarURL: AVATARS.command
               }
@@ -244,7 +245,7 @@ ${e.stack}\`\`\``,
                 }, authorMods);
                 return;
               }
-              vibrations[vibrationIndex].aborting = true;
+              vibrations[vibrationIndex].stoping = true;
               sendMessage({
                 channelId: context.channel.id,
                 embeds: [
@@ -278,14 +279,13 @@ ${e.stack}\`\`\``,
             }
           }
         };
-        this.patches.push(
-          /* /vibrate begin */
-          commands.registerCommand(cmdDisplays({
-            execute: exeCute.begin,
+        const commands2 = [
+          cmdDisplays({
+            execute: this.exeCute.start,
             type: 1,
             inputType: 1,
             applicationId: "-1",
-            name: "vibrate begin",
+            name: "vibrate start",
             description: `Begin a brrr`,
             options: [
               {
@@ -306,27 +306,27 @@ ${e.stack}\`\`\``,
                 description: "Wait between vibrates (only matters if you have more than 1 repeat)"
               }
             ]
-          }))
-        );
-        const vibabort = cmdDisplays({
-          execute: exeCute.abort,
-          type: 1,
-          inputType: 1,
-          applicationId: "-1",
-          name: "vibrate abort",
-          description: `Abort a brrr`,
-          options: [
-            {
-              type: 4,
-              required: true,
-              name: "id",
-              description: "Vibration id which you receive when beginning a vibration"
-            }
-          ]
+          }),
+          cmdDisplays({
+            execute: this.exeCute.stop,
+            type: 1,
+            inputType: 1,
+            applicationId: "-1",
+            name: "vibrate stop",
+            description: `Stop a brrr`,
+            options: [
+              {
+                type: 4,
+                required: true,
+                name: "id",
+                description: "Vibration id which you receive when starting a vibration"
+              }
+            ]
+          })
+        ];
+        commands2.forEach(function(command) {
+          return _this.patches.push(commands2.registerCommand(command));
         });
-        console.log(vibabort);
-        const vibrateabort = commands.registerCommand(vibabort);
-        this.patches.push(vibrateabort);
       } catch (e) {
         console.error(e);
         alert(e.stack);
