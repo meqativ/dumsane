@@ -36,9 +36,8 @@ async function vibrate(options, startCb, finishCb) {
 				await wait(options.duration);
 				clearInterval(interval);
 			} else {
-				Vibration.vibrate(1e69);
+				Vibration.vibrate(options.duration);
 				await wait(options.duration);
-				Vibration.clear();
 			}
 			if (vibration.stopping === true) {
 				vibration.stopped = true;
