@@ -13,13 +13,14 @@ const plat = (n) =>
 		);
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
+let vibrationIDIncremental = 0;
 const vibrations = [];
 async function vibrate(options, startCb, finishCb) {
 	try {
 		if (typeof options === "undefined") options = {};
 		if (!options.repeat) options.repeat = 1;
 		const vibration = {
-			id: +Date.now(),
+			id: vibrationIDIncremental++,
 			stopping: false,
 			stopped: false,
 			ios: plat({ ios: true, android: false }),
