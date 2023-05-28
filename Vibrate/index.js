@@ -51,10 +51,6 @@
       return setTimeout(res, ms);
     });
   };
-  const ios = plat({
-    ios: true,
-    android: false
-  }) ?? false;
   const vibrations = [];
   async function vibrate(options, startCb, finishCb) {
     if (typeof options === "undefined")
@@ -68,6 +64,10 @@
     };
     vibrations.push(vibration);
     startCb(vibration);
+    const ios = plat({
+      ios: true,
+      android: false
+    });
     for (let i = 0; i < options.repeat; i++) {
       if (ios) {
         const interval = setInterval(function() {
