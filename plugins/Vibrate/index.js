@@ -17,39 +17,42 @@ const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 const vibrations = [];
 async function vibrate(options, startCb, finishCb) {
 	try {
-	if (typeof options === "undefined") options = {};
-	if (!options.repeat) options.repeat = 1;
-	const vibration = {
-		id: +Date.now(), 
-		aborting: false, 
-		aborted: false,
-		ios: plat({ ios: true, android: false })
-	};
-	vibrations.push(vibration);
+		if (typeof options === "undefined") options = {};
+		if (!options.repeat) options.repeat = 1;
+		const vibration = {
+			id: +Date.now(),
+			aborting: false,
+			aborted: false,
+			ios: plat({ ios: true, android: false }),
+		};
+		vibrations.push(vibration);
+		console.log(vibration);
+		startCb(vibration);
 
-	startCb(vibration);
-
-	// main vibration loop
-	for (let i = 0; i < options.repeat; i++) {
-		if (vibration.ios) {
-			const interval = setInterval(() => triggerHaptic(), 5);
-			await wait(options.duration);
-			clearInterval(interval);
-		} else {
-			Vibration.vibrate(1e69);
-			await wait(options.duration);
-			Vibration.clear();
+		// main vibration loop
+		for (let i = 0; i < options.repeat; i++) {
+			if (vibration.ios) {
+				const interval = setInterval(() => triggerHaptic(), 5);
+				await wait(options.duration);
+				clearInterval(interval);
+			} else {
+				Vibration.vibrate(1e69);
+				await wait(options.duration);
+				Vibration.clear();
+			}
+			if (vibration.aborting === true) {
+				vibration.aborted = true;
+				break;
+			}
+			if (options.gap) await wait(options.gap);
 		}
-		if (vibration.aborting === true) {
-			vibration.aborted = true;
-			break;
-		}
-		if (options.gap) await wait(options.gap);
+		vibration.deleted =
+			delete vibrations[vibrations.findIndex((v) => v.id === vibration.id)];
+		finishCb(vibration);
+	} catch (e) {
+		alert(e.stack);
+		console.error(e.stack);
 	}
-	vibration.deleted =
-		delete vibrations[vibrations.findIndex((v) => v.id === vibration.id)];
-	finishCb(vibration);
-	} catch (e) { alert(e.stack); console.error(e.stack)}
 }
 
 const plugin = {
@@ -82,7 +85,7 @@ const plugin = {
 				if (typeof mod === "object")
 					msg = metro.findByProps("merge").merge(msg, mod);
 				receiveMessage(message.channelId, msg);
-				console.log("VIBATE SEND MSG", {msg})
+				console.log("VIBATE SEND MSG", { msg });
 				return msg;
 			}
 			const exeCute = {
@@ -94,7 +97,7 @@ const plugin = {
 							avatarURL: AVATARS.command,
 						},
 					};
-
+					console.log(authorMods);
 					try {
 						const cmdOptions = new Map(
 							args.map((option) => [option.name, option])
@@ -154,7 +157,7 @@ const plugin = {
 							}
 						);
 					} catch (e) {
-						alert(e.stack)
+						alert(e.stack);
 						console.error(e);
 						sendMessage(
 							{
@@ -181,6 +184,7 @@ const plugin = {
 							avatarURL: AVATARS.command,
 						},
 					};
+					console.log(authorMods);
 					try {
 						const options = new Map(
 							args.map((option) => [option.name, option])
@@ -218,7 +222,7 @@ const plugin = {
 							authorMods
 						);
 					} catch (e) {
-						alert(e.stack)
+						alert(e.stack);
 						console.error(e);
 						sendMessage(
 							{
