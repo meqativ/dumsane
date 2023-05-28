@@ -162,7 +162,7 @@
                 gap: cmdOptions.get("gap")?.value
               };
               const description = `for ${options.duration}ms` + (options?.repeat ? `, ${options.repeat} time${options.repeat === 1 ? "" : "s"}` : "") + (options?.gap ? `. With a gap of ${options?.gap}ms` : "");
-              vibrate(options, async function(vibration) {
+              vibrate(options, function(vibration) {
                 return sendMessage({
                   channelId: context.channel.id,
                   embeds: [
