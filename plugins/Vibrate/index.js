@@ -89,7 +89,7 @@ const plugin = {
 				return msg;
 			}
 			const exeCute = {
-				begin(args, context) {
+				begin: function(args, context) {
 					const authorMods = {
 						author: {
 							username: "/vibrate begin",
@@ -176,7 +176,7 @@ const plugin = {
 						);
 					}
 				},
-				abort(args, context) {
+				abort: function(args, context) {
 					const authorMods = {
 						author: {
 							username: "/vibrate abort",
