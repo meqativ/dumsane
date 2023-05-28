@@ -239,9 +239,10 @@ export default {
 						);
 					}
 				},
-			}[
-				// commands
-				(cmdDisplays({
+			};
+			// commands
+			[
+				cmdDisplays({
 					execute: exeCute.start,
 					type: 1,
 					inputType: 1,
@@ -285,7 +286,7 @@ export default {
 								"Vibration id which you receive when starting a vibration",
 						},
 					],
-				}))
+				}),
 			].forEach((command) =>
 				this.patches.push(commands.registerCommand(command))
 			);
