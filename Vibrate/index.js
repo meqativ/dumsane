@@ -53,6 +53,7 @@
       return setTimeout(res, ms);
     });
   };
+  let vibrationIDIncremental = 0;
   const vibrations = [];
   async function vibrate(options, startCb, finishCb) {
     try {
@@ -61,7 +62,7 @@
       if (!options.repeat)
         options.repeat = 1;
       const vibration = {
-        id: +Date.now(),
+        id: vibrationIDIncremental++,
         stopping: false,
         stopped: false,
         ios: plat({
