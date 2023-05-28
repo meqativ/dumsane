@@ -39,7 +39,6 @@
   };
 
   const { metro, logger, commands } = vendetta;
-  const Vibration = vendetta.metro.common.ReactNative.Vibration;
   const { triggerHaptic } = vendetta.metro.findByProps("triggerHaptic");
   const plat = function(n) {
     return metro.findByProps("View").Platform.select(typeof n === "object" && (n.hasOwnProperty("ios") || n.hasOwnProperty("android")) ? n : {
@@ -75,13 +74,11 @@
       startCb(vibration);
       for (let i = 0; i < options.repeat; i++) {
         if (vibration.ios) {
-          const interval = setInterval(function() {
-            return triggerHaptic();
-          }, 5);
+          const interval = setInterval(triggerHaptic, 5);
           await wait(options.duration);
           clearInterval(interval);
         } else {
-          Vibration.vibrate(options.duration);
+          vendetta.metro.common.ReactNative.Vibration.vibrate(options.duration);
           await wait(options.duration);
         }
         if (vibration.stopping === true) {
