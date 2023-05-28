@@ -13,7 +13,6 @@ const plat = (n) =>
 				: { ios: [n], android: n }
 		);
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
-const ios = plat({ ios: true, android: false }) ?? false;
 
 const vibrations = [];
 async function vibrate(options, startCb, finishCb) {
@@ -23,6 +22,7 @@ async function vibrate(options, startCb, finishCb) {
 	vibrations.push(vibration);
 
 	startCb(vibration);
+const ios = plat({ ios: true, android: false });
 
 	// main vibration loop
 	for (let i = 0; i < options.repeat; i++) {
