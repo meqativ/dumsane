@@ -19,12 +19,11 @@ async function vibrate(options, startCb, finishCb) {
 		if (typeof options === "undefined") options = {};
 		if (!options.repeat) options.repeat = 1;
 		const vibration = {
-			id: +Date.now(),
 			stopping: false,
 			stopped: false,
 			ios: plat({ ios: true, android: false }),
 		};
-		vibrations.push(vibration);
+		vibration.index = vibrations.push(vibration);
 		console.log(vibration);
 		startCb(vibration);
 
@@ -44,9 +43,8 @@ async function vibrate(options, startCb, finishCb) {
 			}
 			if (options.gap) await wait(options.gap);
 		}
-		vibration.deleted =
-			delete vibrations[vibrations.findIndex((v) => v.id === vibration.id)];
-		finishCb(vibration);
+		vibrations.splice(vibration.index, 1);
+		return finishCb(vibration);
 	} catch (e) {
 		alert(e.stack);
 		console.error(e.stack);
@@ -109,7 +107,7 @@ export default {
 							(options?.repeat
 								? `, ${options.repeat} time${options.repeat === 1 ? "" : "s"}`
 								: "") +
-							(options?.gap ? `. With a gap of ${options?.gap}ms.` : "");
+							(options?.gap ? `. With a gap of ${options?.gap}ms` : "");
 
 						vibrate(
 							options,
@@ -123,9 +121,7 @@ export default {
 												type: "rich",
 												title: `<:vibrating:1095354969965731921> Started vibrating`,
 												description,
-												fields: [
-													{ value: `${vibration.id}`, name: "Vibration ID" },
-												],
+												footer: { text: `ID: ${vibration.index}` },
 											},
 										],
 									},
@@ -141,11 +137,9 @@ export default {
 											{
 												type: "rich",
 												title: `<:still:1095977283212296194> ${
-													vibration.stopped ? "Abort" : "Finish"
+													vibration.stopped ? "Stopp" : "Finish"
 												}ed vibrating`,
-												fields: [
-													{ value: `${vibration.id}`, name: "Vibration ID" },
-												],
+												footer: { text: `ID: ${vibration.index}` },
 											},
 										],
 									},
@@ -186,32 +180,30 @@ export default {
 							args.map((option) => [option.name, option])
 						);
 						const id = options.get("id").value;
-						const vibrationIndex = vibrations.findIndex(
-							(vibration) => vibration.id === id
-						);
-						if (vibrationIndex === -1) {
+						const vibration = vibrations[id];
+						if (!vibration) {
 							sendMessage(
 								{
 									channelId: context.channel.id,
 									embeds: {
 										type: "rich",
-										title: `<${EMOJIS.getFailure()}> Invalid vibration ID`.trim,
-										fields: [{ value: `${id}`, name: "Vibration ID" }],
+										title:
+											`<${EMOJIS.getFailure()}> Vibration with id ${id} not found.`.trim(),
 									},
 								},
 								authorMods
 							);
 							return;
 						}
-						vibrations[vibrationIndex].stopping = true;
+						vibration.stopping = true;
 						sendMessage(
 							{
 								channelId: context.channel.id,
 								embeds: [
 									{
 										type: "rich",
-										title: `<${EMOJIS.getLoading()}> Aborting vibration…`,
-										fields: [{ value: `${id}`, name: "Vibration ID" }],
+										title: `<${EMOJIS.getLoading()}> Stopping vibration…`,
+										footer: { text: `ID: ${vibration.index}` },
 									},
 								],
 							},
