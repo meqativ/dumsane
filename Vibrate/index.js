@@ -133,7 +133,7 @@
         const { createBotMessage } = metro.findByProps("createBotMessage");
         const Avatars = metro.findByProps("BOT_AVATARS");
         const exeCute = {
-          begin(args, context) {
+          begin: function(args, context) {
             const authorMods = {
               author: {
                 username: "/vibrate begin",
@@ -206,7 +206,7 @@ ${e.stack}\`\`\``,
               }, authorMods);
             }
           },
-          abort(args, context) {
+          abort: function(args, context) {
             const authorMods = {
               author: {
                 username: "/vibrate abort",
