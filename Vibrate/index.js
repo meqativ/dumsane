@@ -277,8 +277,8 @@ ${e.stack}\`\`\``,
               }, authorMods);
             }
           }
-        }[
-          // commands
+        };
+        [
           cmdDisplays({
             execute: exeCute.start,
             type: 1,
@@ -305,7 +305,8 @@ ${e.stack}\`\`\``,
                 description: "Wait between vibrates (only matters if you have more than 1 repeat)"
               }
             ]
-          }), cmdDisplays({
+          }),
+          cmdDisplays({
             execute: exeCute.stop,
             type: 1,
             inputType: 1,
