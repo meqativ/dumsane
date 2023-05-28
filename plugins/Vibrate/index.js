@@ -1,3 +1,5 @@
+import { cmdDisplays, EMOJIS } from "../../helpers/index.js";
+
 const vibrations = [];
 export default {
 	patches: [
@@ -12,7 +14,6 @@ export default {
 	},
 	onLoad() {
 		try {
-			import { cmdDisplays, EMOJIS } from "../../helpers/index.js";
 			const { metro, logger, commands } = vendetta;
 			const Vibration = vendetta.metro.common.ReactNative.Vibration;
 			const { triggerHaptic } = vendetta.metro.findByProps("triggerHaptic");
