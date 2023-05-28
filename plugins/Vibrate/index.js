@@ -126,7 +126,7 @@ export default {
 
 						vibrate(
 							options,
-							async (vibration) => {
+							(vibration) => {
 								// Before starting the vibration
 								return sendMessage(
 									{
