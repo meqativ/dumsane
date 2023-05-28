@@ -1,3 +1,4 @@
+const rMode = false;
 import { readFile, writeFile, readdir } from "fs/promises";
 import { extname } from "path";
 import { createHash } from "crypto";
@@ -45,7 +46,7 @@ const plugins = [
             return result.code;
         },
     },
-    esbuild({ minify: true }),
+    esbuild({ minify: rMode }),
 ];
 
 for (let plug of await readdir("./plugins")) {
@@ -70,7 +71,7 @@ for (let plug of await readdir("./plugins")) {
                 return map[id] || null;
             },
             format: "iife",
-            compact: true,
+            compact: rMode,
             exports: "named",
         });
         await bundle.close();
