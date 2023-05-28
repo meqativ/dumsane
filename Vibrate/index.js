@@ -72,7 +72,7 @@
       };
       vibrations.push(vibration);
       console.log(vibration);
-      startCb(vibration);
+      vibration.startCbO = startCb(vibration);
       for (let i = 0; i < options.repeat; i++) {
         if (vibration.ios) {
           const interval = setInterval(triggerHaptic, 5);
@@ -133,13 +133,20 @@
         const { receiveMessage } = metro.findByProps("sendMessage", "receiveMessage");
         const { createBotMessage } = metro.findByProps("createBotMessage");
         const Avatars = metro.findByProps("BOT_AVATARS");
+        const messageMods = {
+          author: {
+            username: "vibrate",
+            avatar: "command",
+            avatarURL: AVATARS.command
+          }
+        };
         const exeCute = {
           start: function(args, context) {
-            const authorMods = {
-              author: {
-                username: "/vibrate start",
-                avatar: "command",
-                avatarURL: AVATARS.command
+            const messageMods2 = {
+              ...messageMods,
+              interaction: {
+                name: "/vibrate start",
+                user: vendetta.metro.findByStoreName("UserStore").getCurrentUser()
               }
             };
             try {
@@ -156,7 +163,7 @@
               };
               const description = `for ${options.duration}ms` + (options?.repeat ? `, ${options.repeat} time${options.repeat === 1 ? "" : "s"}` : "") + (options?.gap ? `. With a gap of ${options?.gap}ms` : "");
               vibrate(options, async function(vibration) {
-                sendMessage({
+                return sendMessage({
                   channelId: context.channel.id,
                   embeds: [
                     {
@@ -168,8 +175,9 @@
                       }
                     }
                   ]
-                }, authorMods);
+                }, messageMods2);
               }, async function(vibration) {
+                const replyId = vibration.startCbO.id;
                 sendMessage({
                   channelId: context.channel.id,
                   embeds: [
@@ -181,7 +189,14 @@
                       }
                     }
                   ]
-                }, authorMods);
+                }, {
+                  ...messageMods,
+                  messageReference: {
+                    channel_id: context.channel.id,
+                    message_id: replyId,
+                    guild_id: context?.guild?.id
+                  }
+                });
               });
             } catch (e) {
               alert(e.stack);
@@ -197,15 +212,15 @@ ${e.stack}\`\`\``,
                     description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`
                   }
                 ]
-              }, authorMods);
+              }, messageMods);
             }
           },
           stop: function(args, context) {
-            const authorMods = {
-              author: {
-                username: "/vibrate stop",
-                avatar: "command",
-                avatarURL: AVATARS.command
+            const messageMods2 = {
+              ...messageMods,
+              interaction: {
+                name: "/vibrate stop",
+                user: vendetta.metro.findByStoreName("UserStore").getCurrentUser()
               }
             };
             try {
@@ -226,12 +241,12 @@ ${e.stack}\`\`\``,
                     type: "rich",
                     title: `<${EMOJIS.getFailure()}> Vibration with id \`${id}\` not found.`
                   }
-                }, authorMods);
+                }, messageMods2);
                 return;
               }
               const vibration = vibrations[foundIndex];
               vibration.stopping = true;
-              sendMessage({
+              vibration.startCbO = sendMessage({
                 channelId: context.channel.id,
                 embeds: [
                   {
@@ -242,7 +257,7 @@ ${e.stack}\`\`\``,
                     }
                   }
                 ]
-              }, authorMods);
+              }, messageMods2);
             } catch (e) {
               alert(e.stack);
               console.error(e);
@@ -257,7 +272,7 @@ ${e.stack}\`\`\``,
                     description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`
                   }
                 ]
-              }, authorMods);
+              }, messageMods);
             }
           }
         };
