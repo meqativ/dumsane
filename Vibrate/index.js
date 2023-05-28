@@ -135,153 +135,81 @@
         const { receiveMessage } = metro.findByProps("sendMessage", "receiveMessage");
         const { createBotMessage } = metro.findByProps("createBotMessage");
         const Avatars = metro.findByProps("BOT_AVATARS");
-        this.exeCute = {
-          start(args, context) {
-            const authorMods = {
-              author: {
-                username: "/vibrate start",
-                avatar: "command",
-                avatarURL: AVATARS.command
-              }
-            };
-            console.log(authorMods);
-            try {
-              const cmdOptions = new Map(args.map(function(option) {
-                return [
-                  option.name,
-                  option
-                ];
-              }));
-              const options = {
-                duration: cmdOptions.get("duration").value,
-                repeat: cmdOptions.get("repeat")?.value,
-                gap: cmdOptions.get("gap")?.value
-              };
-              const description = `for ${options.duration}ms` + (options?.repeat ? `, ${options.repeat} time${options.repeat === 1 ? "" : "s"}` : "") + (options?.gap ? `. With a gap of ${options?.gap}ms.` : "");
-              vibrate(options, async function(vibration) {
-                sendMessage({
-                  channelId: context.channel.id,
-                  embeds: [
-                    {
-                      type: "rich",
-                      title: `<:vibrating:1095354969965731921> Started vibrating`,
-                      description,
-                      fields: [
-                        {
-                          value: `${vibration.id}`,
-                          name: "Vibration ID"
-                        }
-                      ]
-                    }
-                  ]
-                }, authorMods);
-              }, async function(vibration) {
-                sendMessage({
-                  channelId: context.channel.id,
-                  embeds: [
-                    {
-                      type: "rich",
-                      title: `<:still:1095977283212296194> ${vibration.stopped ? "Abort" : "Finish"}ed vibrating`,
-                      fields: [
-                        {
-                          value: `${vibration.id}`,
-                          name: "Vibration ID"
-                        }
-                      ]
-                    }
-                  ]
-                }, authorMods);
-              });
-            } catch (e) {
-              alert(e.stack);
-              console.error(e);
-              sendMessage({
-                channelId: context.channel.id,
-                content: `\`\`\`
-${e.stack}\`\`\``,
-                embeds: [
-                  {
-                    type: "rich",
-                    title: `<${EMOJIS.getFailure()}> An error ocurred while running the command`.trim(),
-                    description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`
-                  }
-                ]
-              }, authorMods);
-            }
-          },
-          stop(args, context) {
-            const authorMods = {
-              author: {
-                username: "/vibrate stop",
-                avatar: "command",
-                avatarURL: AVATARS.command
-              }
-            };
-            console.log(authorMods);
-            try {
-              const options = new Map(args.map(function(option) {
-                return [
-                  option.name,
-                  option
-                ];
-              }));
-              const id = options.get("id").value;
-              const vibrationIndex = vibrations.findIndex(function(vibration) {
-                return vibration.id === id;
-              });
-              if (vibrationIndex === -1) {
-                sendMessage({
-                  channelId: context.channel.id,
-                  embeds: {
-                    type: "rich",
-                    title: `<${EMOJIS.getFailure()}> Invalid vibration ID`.trim,
-                    fields: [
-                      {
-                        value: `${id}`,
-                        name: "Vibration ID"
-                      }
-                    ]
-                  }
-                }, authorMods);
-                return;
-              }
-              vibrations[vibrationIndex].stopping = true;
-              sendMessage({
-                channelId: context.channel.id,
-                embeds: [
-                  {
-                    type: "rich",
-                    title: `<${EMOJIS.getLoading()}> Aborting vibration\u2026`,
-                    fields: [
-                      {
-                        value: `${id}`,
-                        name: "Vibration ID"
-                      }
-                    ]
-                  }
-                ]
-              }, authorMods);
-            } catch (e) {
-              alert(e.stack);
-              console.error(e);
-              sendMessage({
-                channelId: context.channel.id,
-                content: `\`\`\`
-${e.stack}\`\`\``,
-                embeds: [
-                  {
-                    type: "rich",
-                    title: `<${EMOJIS.getFailure()}> An error ocurred while running the command`.trim(),
-                    description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`
-                  }
-                ]
-              }, authorMods);
-            }
-          }
-        };
         [
           cmdDisplays({
-            execute: this.exeCute.start,
+            execute: function(args, context) {
+              const authorMods = {
+                author: {
+                  username: "/vibrate start",
+                  avatar: "command",
+                  avatarURL: AVATARS.command
+                }
+              };
+              console.log(authorMods);
+              try {
+                const cmdOptions = new Map(args.map(function(option) {
+                  return [
+                    option.name,
+                    option
+                  ];
+                }));
+                const options = {
+                  duration: cmdOptions.get("duration").value,
+                  repeat: cmdOptions.get("repeat")?.value,
+                  gap: cmdOptions.get("gap")?.value
+                };
+                const description = `for ${options.duration}ms` + (options?.repeat ? `, ${options.repeat} time${options.repeat === 1 ? "" : "s"}` : "") + (options?.gap ? `. With a gap of ${options?.gap}ms.` : "");
+                vibrate(options, async function(vibration) {
+                  sendMessage({
+                    channelId: context.channel.id,
+                    embeds: [
+                      {
+                        type: "rich",
+                        title: `<:vibrating:1095354969965731921> Started vibrating`,
+                        description,
+                        fields: [
+                          {
+                            value: `${vibration.id}`,
+                            name: "Vibration ID"
+                          }
+                        ]
+                      }
+                    ]
+                  }, authorMods);
+                }, async function(vibration) {
+                  sendMessage({
+                    channelId: context.channel.id,
+                    embeds: [
+                      {
+                        type: "rich",
+                        title: `<:still:1095977283212296194> ${vibration.stopped ? "Abort" : "Finish"}ed vibrating`,
+                        fields: [
+                          {
+                            value: `${vibration.id}`,
+                            name: "Vibration ID"
+                          }
+                        ]
+                      }
+                    ]
+                  }, authorMods);
+                });
+              } catch (e) {
+                alert(e.stack);
+                console.error(e);
+                sendMessage({
+                  channelId: context.channel.id,
+                  content: `\`\`\`
+${e.stack}\`\`\``,
+                  embeds: [
+                    {
+                      type: "rich",
+                      title: `<${EMOJIS.getFailure()}> An error ocurred while running the command`.trim(),
+                      description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`
+                    }
+                  ]
+                }, authorMods);
+              }
+            },
             type: 1,
             inputType: 1,
             applicationId: "-1",
@@ -308,7 +236,75 @@ ${e.stack}\`\`\``,
             ]
           }),
           cmdDisplays({
-            execute: this.exeCute.stop,
+            execute: function(args, context) {
+              const authorMods = {
+                author: {
+                  username: "/vibrate stop",
+                  avatar: "command",
+                  avatarURL: AVATARS.command
+                }
+              };
+              console.log(authorMods);
+              try {
+                const options = new Map(args.map(function(option) {
+                  return [
+                    option.name,
+                    option
+                  ];
+                }));
+                const id = options.get("id").value;
+                const vibrationIndex = vibrations.findIndex(function(vibration) {
+                  return vibration.id === id;
+                });
+                if (vibrationIndex === -1) {
+                  sendMessage({
+                    channelId: context.channel.id,
+                    embeds: {
+                      type: "rich",
+                      title: `<${EMOJIS.getFailure()}> Invalid vibration ID`.trim,
+                      fields: [
+                        {
+                          value: `${id}`,
+                          name: "Vibration ID"
+                        }
+                      ]
+                    }
+                  }, authorMods);
+                  return;
+                }
+                vibrations[vibrationIndex].stopping = true;
+                sendMessage({
+                  channelId: context.channel.id,
+                  embeds: [
+                    {
+                      type: "rich",
+                      title: `<${EMOJIS.getLoading()}> Aborting vibration\u2026`,
+                      fields: [
+                        {
+                          value: `${id}`,
+                          name: "Vibration ID"
+                        }
+                      ]
+                    }
+                  ]
+                }, authorMods);
+              } catch (e) {
+                alert(e.stack);
+                console.error(e);
+                sendMessage({
+                  channelId: context.channel.id,
+                  content: `\`\`\`
+${e.stack}\`\`\``,
+                  embeds: [
+                    {
+                      type: "rich",
+                      title: `<${EMOJIS.getFailure()}> An error ocurred while running the command`.trim(),
+                      description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`
+                    }
+                  ]
+                }, authorMods);
+              }
+            },
             type: 1,
             inputType: 1,
             applicationId: "-1",
