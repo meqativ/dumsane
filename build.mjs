@@ -45,7 +45,7 @@ const plugins = [
             return result.code;
         },
     },
-    esbuild({ minify: false }),
+    esbuild({ minify: true }),
 ];
 
 for (let plug of await readdir("./plugins")) {
@@ -70,7 +70,7 @@ for (let plug of await readdir("./plugins")) {
                 return map[id] || null;
             },
             format: "iife",
-            compact: false,
+            compact: true,
             exports: "named",
         });
         await bundle.close();
