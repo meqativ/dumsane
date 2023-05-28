@@ -16,13 +16,18 @@ const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
 const vibrations = [];
 async function vibrate(options, startCb, finishCb) {
+	try {
 	if (typeof options === "undefined") options = {};
 	if (!options.repeat) options.repeat = 1;
-	const vibration = { id: +Date.now(), aborting: false, aborted: false };
+	const vibration = {
+		id: +Date.now(), 
+		aborting: false, 
+		aborted: false,
+		plat({ ios: true, android: false })
+	};
 	vibrations.push(vibration);
 
 	startCb(vibration);
-const ios = plat({ ios: true, android: false });
 
 	// main vibration loop
 	for (let i = 0; i < options.repeat; i++) {
@@ -44,6 +49,7 @@ const ios = plat({ ios: true, android: false });
 	vibration.deleted =
 		delete vibrations[vibrations.findIndex((v) => v.id === vibration.id)];
 	finishCb(vibration);
+	} catch (e) { alert(e.stack); console.error(e.stack)}
 }
 
 const plugin = {
@@ -76,6 +82,7 @@ const plugin = {
 				if (typeof mod === "object")
 					msg = metro.findByProps("merge").merge(msg, mod);
 				receiveMessage(message.channelId, msg);
+				console.log("VIBATE SEND MSG", {msg})
 				return msg;
 			}
 			const exeCute = {
@@ -147,6 +154,7 @@ const plugin = {
 							}
 						);
 					} catch (e) {
+						alert(e.stack)
 						console.error(e);
 						sendMessage(
 							{
@@ -210,6 +218,7 @@ const plugin = {
 							authorMods
 						);
 					} catch (e) {
+						alert(e.stack)
 						console.error(e);
 						sendMessage(
 							{
