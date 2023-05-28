@@ -19,11 +19,12 @@ async function vibrate(options, startCb, finishCb) {
 		if (typeof options === "undefined") options = {};
 		if (!options.repeat) options.repeat = 1;
 		const vibration = {
+			id: +Date.now(),
 			stopping: false,
 			stopped: false,
 			ios: plat({ ios: true, android: false }),
 		};
-		vibration.index = vibrations.push(vibration);
+		vibrations.push(vibration);
 		console.log(vibration);
 		startCb(vibration);
 
@@ -43,7 +44,7 @@ async function vibrate(options, startCb, finishCb) {
 			}
 			if (options.gap) await wait(options.gap);
 		}
-		vibrations.splice(vibration.index, 1);
+		vibrations.splice(vibrations.findIndex(v => v.id === vibration.id), 1);
 		return finishCb(vibration);
 	} catch (e) {
 		alert(e.stack);
@@ -121,7 +122,7 @@ export default {
 												type: "rich",
 												title: `<:vibrating:1095354969965731921> Started vibrating`,
 												description,
-												footer: { text: `ID: ${vibration.index}` },
+												footer: { text: `ID: ${vibration.id}` },
 											},
 										],
 									},
@@ -139,7 +140,7 @@ export default {
 												title: `<:still:1095977283212296194> ${
 													vibration.stopped ? "Stopp" : "Finish"
 												}ed vibrating`,
-												footer: { text: `ID: ${vibration.index}` },
+												footer: { text: `ID: ${vibration.id}` },
 											},
 										],
 									},
@@ -180,21 +181,22 @@ export default {
 							args.map((option) => [option.name, option])
 						);
 						const id = options.get("id").value;
-						const vibration = vibrations[id];
-						if (!vibration) {
+						const foundIndex = vibrations.findIndex((v) => v.id === id);
+						if (foundIndex === -1) {
 							sendMessage(
 								{
 									channelId: context.channel.id,
 									embeds: {
 										type: "rich",
 										title:
-											`<${EMOJIS.getFailure()}> Vibration with id ${id} not found.`.trim(),
+											`<${EMOJIS.getFailure()}> Vibration with id \`${id}\` not found.`,
 									},
 								},
 								authorMods
 							);
 							return;
 						}
+						const vibration = vibrations[foundIndex];
 						vibration.stopping = true;
 						sendMessage(
 							{
@@ -203,7 +205,7 @@ export default {
 									{
 										type: "rich",
 										title: `<${EMOJIS.getLoading()}> Stopping vibration…`,
-										footer: { text: `ID: ${vibration.index}` },
+										footer: { text: `ID: ${vibration.id}` },
 									},
 								],
 							},
