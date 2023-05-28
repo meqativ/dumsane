@@ -293,15 +293,12 @@ ${e.stack}\`\`\``,
                 required: true,
                 name: "duration",
                 description: "Duration of one vibration (in milliseconds)",
-                min_value: 1,
-                max_value: 9999
+                min_value: 1
               },
               {
                 type: 4,
                 name: "repeat",
-                description: "Number of times to repeat",
-                min_value: 1,
-                max_value: 9999999
+                description: "Number of times to repeat"
               },
               {
                 type: 4,
@@ -311,25 +308,25 @@ ${e.stack}\`\`\``,
             ]
           }))
         );
-        this.patches.push(
-          /* /vibrate abort */
-          commands.registerCommand(cmdDisplays({
-            execute: exeCute.abort,
-            type: 1,
-            inputType: 1,
-            applicationId: "-1",
-            name: "vibrate abort",
-            description: `Abort a brrr`,
-            options: [
-              {
-                type: 4,
-                required: true,
-                name: "id",
-                description: "Vibration id which you receive when running </vibrate begin:0>"
-              }
-            ]
-          }))
-        );
+        const vibabort = cmdDisplays({
+          execute: exeCute.abort,
+          type: 1,
+          inputType: 1,
+          applicationId: "-1",
+          name: "vibrate abort",
+          description: `Abort a brrr`,
+          options: [
+            {
+              type: 4,
+              required: true,
+              name: "id",
+              description: "Vibration id which you receive when running </vibrate begin:0>"
+            }
+          ]
+        });
+        console.log(vibabort);
+        const vibrateabort = commands.registerCommand(vibabort);
+        this.patches.push(vibrateabort);
       } catch (e) {
         console.error(e);
         alert(e.stack);
