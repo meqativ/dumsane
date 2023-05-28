@@ -23,7 +23,7 @@ async function vibrate(options, startCb, finishCb) {
 		id: +Date.now(), 
 		aborting: false, 
 		aborted: false,
-		plat({ ios: true, android: false })
+		ios: plat({ ios: true, android: false })
 	};
 	vibrations.push(vibration);
 
@@ -31,7 +31,7 @@ async function vibrate(options, startCb, finishCb) {
 
 	// main vibration loop
 	for (let i = 0; i < options.repeat; i++) {
-		if (ios) {
+		if (vibration.ios) {
 			const interval = setInterval(() => triggerHaptic(), 5);
 			await wait(options.duration);
 			clearInterval(interval);
