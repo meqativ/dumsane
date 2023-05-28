@@ -53,44 +53,49 @@
   };
   const vibrations = [];
   async function vibrate(options, startCb, finishCb) {
-    if (typeof options === "undefined")
-      options = {};
-    if (!options.repeat)
-      options.repeat = 1;
-    const vibration = {
-      id: +Date.now(),
-      aborting: false,
-      aborted: false
-    };
-    vibrations.push(vibration);
-    startCb(vibration);
-    const ios = plat({
-      ios: true,
-      android: false
-    });
-    for (let i = 0; i < options.repeat; i++) {
-      if (ios) {
-        const interval = setInterval(function() {
-          return triggerHaptic();
-        }, 5);
-        await wait(options.duration);
-        clearInterval(interval);
-      } else {
-        Vibration.vibrate(1e69);
-        await wait(options.duration);
-        Vibration.clear();
+    try {
+      if (typeof options === "undefined")
+        options = {};
+      if (!options.repeat)
+        options.repeat = 1;
+      const vibration = {
+        id: +Date.now(),
+        aborting: false,
+        aborted: false,
+        ios: plat({
+          ios: true,
+          android: false
+        })
+      };
+      vibrations.push(vibration);
+      startCb(vibration);
+      for (let i = 0; i < options.repeat; i++) {
+        if (vibration.ios) {
+          const interval = setInterval(function() {
+            return triggerHaptic();
+          }, 5);
+          await wait(options.duration);
+          clearInterval(interval);
+        } else {
+          Vibration.vibrate(1e69);
+          await wait(options.duration);
+          Vibration.clear();
+        }
+        if (vibration.aborting === true) {
+          vibration.aborted = true;
+          break;
+        }
+        if (options.gap)
+          await wait(options.gap);
       }
-      if (vibration.aborting === true) {
-        vibration.aborted = true;
-        break;
-      }
-      if (options.gap)
-        await wait(options.gap);
+      vibration.deleted = delete vibrations[vibrations.findIndex(function(v) {
+        return v.id === vibration.id;
+      })];
+      finishCb(vibration);
+    } catch (e) {
+      alert(e.stack);
+      console.error(e.stack);
     }
-    vibration.deleted = delete vibrations[vibrations.findIndex(function(v) {
-      return v.id === vibration.id;
-    })];
-    finishCb(vibration);
   }
   const plugin = {
     patches: [
@@ -118,6 +123,9 @@
           if (typeof mod === "object")
             msg = metro.findByProps("merge").merge(msg, mod);
           receiveMessage(message.channelId, msg);
+          console.log("VIBATE SEND MSG", {
+            msg
+          });
           return msg;
         };
         const { receiveMessage } = metro.findByProps("sendMessage", "receiveMessage");
@@ -180,6 +188,7 @@
                 }, authorMods);
               });
             } catch (e) {
+              alert(e.stack);
               console.error(e);
               sendMessage({
                 channelId: context.channel.id,
@@ -247,6 +256,7 @@ ${e.stack}\`\`\``,
                 ]
               }, authorMods);
             } catch (e) {
+              alert(e.stack);
               console.error(e);
               sendMessage({
                 channelId: context.channel.id,
