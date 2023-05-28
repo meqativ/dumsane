@@ -1,4 +1,4 @@
-import { cmdDisplays, EMOJIS } from "../../helpers/index.js";
+import { cmdDisplays, EMOJIS, AVATARS } from "../../helpers/index.js";
 
 const vibrations = [];
 export default {
@@ -101,7 +101,7 @@ export default {
 								avatarURL: AVATARS.command,
 							},
 						};
-						console.log(authorMods);
+						console.log(authorMods) ;/////////;
 						try {
 							const cmdOptions = new Map(
 								args.map((option) => [option.name, option])
