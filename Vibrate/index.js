@@ -191,11 +191,13 @@
                   ]
                 }, {
                   ...messageMods,
+                  type: 19,
                   messageReference: {
                     channel_id: context.channel.id,
                     message_id: replyId,
                     guild_id: context?.guild?.id
-                  }
+                  },
+                  referenced_message: vendetta.metro.findByStoreName("MessageStore").getMessage(context.channel.id, replyId)
                 });
               });
             } catch (e) {
