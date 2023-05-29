@@ -1,5 +1,24 @@
-(function (exports) {
+(function (exports, enmity) {
   'use strict';
+
+  function _interopNamespaceDefault(e) {
+    var n = Object.create(null);
+    if (e) {
+      Object.keys(e).forEach(function (k) {
+        if (k !== 'default') {
+          var d = Object.getOwnPropertyDescriptor(e, k);
+          Object.defineProperty(n, k, d.get ? d : {
+            enumerable: true,
+            get: function () { return e[k]; }
+          });
+        }
+      });
+    }
+    n.default = e;
+    return Object.freeze(n);
+  }
+
+  var enmity__namespace = /*#__PURE__*/_interopNamespaceDefault(enmity);
 
   function cmdDisplays(obj, translations, locale) {
     if (!obj.name || !obj?.description)
@@ -38,10 +57,11 @@
     command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
   };
 
-  const { metro, logger, commands } = vendetta;
-  const { triggerHaptic } = vendetta.metro.findByProps("triggerHaptic");
+  const { metro, logger, commands } = enmity__namespace;
+  const { common: { ReactNative } } = metro;
+  const { triggerHaptic } = metro.findByProps("triggerHaptic");
   const plat = function(n) {
-    return metro.findByProps("View").Platform.select(typeof n === "object" && (n.hasOwnProperty("ios") || n.hasOwnProperty("android")) ? n : {
+    return ReactNative.Platform.select(typeof n === "object" && (n.hasOwnProperty("ios") || n.hasOwnProperty("android")) ? n : {
       ios: [
         n
       ],
@@ -75,11 +95,11 @@
       vibration.startO = await startCb(vibration);
       for (let i = 0; i < options.repeat; i++) {
         if (vibration.ios) {
-          const interval = setInterval(triggerHaptic, 5);
+          const interval = setInterval(triggerHaptic);
           await wait(options.duration);
           clearInterval(interval);
         } else {
-          vendetta.metro.common.ReactNative.Vibration.vibrate(options.duration);
+          metro.common.ReactNative.Vibration.vibrate(options.duration);
           await wait(options.duration);
         }
         if (vibration.stopping === true) {
@@ -146,7 +166,7 @@
               ...messageMods,
               interaction: {
                 name: "/vibrate start",
-                user: vendetta.metro.findByStoreName("UserStore").getCurrentUser()
+                user: enmity__namespace.metro.findByStoreName("UserStore").getCurrentUser()
               }
             };
             try {
@@ -197,7 +217,7 @@
                     message_id: replyId,
                     guild_id: context?.guild?.id
                   },
-                  referenced_message: vendetta.metro.findByStoreName("MessageStore").getMessage(context.channel.id, replyId)
+                  referenced_message: enmity__namespace.metro.findByStoreName("MessageStore").getMessage(context.channel.id, replyId)
                 });
               });
             } catch (e) {
@@ -222,7 +242,7 @@ ${e.stack}\`\`\``,
               ...messageMods,
               interaction: {
                 name: "/vibrate stop",
-                user: vendetta.metro.findByStoreName("UserStore").getCurrentUser()
+                user: enmity__namespace.metro.findByStoreName("UserStore").getCurrentUser()
               }
             };
             try {
@@ -338,4 +358,4 @@ ${e.stack}\`\`\``,
 
   return exports;
 
-})({});
+})({}, vendetta);
