@@ -27,7 +27,7 @@ async function vibrate(options, startCb, finishCb) {
 		};
 		vibrations.push(vibration);
 		console.log(vibration);
-		vibration.startCbO = startCb(vibration);
+		vibration.startO = await startCb(vibration);
 
 		// main vibration loop
 		for (let i = 0; i < options.repeat; i++) {
@@ -126,9 +126,9 @@ export default {
 
 						vibrate(
 							options,
-							(vibration) => {
+							async (vibration) => {
 								// Before starting the vibration
-								return sendMessage(
+								return await sendMessage(
 									{
 										channelId: context.channel.id,
 										embeds: [
@@ -145,7 +145,7 @@ export default {
 							},
 							async (vibration) => {
 								// After ending the vibration
-								const replyId = vibration.startCbO.id;
+								const replyId = vibration.startO.id;
 								sendMessage(
 									{
 										channelId: context.channel.id,
