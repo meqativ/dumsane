@@ -1,11 +1,12 @@
 import { cmdDisplays, EMOJIS, AVATARS } from "../../helpers/index.js";
-const { metro, logger, commands } = vendetta;
-const { triggerHaptic } = vendetta.metro.findByProps("triggerHaptic");
+import * as enmity from "@vendetta";
+
+const { metro, logger, commands } = enmity;
+const { common: { ReactNative } } = metro;
+const { triggerHaptic } = metro.findByProps("triggerHaptic");
 const PLUGIN_FORUM_POST_URL = "||not proxied||";
 const plat = (n) =>
-	metro
-		.findByProps("View")
-		.Platform.select(
+		ReactNative.Platform.select(
 			typeof n === "object" &&
 				(n.hasOwnProperty("ios") || n.hasOwnProperty("android"))
 				? n
@@ -32,11 +33,11 @@ async function vibrate(options, startCb, finishCb) {
 		// main vibration loop
 		for (let i = 0; i < options.repeat; i++) {
 			if (vibration.ios) {
-				const interval = setInterval(triggerHaptic, 5);
+				const interval = setInterval(triggerHaptic);
 				await wait(options.duration);
 				clearInterval(interval);
 			} else {
-				vendetta.metro.common.ReactNative.Vibration.vibrate(options.duration);
+				metro.common.ReactNative.Vibration.vibrate(options.duration);
 				await wait(options.duration);
 			}
 			if (vibration.stopping === true) {
@@ -104,7 +105,7 @@ export default {
 						...messageMods,
 												interaction: {
 																			name: "/vibrate start",
-																			user: vendetta.metro.findByStoreName("UserStore").getCurrentUser()
+																			user: enmity.metro.findByStoreName("UserStore").getCurrentUser()
 																		}
 
 					}
@@ -167,7 +168,7 @@ export default {
 											message_id: replyId,
 											guild_id: context?.guild?.id
 										},
-										referenced_message: vendetta.metro.findByStoreName("MessageStore").getMessage(context.channel.id, replyId)
+										referenced_message: enmity.metro.findByStoreName("MessageStore").getMessage(context.channel.id, replyId)
 									}
 								);
 							}
@@ -197,7 +198,7 @@ export default {
 						...messageMods,
 						interaction: {
 							name: "/vibrate stop",
-							user: vendetta.metro.findByStoreName("UserStore").getCurrentUser()
+							user: enmity.metro.findByStoreName("UserStore").getCurrentUser()
 						}
 					};
 					try {
