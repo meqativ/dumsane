@@ -162,7 +162,7 @@ export default {
 									{
 										...messageMods,
 										type: 19,
-										messageReference: {
+										message_reference: {
 											channel_id: context.channel.id,
 											message_id: replyId,
 											guild_id: context?.guild?.id
