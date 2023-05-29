@@ -72,7 +72,7 @@
       };
       vibrations.push(vibration);
       console.log(vibration);
-      vibration.startCbO = startCb(vibration);
+      vibration.startO = await startCb(vibration);
       for (let i = 0; i < options.repeat; i++) {
         if (vibration.ios) {
           const interval = setInterval(triggerHaptic, 5);
@@ -162,8 +162,8 @@
                 gap: cmdOptions.get("gap")?.value
               };
               const description = `for ${options.duration}ms` + (options?.repeat ? `, ${options.repeat} time${options.repeat === 1 ? "" : "s"}` : "") + (options?.gap ? `. With a gap of ${options?.gap}ms` : "");
-              vibrate(options, function(vibration) {
-                return sendMessage({
+              vibrate(options, async function(vibration) {
+                return await sendMessage({
                   channelId: context.channel.id,
                   embeds: [
                     {
@@ -177,7 +177,7 @@
                   ]
                 }, messageMods2);
               }, async function(vibration) {
-                const replyId = vibration.startCbO.id;
+                const replyId = vibration.startO.id;
                 sendMessage({
                   channelId: context.channel.id,
                   embeds: [
