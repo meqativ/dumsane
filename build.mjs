@@ -1,4 +1,4 @@
-const rMode = false;
+const rMode = true;
 import { readFile, writeFile, readdir } from "fs/promises";
 import { extname } from "path";
 import { createHash } from "crypto";
