@@ -2,16 +2,19 @@ import { cmdDisplays, EMOJIS, AVATARS } from "../../helpers/index.js";
 import * as enmity from "@vendetta";
 
 const { metro, logger, commands } = enmity;
-const { common: { ReactNative } } = metro;
+const {
+	common: { ReactNative },
+} = metro;
 const { triggerHaptic } = metro.findByProps("triggerHaptic");
-const PLUGIN_FORUM_POST_URL = "||not proxied||";
+const PLUGIN_FORUM_POST_URL = "||not proxied||",
+	APP_ID = "1113021888109740083";
 const plat = (n) =>
-		ReactNative.Platform.select(
-			typeof n === "object" &&
-				(n.hasOwnProperty("ios") || n.hasOwnProperty("android"))
-				? n
-				: { ios: [n], android: n }
-		);
+	ReactNative.Platform.select(
+		typeof n === "object" &&
+			(n.hasOwnProperty("ios") || n.hasOwnProperty("android"))
+			? n
+			: { ios: [n], android: n }
+	);
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
 let vibrationIDIncremental = 0;
@@ -46,17 +49,21 @@ async function vibrate(options, startCb, finishCb) {
 			}
 			if (options.gap) await wait(options.gap);
 		}
-		vibrations.splice(vibrations.findIndex(v => v.id === vibration.id), 1);
+		vibrations.splice(
+			vibrations.findIndex((v) => v.id === vibration.id),
+			1
+		);
 		return finishCb(vibration);
 	} catch (e) {
-		alert(e.stack);
-		console.error(e.stack);
+		console.error(e);
+		alert("An error ocurred at vibrate()\n" + e.stack);
 	}
 }
 
 export default {
 	patches: [
 		() => {
+			// schedule all vibations to be stopped
 			for (var i = 0; i < vibrations.length; i++) {
 				vibrations[i].stopping = true;
 			}
@@ -88,27 +95,23 @@ export default {
 				return msg;
 			}
 
-								const messageMods = {
-														author: {
-																					username: "vibrate",
-																					avatar: "command",
-																					avatarURL: AVATARS.command,
-																				},
-													};
-
-
+			const authorMods = {
+				author: {
+					username: "vibrate",
+					avatar: "command",
+					avatarURL: AVATARS.command,
+				},
+			};
 
 			const exeCute = {
 				start: (args, context) => {
-
-					const messageMods2 = {
-						...messageMods,
-												interaction: {
-																			name: "/vibrate start",
-																			user: enmity.metro.findByStoreName("UserStore").getCurrentUser()
-																		}
-
-					}
+					const messageMods = {
+						...authorMods,
+						interaction: {
+							name: "/vibrate start",
+							user: enmity.metro.findByStoreName("UserStore").getCurrentUser(),
+						},
+					};
 					try {
 						const cmdOptions = new Map(
 							args.map((option) => [option.name, option])
@@ -141,7 +144,7 @@ export default {
 											},
 										],
 									},
-									messageMods2
+									messageMods
 								);
 							},
 							async (vibration) => {
@@ -166,20 +169,20 @@ export default {
 										message_reference: {
 											channel_id: context.channel.id,
 											message_id: replyId,
-											guild_id: context?.guild?.id
+											guild_id: context?.guild?.id,
 										},
-										referenced_message: enmity.metro.findByStoreName("MessageStore").getMessage(context.channel.id, replyId)
+										referenced_message: enmity.metro
+											.findByStoreName("MessageStore")
+											.getMessage(context.channel.id, replyId),
 									}
 								);
 							}
 						);
 					} catch (e) {
-						alert(e.stack);
-						console.error(e);
 						sendMessage(
 							{
 								channelId: context.channel.id,
-								content: `\`\`\`\n${e.stack}\`\`\``,
+								content: `\`\`\`js\n${e.stack}\`\`\``,
 								embeds: [
 									{
 										type: "rich",
@@ -191,15 +194,16 @@ export default {
 							},
 							messageMods
 						);
+						console.error(e);
 					}
 				},
 				stop: (args, context) => {
-					const messageMods2 = {
-						...messageMods,
+					const messageMods = {
+						...authorMods,
 						interaction: {
 							name: "/vibrate stop",
-							user: enmity.metro.findByStoreName("UserStore").getCurrentUser()
-						}
+							user: enmity.metro.findByStoreName("UserStore").getCurrentUser(),
+						},
 					};
 					try {
 						const options = new Map(
@@ -213,11 +217,10 @@ export default {
 									channelId: context.channel.id,
 									embeds: {
 										type: "rich",
-										title:
-											`<${EMOJIS.getFailure()}> Vibration with id \`${id}\` not found.`,
+										title: `<${EMOJIS.getFailure()}> Vibration with id \`${id}\` not found.`,
 									},
 								},
-								messageMods2
+								messageMods
 							);
 							return;
 						}
@@ -234,15 +237,13 @@ export default {
 									},
 								],
 							},
-							messageMods2
+							messageMods
 						);
 					} catch (e) {
-						alert(e.stack);
-						console.error(e);
 						sendMessage(
 							{
 								channelId: context.channel.id,
-								content: `\`\`\`\n${e.stack}\`\`\``,
+								content: `\`\`\`js\n${e.stack}\`\`\``,
 								embeds: [
 									{
 										type: "rich",
@@ -254,44 +255,17 @@ export default {
 							},
 							messageMods
 						);
+						console.error(e);
 					}
 				},
 			};
 			// commands
 			[
 				cmdDisplays({
-					execute: exeCute.start,
-					type: 1,
-					inputType: 1,
-					applicationId: "-1",
-					name: "vibrate start",
-					description: `Begin a brrr`,
-					options: [
-						{
-							type: 4,
-							required: true,
-							name: "duration",
-							description: "Duration of one vibration (in milliseconds)",
-							min_value: 1,
-						},
-						{
-							type: 4,
-							name: "repeat",
-							description: "Number of times to repeat",
-						},
-						{
-							type: 4,
-							name: "gap",
-							description:
-								"Wait between vibrates (only matters if you have more than 1 repeat)",
-						},
-					],
-				}),
-				cmdDisplays({
 					execute: exeCute.stop,
 					type: 1,
 					inputType: 1,
-					applicationId: "-1",
+					applicationId: APP_ID,
 					name: "vibrate stop",
 					description: `Stop a brrr`,
 					options: [
@@ -304,8 +278,36 @@ export default {
 						},
 					],
 				}),
+				cmdDisplays({
+					execute: exeCute.start,
+					type: 1,
+					inputType: 1,
+					applicationId: APP_ID,
+					name: "vibrate start",
+					description: `Begin a brrr`,
+					options: [
+						{
+							type: 4,
+							required: true,
+							name: "duration",
+							description: "Duration of one vibration (ms)",
+							min_value: 1,
+						},
+						{
+							type: 4,
+							name: "repeat",
+							description: "Number of times to repeat",
+						},
+						{
+							type: 4,
+							name: "gap",
+							description:
+								"Wait between vibrations (only matters if you have more than 1 repeat)",
+						},
+					],
+				}),
 			].forEach((command) =>
-				this.patches.push(commands.registerCommand(command))
+				this.patches.unshift(commands.registerCommand(command))
 			);
 
 			/*patches[0] = commands.registerCommand({
@@ -377,7 +379,9 @@ export default {
 	}); */
 		} catch (e) {
 			console.error(e);
-			alert(e.stack);
+			alert(
+				"There was an error while loading Vibrate\n" + e.stack
+			);
 		}
 	},
 };
