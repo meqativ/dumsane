@@ -14,7 +14,7 @@ const plugin = {
 				vendetta.metro.findByStoreName("UserStore").getCurrentUser;
 
 			this?.onUnload?.();
-			let currentUser = getCurrentUser();
+			let currentUser = getCurrentUser?.();
 			if (!currentUser) {
 				FluxDispatcher.subscribe("CONNECTION_OPEN", run);
 			} else {
@@ -75,7 +75,7 @@ const plugin = {
 				}
 			}
 		} catch (e) {
-			alert(e.stack;
+			alert(e.stack.split("at next (native)")[0]);
 			console.error(e);
 		}
 	},
