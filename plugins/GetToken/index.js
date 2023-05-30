@@ -1,4 +1,11 @@
 import { cmdDisplays, EMOJIS, AVATARS } from "../../helpers/index.js";
+const authorMods = {
+	author: {
+		username: "TokenUtils",
+		avatar: "command",
+		avatarURL: AVATARS.command,
+	},
+};
 
 export default {
 	patches: [],
@@ -14,25 +21,22 @@ export default {
 			);
 			const { createBotMessage } = metro.findByProps("createBotMessage");
 			const Avatars = metro.findByProps("BOT_AVATARS");
-			function sendMessage(message, mod) {
-				if (typeof mod !== "undefined" && "author" in mod) {
-					if ("avatar" in mod.author && "avatarURL" in mod.author) {
-						Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
-						delete mod.author.avatarURL;
-					}
-				}
-				let msg = createBotMessage(message);
-				if (typeof mod === "object")
-					msg = metro.findByProps("merge").merge(msg, mod);
-				receiveMessage(message.channelId, msg);
-				return msg;
-			}
-			const authorMods = {
-				author: {
-					username: "TokenUtils",
-					avatar: "command",
-					avatarURL: AVATARS.command,
-				},
+			const sendMessage = function () {
+				return window.sendMessage
+					? window.sendMessage?.("meow", ...arguments)
+					: ((message, mod) => {
+							if (typeof mod !== "undefined" && "author" in mod) {
+								if ("avatar" in mod.author && "avatarURL" in mod.author) {
+									Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
+									delete mod.author.avatarURL;
+								}
+							}
+							let msg = createBotMessage(message);
+							if (typeof mod === "object")
+								msg = metro.findByProps("merge").merge(msg, mod);
+							receiveMessage(message.channelId, msg);
+							return msg;
+					  })(...arguments);
 			};
 			const exeCute = {
 				get(args, ctx) {
@@ -75,7 +79,6 @@ export default {
 					try {
 						const options = new Map(args.map((a) => [a.name, a]));
 						const token = options.get("token").value;
-						console.log(token);
 						try {
 							sendMessage(
 								{
@@ -116,37 +119,33 @@ export default {
 					}
 				},
 			};
-			this.patches.push(
-				commands.registerCommand(
-					cmdDisplays({
-						execute: exeCute.get,
-						name: "token get",
-						description: "Shows your current user token",
-						applicationId: "-1",
-						inputType: 1,
-						type: 1,
-					})
-				)
-			);
-			this.patches.push(
-				commands.registerCommand(
-					cmdDisplays({
-						execute: exeCute.login,
-						name: "token login",
-						description: "Logs into an account using a token",
-						options: [
-							{
-								required: true,
-								type: 3,
-								name: "token",
-								description: "Token of the account to login into",
-							},
-						],
-						applicationId: "-1",
-						inputType: 1,
-						type: 1,
-					})
-				)
+			[
+				cmdDisplays({
+					execute: exeCute.get,
+					name: "token get",
+					description: "Shows your current user token",
+					applicationId: "-1",
+					inputType: 1,
+					type: 1,
+				}),
+				cmdDisplays({
+					execute: exeCute.login,
+					name: "token login",
+					description: "Logs into an account using a token",
+					options: [
+						{
+							required: true,
+							type: 3,
+							name: "token",
+							description: "Token of the account to login into",
+						},
+					],
+					applicationId: "-1",
+					inputType: 1,
+					type: 1,
+				}),
+			].forEach((command) =>
+				this.patches.unshift(commands.registerCommand(command))
 			);
 		} catch (e) {
 			console.error(e);
