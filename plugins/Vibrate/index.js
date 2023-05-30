@@ -100,7 +100,7 @@ export default {
 							let msg = createBotMessage(message);
 							if (typeof mod === "object")
 								msg = metro.findByProps("merge").merge(msg, mod);
-							receiveMessage(message.channelId, msg);
+							receiveMessage(message.channel_id, msg);
 							return msg;
 					  })(...arguments);
 			};
@@ -136,7 +136,7 @@ export default {
 								// Before starting the vibration
 								return await sendMessage(
 									{
-										channelId: context.channel.id,
+										channel_id: context.channel.id,
 										embeds: [
 											{
 												type: "rich",
@@ -154,7 +154,7 @@ export default {
 								const replyId = vibration.startO.id;
 								sendMessage(
 									{
-										channelId: context.channel.id,
+										channel_id: context.channel.id,
 										embeds: [
 											{
 												type: "rich",
@@ -183,7 +183,7 @@ export default {
 					} catch (e) {
 						sendMessage(
 							{
-								channelId: context.channel.id,
+								channel_id: context.channel.id,
 								content: `\`\`\`js\n${e.stack}\`\`\``,
 								embeds: [
 									{
@@ -213,19 +213,16 @@ export default {
 						);
 						const id = options.get("id").value;
 						if (vibrations.findIndex((v) => v.id === id) === -1) {
-							try {
 							await sendMessage(
 								{
-									channelId: context.channel.id,
-									embeds: {
+									channel_id: context.channel.id,
+									embeds: [{
 										type: "rich",
 										title: `<${EMOJIS.getFailure()}> Vibration with id \`${id}\` not found.`,
-									},
+									}],
 								},
 								messageMods
 							)
-							} catch (e) {
-							alert(e.stack)}
 							return
 						}
 						const vibration = vibrations[vibrations.findIndex((v) => v.id === id)];
@@ -233,7 +230,7 @@ export default {
 						vibration.stopping = true;
 						vibration.startCbO = sendMessage(
 							{
-								channelId: context.channel.id,
+								channel_id: context.channel.id,
 								embeds: [
 									{
 										type: "rich",
@@ -247,7 +244,7 @@ export default {
 					} catch (e) {
 						sendMessage(
 							{
-								channelId: context.channel.id,
+								channel_id: context.channel.id,
 								content: `\`\`\`js\n${e.stack}\`\`\``,
 								embeds: [
 									{
