@@ -18,7 +18,7 @@ const plugin = {
 			if (!currentUser) {
 				FluxDispatcher.subscribe("CONNECTION_OPEN", run);
 			} else {
-				this.run("meow");
+				run("meow");
 			}
 			function run(unsub) {
 				try {
