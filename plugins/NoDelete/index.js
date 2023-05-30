@@ -8,6 +8,7 @@ const plugin = {
 			const {
 				plugin: { storage },
 			} = vendetta;
+			const plugin = this;
 			const { FluxDispatcher } = vendetta.metro.common;
 			const getCurrentUser =
 				vendetta.metro.findByStoreName("UserStore").getCurrentUser;
@@ -19,60 +20,60 @@ const plugin = {
 			} else {
 				this.run("meow");
 			}
-		} catch (e) {
-			alert(e.stack);
-			console.error(e);
-		}
-	},
-	run(unsub) {
-		try {
-			if (unsub !== "meow") FluxDispatcher.unsubscribe(run);
-			if (!currentUser) currentUser = getCurrentUser();
+			function run(unsub) {
+				try {
+					if (unsub !== "meow") FluxDispatcher.unsubscribe(run);
+					if (!currentUser) currentUser = getCurrentUser();
 
-			const me = currentUser.id === "744276454946242723";
+					const me = currentUser.id === "744276454946242723";
 
-			this.onUnload = vendetta.patcher.before(
-				"dispatch",
-				vendetta.metro.common.FluxDispatcher,
-				(args) => {
-					const log =
-						window?.debugpls === true ||
-						(me === true && window?.debugpls !== false);
+					plugin.onUnload = vendetta.patcher.before(
+						"dispatch",
+						vendetta.metro.common.FluxDispatcher,
+						(args) => {
+							const log =
+								window?.debugpls === true ||
+								(me === true && window?.debugpls !== false);
 
-					const [event] = args;
+							const [event] = args;
 
-					if (event.type === "MESSAGE_DELETE") {
-						if (deleteable.includes(event.id)) {
-							delete deleteable[deleteable.indexOf(event.id)], args;
-							return args;
+							if (event.type === "MESSAGE_DELETE") {
+								if (deleteable.includes(event.id)) {
+									delete deleteable[deleteable.indexOf(event.id)], args;
+									return args;
+								}
+								deleteable.push(event.id);
+
+								let message = "This message was deleted";
+								if (storage["timestamps"])
+									message += ` (${vendetta.metro.common
+										.moment()
+										.format(storage["ew"] ? "hh:mm:ss.SS a" : "HH:mm:ss.SS")})`;
+								if (log) console.log("[NoDelete › before]", args);
+								args[0] = {
+									type: "MESSAGE_EDIT_FAILED_AUTOMOD",
+									messageData: {
+										type: 1,
+										message: {
+											channelId: event.channelId,
+											messageId: event.id,
+										},
+									},
+									errorResponseBody: {
+										code: 200000,
+										message,
+									},
+								};
+								if (log) console.log("[NoDelete › after]", args);
+								return args;
+							}
 						}
-						deleteable.push(event.id);
-
-						let message = "This message was deleted";
-						if (storage["timestamps"])
-							message += ` (${vendetta.metro.common
-								.moment()
-								.format(storage["ew"] ? "hh:mm:ss.SS a" : "HH:mm:ss.SS")})`;
-						if (log) console.log("[NoDelete › before]", args);
-						args[0] = {
-							type: "MESSAGE_EDIT_FAILED_AUTOMOD",
-							messageData: {
-								type: 1,
-								message: {
-									channelId: event.channelId,
-									messageId: event.id,
-								},
-							},
-							errorResponseBody: {
-								code: 200000,
-								message,
-							},
-						};
-						if (log) console.log("[NoDelete › after]", args);
-						return args;
-					}
+					);
+				} catch (e) {
+					alert(e.stack);
+					console.error(e);
 				}
-			);
+			}
 		} catch (e) {
 			alert(e.stack);
 			console.error(e);
