@@ -94,14 +94,14 @@
 	      const { FluxDispatcher } = vendetta.metro.common;
 	      const getCurrentUser = vendetta.metro.findByStoreName("UserStore").getCurrentUser;
 	      this?.onUnload?.();
-	      let currentUser = getCurrentUser();
+	      let currentUser = getCurrentUser?.();
 	      if (!currentUser) {
 	        FluxDispatcher.subscribe("CONNECTION_OPEN", run);
 	      } else {
 	        this.run("meow");
 	      }
 	    } catch (e) {
-	      alert(e.stack.split("at next (native)")[1]);
+	      alert(e.stack.split("at next (native)")[0]);
 	      console.error(e);
 	    }
 	  }
