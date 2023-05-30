@@ -7,7 +7,14 @@ const {
 } = metro;
 const { triggerHaptic } = metro.findByProps("triggerHaptic");
 const PLUGIN_FORUM_POST_URL = "||not proxied||",
-	APP_ID = "1113021888109740083";
+	APP_ID = "1113021888109740083",
+	authorMods = {
+		author: {
+			username: "Vibrate",
+			avatar: "command",
+			avatarURL: AVATARS.command,
+		},
+	};
 const plat = (n) =>
 	ReactNative.Platform.select(
 		typeof n === "object" &&
@@ -94,14 +101,6 @@ export default {
 				console.log("VIBATE SEND MSG", { msg });
 				return msg;
 			}
-
-			const authorMods = {
-				author: {
-					username: "vibrate",
-					avatar: "command",
-					avatarURL: AVATARS.command,
-				},
-			};
 
 			const exeCute = {
 				start: (args, context) => {
@@ -379,9 +378,7 @@ export default {
 	}); */
 		} catch (e) {
 			console.error(e);
-			alert(
-				"There was an error while loading Vibrate\n" + e.stack
-			);
+			alert("There was an error while loading Vibrate\n" + e.stack);
 		}
 	},
 };
