@@ -1,7 +1,7 @@
 {
 	"name": "Vibrate",
-	"description": "Adds the /vibrate commands",
-	"authors": [{ "name": "meqativ", "id": "744276454946242723" }],
+	"description": "Does the brrrrrr\n/vibrate",
+	"authors": [{ "name": "meqativ :3", "id": "744276454946242723" }],
 	"main": "./index.js",
-	"vendetta": { "icon": "ic_application_command_24px" }
+	"vendetta": { "icon": "ic_noise_cancellation_active" }
 }
