@@ -199,7 +199,7 @@ export default {
 						console.error(e);
 					}
 				},
-				stop: (args, context) => {
+				stop: async (args, context) => {
 					const messageMods = {
 						...authorMods,
 						interaction: {
