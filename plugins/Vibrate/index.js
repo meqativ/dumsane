@@ -87,20 +87,23 @@ export default {
 			);
 			const { createBotMessage } = metro.findByProps("createBotMessage");
 			const Avatars = metro.findByProps("BOT_AVATARS");
-			function sendMessage(message, mod) {
-				if (typeof mod !== "undefined" && "author" in mod) {
-					if ("avatar" in mod.author && "avatarURL" in mod.author) {
-						Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
-						delete mod.author.avatarURL;
-					}
-				}
-				let msg = createBotMessage(message);
-				if (typeof mod === "object")
-					msg = metro.findByProps("merge").merge(msg, mod);
-				receiveMessage(message.channelId, msg);
-				console.log("VIBATE SEND MSG", { msg });
-				return msg;
-			}
+			const sendMessage = function () {
+				return window.sendMessage
+					? window.sendMessage?.("meow", ...arguments)
+					: ((message, mod) => {
+							if (typeof mod !== "undefined" && "author" in mod) {
+								if ("avatar" in mod.author && "avatarURL" in mod.author) {
+									Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
+									delete mod.author.avatarURL;
+								}
+							}
+							let msg = createBotMessage(message);
+							if (typeof mod === "object")
+								msg = metro.findByProps("merge").merge(msg, mod);
+							receiveMessage(message.channelId, msg);
+							return msg;
+					  })(...arguments);
+			};
 
 			const exeCute = {
 				start: (args, context) => {
@@ -186,7 +189,7 @@ export default {
 									{
 										type: "rich",
 										title:
-											`<${EMOJIS.getFailure()}> An error ocurred while running the command`.trim(),
+											`<${EMOJIS.getFailure()}> An error ocurred while running the command`,
 										description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`,
 									},
 								],
@@ -209,9 +212,9 @@ export default {
 							args.map((option) => [option.name, option])
 						);
 						const id = options.get("id").value;
-						const foundIndex = vibrations.findIndex((v) => v.id === id);
-						if (foundIndex === -1) {
-							sendMessage(
+						if (vibrations.findIndex((v) => v.id === id) === -1) {
+							try {
+							await sendMessage(
 								{
 									channelId: context.channel.id,
 									embeds: {
@@ -220,10 +223,13 @@ export default {
 									},
 								},
 								messageMods
-							);
-							return;
+							)
+							} catch (e) {
+							alert(e.stack)}
+							return
 						}
-						const vibration = vibrations[foundIndex];
+						const vibration = vibrations[vibrations.findIndex((v) => v.id === id)];
+						if (!vibration) return alert("what")
 						vibration.stopping = true;
 						vibration.startCbO = sendMessage(
 							{
@@ -247,7 +253,7 @@ export default {
 									{
 										type: "rich",
 										title:
-											`<${EMOJIS.getFailure()}> An error ocurred while running the command`.trim(),
+											`<${EMOJIS.getFailure()}> An error ocurred while running the command`,
 										description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGINS_FORUM_POST_URL}, to hopefully get this error solved!`,
 									},
 								],
@@ -264,7 +270,7 @@ export default {
 					execute: exeCute.stop,
 					type: 1,
 					inputType: 1,
-					applicationId: APP_ID,
+					applicationId: "-1",
 					name: "vibrate stop",
 					description: `Stop a brrr`,
 					options: [
@@ -281,7 +287,7 @@ export default {
 					execute: exeCute.start,
 					type: 1,
 					inputType: 1,
-					applicationId: APP_ID,
+					applicationId: "-1",
 					name: "vibrate start",
 					description: `Begin a brrr`,
 					options: [
