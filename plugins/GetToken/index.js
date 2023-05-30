@@ -37,7 +37,7 @@ export default {
 			const exeCute = {
 				get(args, ctx) {
 					const messageMods = {
-						...authorMods
+						...authorMods,
 						interaction: {
 							name: "/token get",
 							user: metro.findByStoreName("UserStore").getCurrentUser(),
