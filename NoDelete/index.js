@@ -98,7 +98,7 @@
 	      if (!currentUser) {
 	        FluxDispatcher.subscribe("CONNECTION_OPEN", run);
 	      } else {
-	        this.run("meow");
+	        run("meow");
 	      }
 	    } catch (e) {
 	      alert(e.stack.split("at next (native)")[0]);
