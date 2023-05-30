@@ -75,7 +75,7 @@ const plugin = {
 				}
 			}
 		} catch (e) {
-			alert(e.stack.split("at next (native)")[1]);
+			alert(e.stack;
 			console.error(e);
 		}
 	},
