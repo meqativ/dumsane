@@ -27,14 +27,19 @@ export default {
 				receiveMessage(message.channelId, msg);
 				return msg;
 			}
-
+			const messageMods = {
+				author: {
+					username: "TokenUtils",
+					avatar: "command",
+					avatarURL: AVATARS.command,
+				},
+			};
 			const exeCute = {
 				get(args, ctx) {
-					const authorMods = {
-						author: {
-							username: "/token get",
-							avatar: "command",
-							avatarURL: AVATARS.command,
+					const messageMods = {
+						interaction: {
+							name: "/token get",
+							user: metro.findByStoreName("UserStore").getCurrentUser(),
 						},
 					};
 					try {
@@ -51,19 +56,19 @@ export default {
 									},
 								],
 							},
-							authorMods
+							messageMods
 						);
-					} catch (err) {
-						console.error(err);
-						alert(err.stack);
+					} catch (e) {
+						console.error(e);
+						alert("There was an error while exeCuting /token get\n" + e.stack);
 					}
 				},
-				async login(args, ctx) {
-					const authorMods = {
-						author: {
-							username: "/token login",
-							avatar: "command",
-							avatarURL: AVATARS.command,
+				login(args, ctx) {
+					const messageMods = {
+						...authorMods,
+						interaction: {
+							name: "/token login",
+							user: metro.findByStoreName("UserStore").getCurrentUser(),
 						},
 					};
 					try {
@@ -81,35 +86,35 @@ export default {
 										},
 									],
 								},
-								authorMods
+								messageMods
 							);
 							vendetta.metro
 								.findByProps("login", "logout", "switchAccountToken")
 								.switchAccountToken(token);
 						} catch (e) {
-							alert(e.stack);
-							console.error(e);
 							sendMessage(
 								{
 									channelId: ctx.channel.id,
 									embeds: [
 										{
 											type: "rich",
-											title: `<${EMOJIS.getFailure()}> Invalid token (failed to add/switch to the account)`,
+											title: `<${EMOJIS.getFailure()}> Failed to login`,
 											description: `${e.message}`,
 										},
 									],
 								},
-								authorMods
+								messageMods
 							);
+							console.error(e);
 						}
-					} catch (err) {
-						console.error(err);
-						alert(err.stack);
+					} catch (e) {
+						console.error(e);
+						alert(
+							"There was an error while exeCuting /token login\n" + e.stack
+						);
 					}
 				},
 			};
-			console.log("meow 66");
 			this.patches.push(
 				commands.registerCommand(
 					cmdDisplays({
@@ -122,7 +127,6 @@ export default {
 					})
 				)
 			);
-			console.log("meow 77");
 			this.patches.push(
 				commands.registerCommand(
 					cmdDisplays({
@@ -144,7 +148,10 @@ export default {
 				)
 			);
 		} catch (e) {
-			alert(e.stack);
+			console.error(e);
+			alert(
+				"There was an error while loading TokenUtils(GetToken)\n" + e.stack
+			);
 		}
 	},
 };
