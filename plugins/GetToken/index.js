@@ -27,7 +27,7 @@ export default {
 				receiveMessage(message.channelId, msg);
 				return msg;
 			}
-			const messageMods = {
+			const authorMods = {
 				author: {
 					username: "TokenUtils",
 					avatar: "command",
@@ -37,6 +37,7 @@ export default {
 			const exeCute = {
 				get(args, ctx) {
 					const messageMods = {
+						...authorMods
 						interaction: {
 							name: "/token get",
 							user: metro.findByStoreName("UserStore").getCurrentUser(),
