@@ -1,45 +1,30 @@
-import { cmdDisplays, EMOJIS, AVATARS } from "../../helpers/index.js";
+import * as hlp from "../../helpers/index.js";
+import { metro, commands } from "@vendetta";
+
 const authorMods = {
 	author: {
 		username: "TokenUtils",
 		avatar: "command",
-		avatarURL: AVATARS.command,
+		avatarURL: hlp.AVATARS.command,
 	},
+};
+let madeSendMessage;
+function sendMessage() {
+	if (window.sendMessage) return window.sendMessage?.(...arguments)
+	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
+	return madeSendMessage(...arguments)
 };
 
 export default {
 	patches: [],
 	onUnload() {
-		this.patches.every((p) => (p(), true));
+		this.patches.forEach(up=>up()) // unpatch every added patch
 	},
 	onLoad() {
 		try {
-			const { metro, commands } = vendetta;
-			const { receiveMessage } = metro.findByProps(
-				"sendMessage",
-				"receiveMessage"
-			);
-			const { createBotMessage } = metro.findByProps("createBotMessage");
-			const Avatars = metro.findByProps("BOT_AVATARS");
-			const sendMessage = function () {
-				return window.sendMessage
-					? window.sendMessage?.("meow", ...arguments)
-					: ((message, mod) => {
-							if (typeof mod !== "undefined" && "author" in mod) {
-								if ("avatar" in mod.author && "avatarURL" in mod.author) {
-									Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
-									delete mod.author.avatarURL;
-								}
-							}
-							let msg = createBotMessage(message);
-							if (typeof mod === "object")
-								msg = metro.findByProps("merge").merge(msg, mod);
-							receiveMessage(message.channelId, msg);
-							return msg;
-					  })(...arguments);
-			};
 			const exeCute = {
 				get(args, ctx) {
+					try {
 					const messageMods = {
 						...authorMods,
 						interaction: {
@@ -47,7 +32,6 @@ export default {
 							user: metro.findByStoreName("UserStore").getCurrentUser(),
 						},
 					};
-					try {
 						const { getToken } = metro.findByProps("getToken");
 
 						sendMessage(
@@ -69,6 +53,7 @@ export default {
 					}
 				},
 				login(args, ctx) {
+					try {
 					const messageMods = {
 						...authorMods,
 						interaction: {
@@ -76,7 +61,6 @@ export default {
 							user: metro.findByStoreName("UserStore").getCurrentUser(),
 						},
 					};
-					try {
 						const options = new Map(args.map((a) => [a.name, a]));
 						const token = options.get("token").value;
 						try {
@@ -86,13 +70,13 @@ export default {
 									embeds: [
 										{
 											type: "rich",
-											title: `<${EMOJIS.getLoading()}> Switching accounts…`,
+											title: `<${hlp.EMOJIS.getLoading()}> Switching accounts…`,
 										},
 									],
 								},
 								messageMods
 							);
-							vendetta.metro
+							metro
 								.findByProps("login", "logout", "switchAccountToken")
 								.switchAccountToken(token);
 						} catch (e) {
@@ -102,7 +86,7 @@ export default {
 									embeds: [
 										{
 											type: "rich",
-											title: `<${EMOJIS.getFailure()}> Failed to login`,
+											title: `<${hlp.EMOJIS.getFailure()}> Failed to login`,
 											description: `${e.message}`,
 										},
 									],
@@ -120,15 +104,18 @@ export default {
 				},
 			};
 			[
-				cmdDisplays({
+				hlp.cmdDisplays({
+					type: 1,
+					inputType: 1,
+					applicationId: "-1",
 					execute: exeCute.get,
 					name: "token get",
 					description: "Shows your current user token",
-					applicationId: "-1",
-					inputType: 1,
-					type: 1,
 				}),
-				cmdDisplays({
+				hlp.cmdDisplays({
+					type: 1,
+					inputType: 1,
+					applicationId: "-1",
 					execute: exeCute.login,
 					name: "token login",
 					description: "Logs into an account using a token",
@@ -140,9 +127,6 @@ export default {
 							description: "Token of the account to login into",
 						},
 					],
-					applicationId: "-1",
-					inputType: 1,
-					type: 1,
 				}),
 			].forEach((command) =>
 				this.patches.unshift(commands.registerCommand(command))
