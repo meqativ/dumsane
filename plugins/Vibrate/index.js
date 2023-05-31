@@ -57,14 +57,14 @@ export async function vibrate(options) {
     };
 
     if (options?.parseCB)
-      vibration.parseCallbackOutput = await options.parseCB?.(vibration);
+      vibration.parseCallbackOutput = await options.parseCB(vibration);
     vibration.scheme = parseScheme(vibration.meta.rawScheme, options?.debug);
     vibrations.push(vibration);
     console.log("VIBRATION", vibration);
     if (vibration.scheme.error === true) {
       vibration.errored = true;
       if (options?.parseFailCB)
-        vibration.errorCallbackOutput = options.parseFailCB(vibration);
+        vibration.errorCallbackOutput = await options.parseFailCB(vibration);
     }
     if (!vibration.errored && options?.startCB)
       vibration.startCallbackOutput = await options.startCB?.(vibration);
