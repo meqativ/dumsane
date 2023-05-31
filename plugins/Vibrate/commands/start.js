@@ -74,15 +74,15 @@ export const command = {
               embeds: [
                 {
                   type: "rich",
-                  title: `${hlp.EMOJIS.getFailure()} An error ocurred while parsing the scheme`,
+                  title: `<${hlp.EMOJIS.getFailure()}> An error ocurred while parsing the scheme`,
                   description: `\`\`\`js\n${vibration.scheme.toString()}\`\`\``,
                 },
               ],
             },
             {
               ...messageMods,
+              id: vibration.parseCallbackOutput.id,
               edited_timestamp: Date.now().toString(),
-              id: vibration.parseOutput,
             }
           );
 				},	
@@ -120,7 +120,7 @@ export const command = {
             {
               ...messageMods,
               edited_timestamp: Date.now().toString(),
-              id: vibration.parseOutput,
+              id: vibration.startCallbackOutput.id,
             }
           );
         },
