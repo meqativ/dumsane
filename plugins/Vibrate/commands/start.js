@@ -67,6 +67,25 @@ export const command = {
             messageMods
           );
         },
+				parseFailCB: async (vibration) => {
+          return await sendMessage(
+            {
+              channelId: channel.id,
+              embeds: [
+                {
+                  type: "rich",
+                  title: `${hlp.EMOJIS.getFailure()} An error ocurred while parsing the scheme`,
+                  description: `\`\`\`js\n${vibration.scheme.toString()}\`\`\``,
+                },
+              ],
+            },
+            {
+              ...messageMods,
+              edited_timestamp: Date.now().toString(),
+              id: vibration.parseOutput,
+            }
+          );
+				},	
         startCB: async (vibration) => {
           return await sendMessage(
             {

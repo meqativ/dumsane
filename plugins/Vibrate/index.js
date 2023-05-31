@@ -36,7 +36,6 @@ export function sendMessage() {
   return madeSendMessage(...arguments);
 }
 
-
 const { triggerHaptic } = findByProps("triggerHaptic");
 const selectPlatform = ReactNative.Platform.select;
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -59,20 +58,22 @@ export async function vibrate(options) {
 
     if (options?.parseCB)
       vibration.parseCallbackOutput = await options.parseCB?.(vibration);
-    vibration.scheme = parseScheme(
-      vibration.meta.rawScheme,
-      options?.debug
-    );
+    vibration.scheme = parseScheme(vibration.meta.rawScheme, options?.debug);
     vibrations.push(vibration);
     console.log("VIBRATION", vibration);
-
-    if (options?.startCB)
+    if (vibration.scheme.error === true) {
+      vibration.errored = true;
+      if (options?.errorCB)
+        vibration.errorCallbackOutput = options.errorCB(vibration);
+    }
+    if (!errored && options?.startCB)
       vibration.startCallbackOutput = await options.startCB?.(vibration);
-    vibration.errored = vibration.scheme?.error === true;
     if (!vibration.errored) {
       for (var funk of vibration.scheme) {
-				if (!funk.name) continue;
-				const duration = funk.args.find((arg) => arg.name === "duration")?.value;
+        if (!funk.name) continue;
+        const duration = funk.args.find(
+          (arg) => arg.name === "duration"
+        )?.value;
         switch (funk.name) {
           case "vibrate":
             if (vibration.ios) {
@@ -194,9 +195,7 @@ export default {
             },
           ],
         }),
-      ].forEach((command) =>
-        this.patches.unshift(registerCommand(command))
-      );
+      ].forEach((command) => this.patches.unshift(registerCommand(command)));
     } catch (e) {
       console.error(e);
       alert("There was an error while loading Vibrate\n" + e.stack);
