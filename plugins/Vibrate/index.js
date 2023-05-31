@@ -63,8 +63,8 @@ export async function vibrate(options) {
     console.log("VIBRATION", vibration);
     if (vibration.scheme.error === true) {
       vibration.errored = true;
-      if (options?.errorCB)
-        vibration.errorCallbackOutput = options.errorCB(vibration);
+      if (options?.parseFailCB)
+        vibration.errorCallbackOutput = options.parseFailCB(vibration);
     }
     if (!vibration.errored && options?.startCB)
       vibration.startCallbackOutput = await options.startCB?.(vibration);
