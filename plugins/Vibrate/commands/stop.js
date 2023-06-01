@@ -26,6 +26,7 @@ export const command = {
             channelId: channel.id,
             embeds: [
               {
+								color: EMBED_COLOR(),
                 type: "rich",
                 title: `<${hlp.EMOJIS.getFailure()}> Vibration with id \`${id}\` not found`,
               },
@@ -42,6 +43,7 @@ export const command = {
           channelId: channel.id,
           embeds: [
             {
+								color: EMBED_COLOR(),
               type: "rich",
               title: `<${hlp.EMOJIS.getLoading()}> Stopping vibration…`,
               footer: { text: `ID: ${vibration.id}` },
@@ -54,6 +56,7 @@ export const command = {
       console.error(e);
       sendMessage(
         {
+								color: EMBED_COLOR(),
           channelId: channel.id,
           content: `\`\`\`js\n${e.stack}\`\`\``,
           embeds: [

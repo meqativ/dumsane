@@ -10,6 +10,7 @@ import {
 } from "./schemeUtils.js";
 export const PLUGIN_FORUM_POST_URL = "||not proxied||",
   //APP_ID = "1113021888109740083",
+	EMBED_COLOR = () => parseInt(vendetta.ui.rawColors["PRIMARY_630"].slice(1), 16),
   authorMods = {
     author: {
       username: "Vibrate",

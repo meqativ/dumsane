@@ -5,6 +5,7 @@ import {
   vibrate,
   authorMods,
   PLUGIN_FORUM_POST_URL,
+	EMBED_COLOR,
   sendMessage,
 } from "../index.js";
 
@@ -33,6 +34,7 @@ export const command = {
             channel_id: channel.id,
             embeds: [
               {
+								color: EMBED_COLOR(),
                 type: "rich",
                 title: `<${hlp.EMOJIS.getFailure()}> Please provide a \`scheme\` or choose \`duration\`, \`repeat\` and/or \`gap\``,
               },
@@ -56,6 +58,7 @@ export const command = {
               channelId: channel.id,
               embeds: [
                 {
+								color: EMBED_COLOR(),
                   type: "rich",
                   title: `<:vibrating:1095354969965731921> Parsing vibration…`,
                   footer: {
@@ -73,6 +76,7 @@ export const command = {
               channelId: channel.id,
               embeds: [
                 {
+								color: EMBED_COLOR(),
                   type: "rich",
                   title: `<${hlp.EMOJIS.getFailure()}> An error ocurred while parsing the scheme`,
                   description: `\`\`\`js\n${vibration.scheme.toString()}\`\`\``,
@@ -92,6 +96,7 @@ export const command = {
               channelId: channel.id,
               embeds: [
                 {
+								color: EMBED_COLOR(),
                   type: "rich",
                   title: `<:vibrating:1095354969965731921> Playing vibration`,
                   footer: { text: `ID: ${vibration.id}` },
@@ -111,6 +116,7 @@ export const command = {
               channelId: channel.id,
               embeds: [
                 {
+								color: EMBED_COLOR(),
                   type: "rich",
                   title: `${hlp.EMOJIS.getFailure()} An error ocurred while playing the vibration`,
                   description: `\`\`\`${vibration.error.message}\`\`\``,
@@ -131,6 +137,7 @@ export const command = {
               channelId: channel.id,
               embeds: [
                 {
+								color: EMBED_COLOR(),
                   type: "rich",
                   title: `<:still:1095977283212296194> ${
                     vibration.stopped ? "Stopp" : "Finish"
@@ -163,6 +170,7 @@ export const command = {
           content: `\`\`\`js\n${e.stack}\`\`\``,
           embeds: [
             {
+								color: EMBED_COLOR(),
               type: "rich",
               title: `<${hlp.EMOJIS.getFailure()}> An error ocurred while running the command`,
               description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGIN_FORUM_POST_URL}, to hopefully get this error solved!`,
