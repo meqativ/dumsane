@@ -31,6 +31,7 @@ export function cmdDisplays(obj, translations, locale) {
 }
 
 export function mSendMessage(vendetta) {
+	const { metro } = vendetta;
 	const { receiveMessage } = metro.findByProps("sendMessage", "receiveMessage");
 	const { createBotMessage } = metro.findByProps("createBotMessage");
 	const Avatars = metro.findByProps("BOT_AVATARS");
