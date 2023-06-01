@@ -8,30 +8,32 @@ const authorMods = {
 		avatarURL: hlp.AVATARS.command,
 	},
 };
+const EMBED_COLOR = () =>
+	parseInt(vendetta.ui.rawColors["PRIMARY_630"].slice(1), 16);
 let madeSendMessage;
 function sendMessage() {
-	if (window.sendMessage) return window.sendMessage?.(...arguments)
+	if (window.sendMessage) return window.sendMessage?.(...arguments);
 	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
-	return madeSendMessage(...arguments)
-};
+	return madeSendMessage(...arguments);
+}
 
 export default {
 	patches: [],
 	onUnload() {
-		this.patches.forEach(up=>up()) // unpatch every added patch
+		this.patches.forEach((up) => up()); // unpatch every added patch
 	},
 	onLoad() {
 		try {
 			const exeCute = {
 				get(args, ctx) {
 					try {
-					const messageMods = {
-						...authorMods,
-						interaction: {
-							name: "/token get",
-							user: metro.findByStoreName("UserStore").getCurrentUser(),
-						},
-					};
+						const messageMods = {
+							...authorMods,
+							interaction: {
+								name: "/token get",
+								user: metro.findByStoreName("UserStore").getCurrentUser(),
+							},
+						};
 						const { getToken } = metro.findByProps("getToken");
 
 						sendMessage(
@@ -39,6 +41,7 @@ export default {
 								channelId: ctx.channel.id,
 								embeds: [
 									{
+										color: EMBED_COLOR(),
 										type: "rich",
 										title: "Token of the current account",
 										description: `${getToken()}`,
@@ -54,13 +57,13 @@ export default {
 				},
 				login(args, ctx) {
 					try {
-					const messageMods = {
-						...authorMods,
-						interaction: {
-							name: "/token login",
-							user: metro.findByStoreName("UserStore").getCurrentUser(),
-						},
-					};
+						const messageMods = {
+							...authorMods,
+							interaction: {
+								name: "/token login",
+								user: metro.findByStoreName("UserStore").getCurrentUser(),
+							},
+						};
 						const options = new Map(args.map((a) => [a.name, a]));
 						const token = options.get("token").value;
 						try {
@@ -69,6 +72,7 @@ export default {
 									channelId: ctx.channel.id,
 									embeds: [
 										{
+											color: EMBED_COLOR(),
 											type: "rich",
 											title: `<${hlp.EMOJIS.getLoading()}> Switching accounts…`,
 										},
@@ -85,6 +89,7 @@ export default {
 									channelId: ctx.channel.id,
 									embeds: [
 										{
+											color: EMBED_COLOR(),
 											type: "rich",
 											title: `<${hlp.EMOJIS.getFailure()}> Failed to login`,
 											description: `${e.message}`,
