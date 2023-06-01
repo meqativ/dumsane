@@ -3,14 +3,14 @@ import { registerCommand } from "@vendetta/commands";
 import { findByProps, findByStoreName } from "@vendetta/metro";
 import { ReactNative } from "@vendetta/metro/common";
 import { storage } from "@vendetta/plugin";
+import { semanticColors } from "@vendetta/ui";
 import {
   parseScheme,
   generateBasicScheme,
   schemesError,
 } from "./schemeUtils.js";
 export const PLUGIN_FORUM_POST_URL = "||not proxied||",
-  //APP_ID = "1113021888109740083",
-	EMBED_COLOR = () => parseInt(vendetta.ui.rawColors["PRIMARY_630"].slice(1), 16),
+  APP_ID = "1113021888109740083",
   authorMods = {
     author: {
       username: "Vibrate",
@@ -18,17 +18,24 @@ export const PLUGIN_FORUM_POST_URL = "||not proxied||",
       avatarURL: hlp.AVATARS.command,
     },
   };
+
+
 if (!("stats" in storage)) storage["stats"] = {};
 {
   const stats = storage["stats"];
   if (!("localRuns" in stats)) stats.localRuns = 0;
   if (!("publicRuns" in stats)) stats.publicRuns = 0;
-  if (!("debug" in stats))
     if (!("lastVibration" in stats))
       stats.lastVibration = {
         scheme: generateBasicScheme(150, 5),
       };
 }
+
+const { meta: { resolveSemanticColor } } = findByProps("colors", "meta");
+const ThemeStore = findByStoreName("ThemeStore")
+
+export const EMBED_COLOR = () => resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_SECONDARY);
+/* thanks acquite#0001 (<@581573474296791211>) */
 
 let madeSendMessage;
 export function sendMessage() {
@@ -70,6 +77,7 @@ export async function vibrate(options) {
     if (!vibration.errored && options?.startCB)
       vibration.startCallbackOutput = await options.startCB?.(vibration);
     if (!vibration.errored) {
+			storage["localRuns"]++;
       for (var funk of vibration.scheme) {
         if (!funk.name) continue;
         const duration = funk.args.find(
