@@ -1,15 +1,25 @@
 import * as hlp from "../../helpers/index.js";
-import { metro, commands } from "@vendetta";
+import { semanticColors } from "@vendetta/ui";
+import { registerCommand } from "@vendetta/commands";
+import { findByStoreName, findByProps } from "@vendetta/metro";
 
-const authorMods = {
-	author: {
-		username: "TokenUtils",
-		avatar: "command",
-		avatarURL: hlp.AVATARS.command,
-	},
-};
-const EMBED_COLOR = () =>
-	parseInt(vendetta.ui.rawColors["PRIMARY_630"].slice(1), 16);
+const {
+	meta: { resolveSemanticColor },
+} = findByProps("colors", "meta");
+const ThemeStore = findByStoreName("ThemeStore");
+
+export const EMBED_COLOR = () =>
+		resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_SECONDARY),
+	/* thanks acquite#0001 (<@581573474296791211>) */
+
+	authorMods = {
+		author: {
+			username: "TokenUtils",
+			avatar: "command",
+			avatarURL: hlp.AVATARS.command,
+		},
+	};
+
 let madeSendMessage;
 function sendMessage() {
 	if (window.sendMessage) return window.sendMessage?.(...arguments);
@@ -31,10 +41,10 @@ export default {
 							...authorMods,
 							interaction: {
 								name: "/token get",
-								user: metro.findByStoreName("UserStore").getCurrentUser(),
+								user: findByStoreName("UserStore").getCurrentUser(),
 							},
 						};
-						const { getToken } = metro.findByProps("getToken");
+						const { getToken } = findByProps("getToken");
 
 						sendMessage(
 							{
@@ -61,7 +71,7 @@ export default {
 							...authorMods,
 							interaction: {
 								name: "/token login",
-								user: metro.findByStoreName("UserStore").getCurrentUser(),
+								user: findByStoreName("UserStore").getCurrentUser(),
 							},
 						};
 						const options = new Map(args.map((a) => [a.name, a]));
@@ -80,10 +90,13 @@ export default {
 								},
 								messageMods
 							);
-							metro
-								.findByProps("login", "logout", "switchAccountToken")
-								.switchAccountToken(token);
+							findByProps(
+								"login",
+								"logout",
+								"switchAccountToken"
+							).switchAccountToken(token);
 						} catch (e) {
+							console.error(e);
 							sendMessage(
 								{
 									channelId: ctx.channel.id,
@@ -91,19 +104,18 @@ export default {
 										{
 											color: EMBED_COLOR(),
 											type: "rich",
-											title: `<${hlp.EMOJIS.getFailure()}> Failed to login`,
+											title: `<${hlp.EMOJIS.getFailure()}> Failed to switch accounts`,
 											description: `${e.message}`,
 										},
 									],
 								},
 								messageMods
 							);
-							console.error(e);
 						}
 					} catch (e) {
 						console.error(e);
 						alert(
-							"There was an error while exeCuting /token login\n" + e.stack
+							"There was an error while executing /token login\n" + e.stack
 						);
 					}
 				},
@@ -133,14 +145,10 @@ export default {
 						},
 					],
 				}),
-			].forEach((command) =>
-				this.patches.unshift(commands.registerCommand(command))
-			);
+			].forEach((command) => this.patches.unshift(registerCommand(command)));
 		} catch (e) {
 			console.error(e);
-			alert(
-				"There was an error while loading TokenUtils(GetToken)\n" + e.stack
-			);
+			alert("There was an error while loading TokenUtils\n" + e.stack);
 		}
 	},
 };
