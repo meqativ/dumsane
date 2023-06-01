@@ -30,7 +30,7 @@ function sendMessage() {
 export default {
 	patches: [],
 	onUnload() {
-		this.patches.forEach((up) => up()); // unpatch every added patch
+		this.patches.forEach((up) => up()); // unpatch every added patch 
 	},
 	onLoad() {
 		try {
