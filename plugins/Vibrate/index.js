@@ -34,7 +34,7 @@ if (!("stats" in storage)) storage["stats"] = {};
 const { meta: { resolveSemanticColor } } = findByProps("colors", "meta");
 const ThemeStore = findByStoreName("ThemeStore")
 
-export const EMBED_COLOR = () => resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_SECONDARY);
+export const EMBED_COLOR = () => parseInt(resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_SECONDARY).slice(1),16);
 /* thanks acquite#0001 (<@581573474296791211>) */
 
 let madeSendMessage;
