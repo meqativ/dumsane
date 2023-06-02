@@ -5,6 +5,7 @@ import {
   authorMods,
   PLUGIN_FORUM_POST_URL,
   sendMessage,
+	EMBED_COLOR
 } from "../index.js";
 import { findByStoreName, findByProps } from "@vendetta/metro"
 export const command = {
