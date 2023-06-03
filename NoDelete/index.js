@@ -1,2 +1,93 @@
-(function(o,l,i,d){"use strict";const{React:r,ReactNative:m}=vendetta.metro.common,{plugin:{storage:a},storage:{useProxy:c},ui:{components:{Forms:u}}}=vendetta;"timestamps"in a||(a.timestamps=!1);const{FormRow:f,FormSection:v,FormSwitch:g}=u;function h(t){return c(a),r.createElement(m.ScrollView,{style:{flex:1}},[{label:"Show the time of deletion",default:!1,id:"timestamps"},{label:"Use AM/PM",default:!1,id:"ew"},{label:"The plugin does not keep the messages you've deleted"}].map(function(e){return r.createElement(f,{label:e.label,trailing:"id"in e?r.createElement(g,{value:a[e.id]??e.default,onValueChange:function(s){return a[e.id]=s}}):void 0})}))}let n=[];console.log(vendetta.plugin);var p={settings:h,onLoad(){try{this.onUnload=d.before("dispatch",l.FluxDispatcher,function(t){const e=t[0];if(e&&e?.type==="MESSAGE_DELETE"){if(!e?.id||!e?.channelId)return;if(n.includes(e.id))return n.splice(n.indexOf(e.id),1),t;n.push(e.id);let s=i.storage.message?.trim?.()||"This message was deleted";return i.storage.timestamps&&(s+=` (${l.moment().format(i.storage.ew?"hh:mm:ss.SS a":"HH:mm:ss.SS")})`),t[0]={type:"MESSAGE_EDIT_FAILED_AUTOMOD",messageData:{type:1,message:{channelId:e.channelId,messageId:e.id}},errorResponseBody:{code:2e5,message:s}},t}})}catch(t){alert(`NoDelete died
-`+t.stack),console.error(t)}}};return o.default=p,Object.defineProperty(o,"__esModule",{value:!0}),o})({},vendetta.metro.common,vendetta.plugin,vendetta.patcher);
+(function (exports, common, plugin, patcher) {
+	'use strict';
+
+	const { React, ReactNative } = vendetta.metro.common;
+	const { plugin: { storage }, storage: { useProxy }, ui: { components: { Forms } } } = vendetta;
+	if (!("timestamps" in storage))
+	  storage["timestamps"] = false;
+	const { FormRow, FormSection, FormSwitch } = Forms;
+	function settings(props) {
+	  useProxy(storage);
+	  return /* @__PURE__ */ React.createElement(ReactNative.ScrollView, {
+	    style: {
+	      flex: 1
+	    }
+	  }, [
+	    {
+	      label: "Show the time of deletion",
+	      default: false,
+	      id: "timestamps"
+	    },
+	    {
+	      label: "Use AM/PM",
+	      default: false,
+	      id: "ew"
+	    },
+	    {
+	      label: "The plugin does not keep the messages you've deleted"
+	    }
+	  ].map(function(config) {
+	    return /* @__PURE__ */ React.createElement(FormRow, {
+	      label: config.label,
+	      trailing: "id" in config ? /* @__PURE__ */ React.createElement(FormSwitch, {
+	        value: storage[config.id] ?? config.default,
+	        onValueChange: function(value) {
+	          return storage[config.id] = value;
+	        }
+	      }) : void 0
+	    });
+	  }));
+	}
+
+	let deleteable = [];
+	console.log(vendetta.plugin);
+	var index = {
+	  settings,
+	  onLoad() {
+	    try {
+	      this.onUnload = patcher.before("dispatch", common.FluxDispatcher, function(args) {
+	        const event = args[0];
+	        if (!event)
+	          return;
+	        if (event?.type === "MESSAGE_DELETE") {
+	          if (!event?.id || !event?.channelId)
+	            return;
+	          if (deleteable.includes(event.id)) {
+	            deleteable.splice(deleteable.indexOf(event.id), 1);
+	            return args;
+	          }
+	          deleteable.push(event.id);
+	          let message = plugin.storage["message"]?.trim?.() || "This message was deleted";
+	          if (plugin.storage["timestamps"])
+	            message += ` (${common.moment().format(plugin.storage["ew"] ? "hh:mm:ss.SS a" : "HH:mm:ss.SS")})`;
+	          args[0] = {
+	            type: "MESSAGE_EDIT_FAILED_AUTOMOD",
+	            messageData: {
+	              type: 1,
+	              message: {
+	                channelId: event.channelId,
+	                messageId: event.id
+	              }
+	            },
+	            errorResponseBody: {
+	              code: 2e5,
+	              message
+	            }
+	          };
+	          return args;
+	        }
+	      });
+	    } catch (e) {
+	      alert("NoDelete died\n" + e.stack);
+	      console.error(e);
+	    }
+	  }
+	};
+
+	exports.default = index;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
+
+	return exports;
+
+})({}, vendetta.metro.common, vendetta.plugin, vendetta.patcher);
