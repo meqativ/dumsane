@@ -17,8 +17,8 @@ export default {
 					if (!event) return;
 
 					if (event?.type === "MESSAGE_DELETE") {
-						if (!event?.id || !event?.channelId)
-						if (deleteable.includes(event?.id)) {
+						if (!event?.id || !event?.channelId) return;
+						if (deleteable.includes(event.id)) {
 							deleteable.splice(deleteable.indexOf(event.id), 1);
 							return args;
 						}
