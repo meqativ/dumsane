@@ -4,7 +4,7 @@ import { storage } from "@vendetta/plugin";
 import { before as patchBefore } from "@vendetta/patcher";
 
 let deleteable = [];
-
+console.log(vendetta.plugin)
 export default {
 	settings,
 	onLoad() {
