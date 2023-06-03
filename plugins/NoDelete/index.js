@@ -9,7 +9,7 @@ export default {
 	settings,
 	onLoad() {
 		try {
-			plugin.onUnload = patchBefore(
+			this.onUnload = patchBefore(
 				"dispatch",
 				FluxDispatcher,
 				(args) => {
