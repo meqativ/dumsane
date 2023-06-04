@@ -31,7 +31,7 @@ export const command = {
       ) {
         return await sendMessage(
           {
-            channel_id: channel.id,
+            channelId: channel.id,
             embeds: [
               {
 								color: EMBED_COLOR(),
