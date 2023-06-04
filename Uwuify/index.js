@@ -503,13 +503,23 @@
     if (obj.options) {
       if (!Array.isArray(obj.options))
         throw new Error(`Options is not an array (received: ${typeof obj.options})`);
-      obj.options = obj.options.map(function(option, optionIndex) {
+      for (var optionIndex = 0; optionIndex < obj.options.length; optionIndex++) {
+        const option = obj.options[optionIndex];
         if (!option?.name || !option?.description)
           throw new Error(`No name(${option?.name}) or description(${option?.description} in the option with index ${optionIndex}`);
         option.displayName ??= translations?.options?.[optionIndex]?.names?.[locale] ?? option.name;
         option.displayDescription ??= translations?.options?.[optionIndex]?.descriptions?.[locale] ?? option.description;
-        return option;
-      });
+        if (option?.choices) {
+          if (!Array.isArray(option?.choices))
+            throw new Error(`Choices is not an array (received: ${typeof option.choices})`);
+          if (!choice?.name)
+            throw new Error(`No name of choice with index ${choiceIndex} in option with index ${optionIndex}`);
+          for (var choiceIndex = 0; choiceIndex < option.choices.length; choiceIndex++) {
+            const choice1 = option.choices[choiceIndex];
+            choice1.displayName ??= translations?.options?.[optionIndex]?.choices?.[choiceIndex]?.names?.[locale] ?? choice1.name;
+          }
+        }
+      }
     }
     return obj;
   }
