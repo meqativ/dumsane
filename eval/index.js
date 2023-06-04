@@ -86,7 +86,7 @@
 	}
 	const plugin = {
 	  meta: vendetta.plugin,
-	  onUnload() {
+	  onLoad() {
 	    var _this = this;
 	    try {
 	      this.onUnload = commands.registerCommand(cmdDisplays({
