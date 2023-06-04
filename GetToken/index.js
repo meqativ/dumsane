@@ -25,15 +25,17 @@
 	  const { createBotMessage } = metro.findByProps("createBotMessage");
 	  const Avatars = metro.findByProps("BOT_AVATARS");
 	  return function(message, mod) {
+	    if (!message.channelId)
+	      throw new Error("No channel id to receive the message into (channelId)");
 	    if (typeof mod !== "undefined" && "author" in mod) {
 	      if ("avatar" in mod.author && "avatarURL" in mod.author) {
 	        Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
 	        delete mod.author.avatarURL;
 	      }
 	    }
-	    let msg = createBotMessage(message);
+	    let msg = mod === true ? message : createBotMessage(message);
 	    if (typeof mod === "object")
-	      msg = metro.findByProps("merge").merge(msg, mod);
+	      msg = vendetta.metro.findByProps("merge").merge(msg, mod);
 	    receiveMessage(message.channelId, msg);
 	    return msg;
 	  };
