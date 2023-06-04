@@ -47,7 +47,7 @@ function sendMessage() {
 	return madeSendMessage(...arguments);
 }
 
-async function evaluate(src, ignorePromise, global) {
+async function evaluate(this, src, ignorePromise, global) {
 	let result, errored;
 
 	let start = +new Date();
@@ -79,7 +79,7 @@ async function exeCute(interaction) {
 		const silent = [1, 2].includes(args.get("type")?.value);
 		const global = !!args.get("global")?.value;
 		const code = args.get("code")?.value;
-		const evaluated = await evaluate(code, ignorePromise, global);
+		const evaluated = await evaluate(this code, ignorePromise, global);
 		console.log("[eval › evaluate() result]", evaluated);
 
 		const { errored, result, elapsed } = evaluated;
