@@ -9,7 +9,13 @@ const {
 const ThemeStore = findByStoreName("ThemeStore");
 
 export const EMBED_COLOR = () =>
-		parseInt(resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_SECONDARY).slice(1),16),
+		parseInt(
+			resolveSemanticColor(
+				ThemeStore.theme,
+				semanticColors.BACKGROUND_SECONDARY
+			).slice(1),
+			16
+		),
 	/* thanks acquite#0001 (<@581573474296791211>) */
 
 	authorMods = {
@@ -30,7 +36,7 @@ function sendMessage() {
 export default {
 	patches: [],
 	onUnload() {
-		this.patches.forEach((up) => up()); // unpatch every added patch 
+		this.patches.forEach((up) => up()); // unpatch every added patch
 	},
 	onLoad() {
 		try {
