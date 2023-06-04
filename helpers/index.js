@@ -4,8 +4,8 @@ export function cmdDisplays(obj, translations, locale) {
 			`No name(${obj?.name}) or description(${obj?.description}) in the passed command (command name: ${obj?.name})`
 		);
 
-	obj.displayName = translations?.names?.[locale] ?? obj.name;
-	obj.displayDescription = translations?.names?.[locale] ?? obj.description;
+	obj.displayName ??= translations?.names?.[locale] ?? obj.name;
+	obj.displayDescription ??= translations?.names?.[locale] ?? obj.description;
 	if (obj.options) {
 		if (!Array.isArray(obj.options))
 			throw new Error(
@@ -17,9 +17,9 @@ export function cmdDisplays(obj, translations, locale) {
 				throw new Error(
 					`No name(${option?.name}) or description(${option?.description} in the option with index ${optionIndex}`
 				);
-			option.displayName =
+			option.displayName ??=
 				translations?.options?.[optionIndex]?.names?.[locale] ?? option.name;
-			option.displayDescription =
+			option.displayDescription ??=
 				translations?.options?.[optionIndex]?.descriptions?.[locale] ??
 				option.description;
 			// TODO: handle choices
