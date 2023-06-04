@@ -48,7 +48,7 @@ function sendMessage() {
 }
 const plugin = {
 	meta: vendetta.plugin,
-	onUnload() {
+	onLoad() {
 		"use strict";
 		try {
 			this.onUnload = registerCommand(
