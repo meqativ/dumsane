@@ -580,10 +580,11 @@ ${e.stack}\`\`\``,
 	      }
 	    });
 	    try {
+	      const plugin = this;
 	      [
 	        cmdDisplays({
-	          execute: async function(args, ctx) {
-	            return command.exeCute({
+	          async execute(args, ctx) {
+	            return await command.exeCute({
 	              ...ctx,
 	              args: new Map(args.map(function(o) {
 	                return [
@@ -591,7 +592,8 @@ ${e.stack}\`\`\``,
 	                  o
 	                ];
 	              })),
-	              plugin: _this
+	              command: this,
+	              plugin
 	            });
 	          },
 	          type: 1,
@@ -609,8 +611,8 @@ ${e.stack}\`\`\``,
 	          ]
 	        }),
 	        cmdDisplays({
-	          execute: async function(args, ctx) {
-	            return command$1.exeCute({
+	          async execute(args, ctx) {
+	            return await command$1.exeCute({
 	              ...ctx,
 	              args: new Map(args.map(function(o) {
 	                return [
@@ -618,7 +620,8 @@ ${e.stack}\`\`\``,
 	                  o
 	                ];
 	              })),
-	              plugin: _this
+	              command: this,
+	              plugin
 	            });
 	          },
 	          type: 1,
