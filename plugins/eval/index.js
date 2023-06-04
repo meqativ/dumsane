@@ -71,43 +71,47 @@ async function exeCute(interaction) {
 		const ignorePromise = [0, 2].includes(args.get("type")?.value);
 		const silent = [1, 2].includes(args.get("type")?.value);
 		const global = !!args.get("global")?.value;
-		const evaluated = await evaluate(src, ignorePromise, global);
+		const code = args.get("code")?.value;
+		const evaluated = await evaluate(code, ignorePromise, global);
 		console.log("[eval › evaluate() result]", evaluated);
 
 		const { errored, result, elapsed } = evaluated;
 
 		if (!silent) {
 			if (errored) {
-				sendMessage({
-					channelId: channel.id,
-					embeds: [
-						{
-							type: "rich",
-							color: EMBED_COLOR("exploded"),
-							description: result.stack.split("\n    at eval (native)")[0],
-						},
-					],
-				});
+				sendMessage(
+					{
+						channelId: channel.id,
+						embeds: [
+							{
+								type: "rich",
+								color: EMBED_COLOR("exploded"),
+								description: result.stack.split("\n    at eval (native)")[0],
+							},
+						],
+					},
+					{ ...messageMods, rawCode: code }
+				);
 			}
-			if (!errored) sendMessage(
-				{
-					channelId: channel.id,
-					content: `\`\`\`js\n${vendetta.metro
-						.findByProps("inspect")
-						.inspect(result)}\`\`\``,
-					embeds: [
-						{
-							type: "rich",
-							color: EMBED_COLOR("satisfactory"),
-							footer: `type: ${typeof result}\ntook: ${elapsed}ms`,
-						},
-					],
-				},
-				messageMods
-			);
-
+			if (!errored)
+				sendMessage(
+					{
+						channelId: channel.id,
+						content: `\`\`\`js\n${vendetta.metro
+							.findByProps("inspect")
+							.inspect(result)}\`\`\``,
+						embeds: [
+							{
+								type: "rich",
+								color: EMBED_COLOR("satisfactory"),
+								footer: `type: ${typeof result}\ntook: ${elapsed}ms`,
+							},
+						],
+					},
+					{ ...messageMods, rawCode: code }
+				);
 		}
-			if (!errored && args.get("return")?.value) return result;
+		if (!errored && args.get("return")?.value) return result;
 	} catch (e) {
 		console.error(e);
 		alert("An uncatched error was thrown while running /eval\n" + e.stack);
