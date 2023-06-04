@@ -84,10 +84,10 @@
 	    madeSendMessage = mSendMessage(vendetta);
 	  return madeSendMessage(...arguments);
 	}
-	var index = {
-	  meta: vendetta.plugin,
+	const plugin = {
 	  onLoad() {
 	    var _this = this;
+	    this.meta = vendetta.plugin;
 	    const exeCute = async function(interaction) {
 	      const messageMods = {
 	        ...authorMods,
@@ -244,7 +244,7 @@ ${e.stack}`);
 	};
 
 	exports.EMBED_COLOR = EMBED_COLOR;
-	exports.default = index;
+	exports.default = plugin;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
