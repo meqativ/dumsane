@@ -49,7 +49,7 @@ function sendMessage() {
 export default {
 	meta: vendetta.plugin,
 	onLoad() {
-const exeCute = (interaction) => {
+const exeCute = async (interaction) => {
 	const messageMods = {
 		...authorMods,
 		interaction: {
