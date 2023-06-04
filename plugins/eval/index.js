@@ -46,7 +46,10 @@ function sendMessage() {
 	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
-async function exeCute(interaction) {
+export default {
+	meta: vendetta.plugin,
+	onLoad() {
+const exeCute = (interaction) => {
 	const messageMods = {
 		...authorMods,
 		interaction: {
@@ -123,9 +126,6 @@ async function exeCute(interaction) {
 		alert("An uncatched error was thrown while running /eval\n" + e.stack);
 	}
 }
-export default {
-	meta: vendetta.plugin,
-	onLoad() {
 		try {
 			this.onUnload = registerCommand(
 				hlp.cmdDisplays({
