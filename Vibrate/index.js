@@ -4,16 +4,16 @@
 	function cmdDisplays(obj, translations, locale) {
 	  if (!obj.name || !obj?.description)
 	    throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command (command name: ${obj?.name})`);
-	  obj.displayName = translations?.names?.[locale] ?? obj.name;
-	  obj.displayDescription = translations?.names?.[locale] ?? obj.description;
+	  obj.displayName ??= translations?.names?.[locale] ?? obj.name;
+	  obj.displayDescription ??= translations?.names?.[locale] ?? obj.description;
 	  if (obj.options) {
 	    if (!Array.isArray(obj.options))
 	      throw new Error(`Options is not an array (received: ${typeof obj.options})`);
 	    obj.options = obj.options.map(function(option, optionIndex) {
 	      if (!option?.name || !option?.description)
 	        throw new Error(`No name(${option?.name}) or description(${option?.description} in the option with index ${optionIndex}`);
-	      option.displayName = translations?.options?.[optionIndex]?.names?.[locale] ?? option.name;
-	      option.displayDescription = translations?.options?.[optionIndex]?.descriptions?.[locale] ?? option.description;
+	      option.displayName ??= translations?.options?.[optionIndex]?.names?.[locale] ?? option.name;
+	      option.displayDescription ??= translations?.options?.[optionIndex]?.descriptions?.[locale] ?? option.description;
 	      return option;
 	    });
 	  }
