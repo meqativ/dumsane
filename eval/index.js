@@ -104,11 +104,11 @@
 	    ].includes(args.get("type")?.value);
 	    const global = !!args.get("global")?.value;
 	    const code = args.get("code")?.value;
-	    const evaluated = await async function() {
+	    const evaluated = await async function(code, ignorePromise, global) {
 	      let result, errored;
 	      let start = +new Date();
 	      try {
-	        result = global ? (0, eval)(src) : eval(src);
+	        result = global ? (0, eval)(code) : eval(code);
 	        if (result instanceof Promise && !ignorePromise) {
 	          result = await result;
 	        }
