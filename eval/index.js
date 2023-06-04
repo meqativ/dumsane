@@ -52,7 +52,7 @@
 	    };
 	}
 	const { meta: { resolveSemanticColor } } = metro.findByProps("colors", "meta");
-	const ThemeStore = findByStoreName("ThemeStore");
+	const ThemeStore = metro.findByStoreName("ThemeStore");
 	const EMBED_COLOR = function(color) {
 	  parseInt(color === "exploded" ? resolveSemanticColor(ThemeStore.theme, ui.semanticColors.BACKGROUND_SECONDARY).slice(1) : resolveSemanticColor(ThemeStore.theme, ui.semanticColors.BACKGROUND_SECONDARY).slice(1), 16);
 	};
