@@ -43,7 +43,8 @@ export default {
 		const plugin = this;
 		try {
 			const exeCute = {
-				get(args, ctx) {
+				get(interaction) {
+					const { channel } = interaction;
 					try {
 						const messageMods = {
 							...authorMods,
