@@ -87,7 +87,6 @@
 	const plugin = {
 	  meta: vendetta.plugin,
 	  onLoad() {
-	    var _this = this;
 	    try {
 	      this.onUnload = commands.registerCommand(cmdDisplays({
 	        type: 1,
@@ -138,7 +137,7 @@
 	            description: "Whether to return the returned value so it works as a real slash command (default: false)"
 	          }
 	        ],
-	        execute: async function(args, ctx) {
+	        async execute(args, ctx) {
 	          const interaction = {
 	            ...ctx,
 	            args: new Map(args.map(function(o) {
@@ -147,7 +146,7 @@
 	                o
 	              ];
 	            })),
-	            plugin: _this
+	            plugin: this
 	          };
 	          const messageMods = {
 	            ...authorMods,
