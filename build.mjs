@@ -10,7 +10,7 @@ import nodeResolve from "@rollup/plugin-node-resolve";
 import swc from "@swc/core";
 
 const extensions = [".js", ".jsx", ".mjs", ".ts", ".tsx", ".cts", ".mts"];
-const minifyBlacklist = ["Vibrate", "eval", "selfexplode", "Uwuify"];
+const minifyBlacklist = [/*"Vibrate", "eval", "selfexplode", "Uwuify"*/];
 const stfuWarningCodes = ["MISSING_NAME_OPTION_FOR_IIFE_EXPORT"];
 
 /** @type import("rollup").InputPluginOption */
