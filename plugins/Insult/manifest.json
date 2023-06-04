@@ -1,0 +1,7 @@
+{
+	"name": "Insult",
+	"description": "",
+	"authors": [{ "name": "meqativ :3", "id": "744276454946242723" }],
+	"main": "./index.js",
+	"vendetta": { "icon": "ic_emoji_picker_20px" }
+}
