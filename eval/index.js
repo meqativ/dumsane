@@ -84,94 +84,94 @@
 	    madeSendMessage = mSendMessage(vendetta);
 	  return madeSendMessage(...arguments);
 	}
-	async function exeCute(interaction) {
-	  const messageMods = {
-	    ...authorMods,
-	    interaction: {
-	      name: "/eval",
-	      user: metro.findByStoreName("UserStore").getCurrentUser()
-	    }
-	  };
-	  try {
-	    const { channel, args } = interaction;
-	    const ignorePromise = [
-	      0,
-	      2
-	    ].includes(args.get("type")?.value);
-	    const silent = [
-	      1,
-	      2
-	    ].includes(args.get("type")?.value);
-	    const global = !!args.get("global")?.value;
-	    const code = args.get("code")?.value;
-	    let result, errored;
-	    let start = +new Date();
-	    try {
-	      result = global ? (0, eval)(code) : eval(code);
-	      if (result instanceof Promise && !ignorePromise) {
-	        result = await result;
-	      }
-	    } catch (e) {
-	      result = e;
-	      errored = true;
-	    }
-	    let elapsed = +new Date() - start;
-	    console.log("[eval \u203A evaluate() result]", {
-	      result,
-	      errored,
-	      elapsed
-	    });
-	    if (!silent) {
-	      if (errored) {
-	        sendMessage({
-	          channelId: channel.id,
-	          embeds: [
-	            {
-	              type: "rich",
-	              color: EMBED_COLOR("exploded"),
-	              description: result.stack.split("\n    at next (native)")[0],
-	              footer: {
-	                text: `type: ${typeof result}
-took: ${elapsed}ms`
-	              }
-	            }
-	          ]
-	        }, {
-	          ...messageMods,
-	          rawCode: code
-	        });
-	      }
-	      if (!errored)
-	        sendMessage({
-	          channelId: channel.id,
-	          content: `\`\`\`js
-${vendetta.metro.findByProps("inspect").inspect(result)}\`\`\``,
-	          embeds: [
-	            {
-	              type: "rich",
-	              color: EMBED_COLOR("satisfactory"),
-	              footer: {
-	                text: `type: ${typeof result}
-took: ${elapsed}ms`
-	              }
-	            }
-	          ]
-	        }, {
-	          ...messageMods,
-	          rawCode: code
-	        });
-	    }
-	    if (!errored && args.get("return")?.value)
-	      return result;
-	  } catch (e) {
-	    console.error(e);
-	    alert("An uncatched error was thrown while running /eval\n" + e.stack);
-	  }
-	}
 	var index = {
 	  meta: vendetta.plugin,
 	  onLoad() {
 	    var _this = this;
+	    const exeCute = async function(interaction) {
+	      const messageMods = {
+	        ...authorMods,
+	        interaction: {
+	          name: "/eval",
+	          user: metro.findByStoreName("UserStore").getCurrentUser()
+	        }
+	      };
+	      try {
+	        const { channel, args } = interaction;
+	        const ignorePromise = [
+	          0,
+	          2
+	        ].includes(args.get("type")?.value);
+	        const silent = [
+	          1,
+	          2
+	        ].includes(args.get("type")?.value);
+	        const global = !!args.get("global")?.value;
+	        const code = args.get("code")?.value;
+	        let result, errored;
+	        let start = +new Date();
+	        try {
+	          result = global ? (0, eval)(code) : eval(code);
+	          if (result instanceof Promise && !ignorePromise) {
+	            result = await result;
+	          }
+	        } catch (e) {
+	          result = e;
+	          errored = true;
+	        }
+	        let elapsed = +new Date() - start;
+	        console.log("[eval \u203A evaluate() result]", {
+	          result,
+	          errored,
+	          elapsed
+	        });
+	        if (!silent) {
+	          if (errored) {
+	            sendMessage({
+	              channelId: channel.id,
+	              embeds: [
+	                {
+	                  type: "rich",
+	                  color: EMBED_COLOR("exploded"),
+	                  description: result.stack.split("\n    at next (native)")[0],
+	                  footer: {
+	                    text: `type: ${typeof result}
+took: ${elapsed}ms`
+	                  }
+	                }
+	              ]
+	            }, {
+	              ...messageMods,
+	              rawCode: code
+	            });
+	          }
+	          if (!errored)
+	            sendMessage({
+	              channelId: channel.id,
+	              content: `\`\`\`js
+${vendetta.metro.findByProps("inspect").inspect(result)}\`\`\``,
+	              embeds: [
+	                {
+	                  type: "rich",
+	                  color: EMBED_COLOR("satisfactory"),
+	                  footer: {
+	                    text: `type: ${typeof result}
+took: ${elapsed}ms`
+	                  }
+	                }
+	              ]
+	            }, {
+	              ...messageMods,
+	              rawCode: code
+	            });
+	        }
+	        if (!errored && args.get("return")?.value)
+	          return result;
+	      } catch (e) {
+	        console.error(e);
+	        alert("An uncatched error was thrown while running /eval\n" + e.stack);
+	      }
+	    };
 	    try {
 	      this.onUnload = commands.registerCommand(cmdDisplays({
 	        type: 1,
