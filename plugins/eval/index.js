@@ -47,88 +47,8 @@ function sendMessage() {
 	return madeSendMessage(...arguments);
 }
 const plugin = {
+	meta: vendetta.plugin,
 	onLoad() {
-		this.meta = vendetta.plugin;
-
-		const exeCute = async (interaction) => {
-			const messageMods = {
-				...authorMods,
-				interaction: {
-					name: "/eval",
-					user: findByStoreName("UserStore").getCurrentUser(),
-				},
-			};
-			try {
-				const { channel, args } = interaction;
-				const ignorePromise = [0, 2].includes(args.get("type")?.value);
-				const silent = [1, 2].includes(args.get("type")?.value);
-				const global = !!args.get("global")?.value;
-				const code = args.get("code")?.value;
-
-				let result, errored;
-
-				let start = +new Date();
-				try {
-					result = global ? (0, eval)(code) : eval(code);
-					if (result instanceof Promise && !ignorePromise) {
-						result = await result;
-					}
-				} catch (e) {
-					result = e;
-					errored = true;
-				}
-
-				let elapsed = +new Date() - start;
-
-				console.log("[eval › evaluate() result]", { result, errored, elapsed });
-
-				if (!silent) {
-					if (errored) {
-						sendMessage(
-							{
-								channelId: channel.id,
-								embeds: [
-									{
-										type: "rich",
-										color: EMBED_COLOR("exploded"),
-										description: result.stack.split(
-											"\n    at next (native)"
-										)[0],
-										footer: {
-											text: `type: ${typeof result}\ntook: ${elapsed}ms`,
-										},
-									},
-								],
-							},
-							{ ...messageMods, rawCode: code }
-						);
-					}
-					if (!errored)
-						sendMessage(
-							{
-								channelId: channel.id,
-								content: `\`\`\`js\n${vendetta.metro
-									.findByProps("inspect")
-									.inspect(result)}\`\`\``,
-								embeds: [
-									{
-										type: "rich",
-										color: EMBED_COLOR("satisfactory"),
-										footer: {
-											text: `type: ${typeof result}\ntook: ${elapsed}ms`,
-										},
-									},
-								],
-							},
-							{ ...messageMods, rawCode: code }
-						);
-				}
-				if (!errored && args.get("return")?.value) return result;
-			} catch (e) {
-				console.error(e);
-				alert("An uncatched error was thrown while running /eval\n" + e.stack);
-			}
-		};
 		try {
 			this.onUnload = registerCommand(
 				hlp.cmdDisplays({
@@ -182,12 +102,96 @@ const plugin = {
 								"Whether to return the returned value so it works as a real slash command (default: false)",
 						},
 					],
-					execute: async (args, ctx) =>
-						await exeCute({
+					execute: async (args, ctx) => {
+						const interaction = {
 							...ctx,
 							args: new Map(args.map((o) => [o.name, o])),
 							plugin: this,
-						}),
+						};
+						const messageMods = {
+							...authorMods,
+							interaction: {
+								name: "/eval",
+								user: findByStoreName("UserStore").getCurrentUser(),
+							},
+						};
+						try {
+							const { channel, args } = interaction;
+							const ignorePromise = [0, 2].includes(args.get("type")?.value);
+							const silent = [1, 2].includes(args.get("type")?.value);
+							const global = !!args.get("global")?.value;
+							const code = args.get("code")?.value;
+
+							let result, errored;
+
+							let start = +new Date();
+							try {
+								result = global ? (0, eval)(code) : eval(code);
+								if (result instanceof Promise && !ignorePromise) {
+									result = await result;
+								}
+							} catch (e) {
+								result = e;
+								errored = true;
+							}
+
+							let elapsed = +new Date() - start;
+
+							console.log("[eval › evaluate() result]", {
+								result,
+								errored,
+								elapsed,
+							});
+
+							if (!silent) {
+								if (errored) {
+									sendMessage(
+										{
+											channelId: channel.id,
+											embeds: [
+												{
+													type: "rich",
+													color: EMBED_COLOR("exploded"),
+													description: result.stack.split(
+														"\n    at next (native)"
+													)[0],
+													footer: {
+														text: `type: ${typeof result}\ntook: ${elapsed}ms`,
+													},
+												},
+											],
+										},
+										{ ...messageMods, rawCode: code }
+									);
+								}
+								if (!errored)
+									sendMessage(
+										{
+											channelId: channel.id,
+											content: `\`\`\`js\n${vendetta.metro
+												.findByProps("inspect")
+												.inspect(result)}\`\`\``,
+											embeds: [
+												{
+													type: "rich",
+													color: EMBED_COLOR("satisfactory"),
+													footer: {
+														text: `type: ${typeof result}\ntook: ${elapsed}ms`,
+													},
+												},
+											],
+										},
+										{ ...messageMods, rawCode: code }
+									);
+							}
+							if (!errored && args.get("return")?.value) return result;
+						} catch (e) {
+							console.error(e);
+							alert(
+								"An uncatched error was thrown while running /eval\n" + e.stack
+							);
+						}
+					},
 				})
 			);
 		} catch (e) {
