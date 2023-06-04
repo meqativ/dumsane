@@ -93,6 +93,10 @@ async function exeCute(interaction) {
 								type: "rich",
 								color: EMBED_COLOR("exploded"),
 								description: result.stack.split("\n    at eval (native)")[0],
+								footer: {
+									text:`type: ${typeof result}\ntook: ${elapsed}ms`
+								},
+
 							},
 						],
 					},
@@ -110,7 +114,9 @@ async function exeCute(interaction) {
 							{
 								type: "rich",
 								color: EMBED_COLOR("satisfactory"),
-								footer: `type: ${typeof result}\ntook: ${elapsed}ms`,
+								footer: {
+									text:`type: ${typeof result}\ntook: ${elapsed}ms`
+								},
 							},
 						],
 					},
