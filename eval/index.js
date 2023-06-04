@@ -104,27 +104,23 @@
 	    ].includes(args.get("type")?.value);
 	    const global = !!args.get("global")?.value;
 	    const code = args.get("code")?.value;
-	    const evaluated = await async function(code, ignorePromise, global) {
-	      let result, errored;
-	      let start = +new Date();
-	      try {
-	        result = global ? (0, eval)(code) : eval(code);
-	        if (result instanceof Promise && !ignorePromise) {
-	          result = await result;
-	        }
-	      } catch (e) {
-	        result = e;
-	        errored = true;
+	    let result, errored;
+	    let start = +new Date();
+	    try {
+	      result = global ? (0, eval)(code) : eval(code);
+	      if (result instanceof Promise && !ignorePromise) {
+	        result = await result;
 	      }
-	      let elapsed = +new Date() - start;
-	      return {
-	        errored,
-	        result,
-	        elapsed
-	      };
-	    }(code, ignorePromise, global);
-	    console.log("[eval \u203A evaluate() result]", evaluated);
-	    const { errored, result, elapsed } = evaluated;
+	    } catch (e) {
+	      result = e;
+	      errored = true;
+	    }
+	    let elapsed = +new Date() - start;
+	    console.log("[eval \u203A evaluate() result]", {
+	      result,
+	      errored,
+	      elapsed
+	    });
 	    if (!silent) {
 	      if (errored) {
 	        sendMessage({
