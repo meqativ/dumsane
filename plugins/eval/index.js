@@ -46,40 +46,39 @@ function sendMessage() {
 	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
-
-async function evaluate(this, src, ignorePromise, global) {
-	let result, errored;
-
-	let start = +new Date();
-	try {
-		result = global ? (0, eval)(src) : eval(src);
-		if (result instanceof Promise && !ignorePromise) {
-			result = await result;
-		}
-	} catch (e) {
-		result = e;
-		errored = true;
-	}
-
-	let elapsed = +new Date() - start;
-	return { errored, result, elapsed };
-}
-
 async function exeCute(interaction) {
-		const messageMods = {
-			...authorMods,
-			interaction: {
-				name: "/eval",
-				user: findByStoreName("UserStore").getCurrentUser(),
-			},
-		};
+	const messageMods = {
+		...authorMods,
+		interaction: {
+			name: "/eval",
+			user: findByStoreName("UserStore").getCurrentUser(),
+		},
+	};
 	try {
 		const { channel, args } = interaction;
 		const ignorePromise = [0, 2].includes(args.get("type")?.value);
 		const silent = [1, 2].includes(args.get("type")?.value);
 		const global = !!args.get("global")?.value;
 		const code = args.get("code")?.value;
-		const evaluated = await evaluate(this code, ignorePromise, global);
+
+		const evaluated = await (async () => {
+			let result, errored;
+
+			let start = +new Date();
+			try {
+				result = global ? (0, eval)(src) : eval(src);
+				if (result instanceof Promise && !ignorePromise) {
+					result = await result;
+				}
+			} catch (e) {
+				result = e;
+				errored = true;
+			}
+
+			let elapsed = +new Date() - start;
+			return { errored, result, elapsed };
+		})(code, ignorePromise, global);
+
 		console.log("[eval › evaluate() result]", evaluated);
 
 		const { errored, result, elapsed } = evaluated;
@@ -94,9 +93,8 @@ async function exeCute(interaction) {
 								color: EMBED_COLOR("exploded"),
 								description: result.stack.split("\n    at next (native)")[0],
 								footer: {
-									text:`type: ${typeof result}\ntook: ${elapsed}ms`
+									text: `type: ${typeof result}\ntook: ${elapsed}ms`,
 								},
-
 							},
 						],
 					},
@@ -115,7 +113,7 @@ async function exeCute(interaction) {
 								type: "rich",
 								color: EMBED_COLOR("satisfactory"),
 								footer: {
-									text:`type: ${typeof result}\ntook: ${elapsed}ms`
+									text: `type: ${typeof result}\ntook: ${elapsed}ms`,
 								},
 							},
 						],
@@ -133,68 +131,71 @@ export default {
 	meta: vendetta.plugin,
 	onLoad() {
 		try {
-		this.onUnload = registerCommand(
-			hlp.cmdDisplays({
-				type: 1,
-				inputType: 1,
-				applicationId: "-1",
-				name: "!eval",
-				displayName: "eval",
-				description: "Evaluates code",
-				options: [
-					{
-						required: true,
-						type: 3,
-						name: "code",
-						description: "The code to evaluate",
-						min_length: 1,
-					},
-					{
-						type: 4,
-						name: "type",
-						description: "How to handle the evaluation",
-						choices: [
-							{
-								name: "🟥await returned promise & 🟩show output",
-								value: 0,
-							},
-							{
-								name: "🟩await returned promise & 🟥show output",
-								value: 1,
-							},
-							{
-								name: "🟥await returned promise & 🟥show output",
-								value: 2,
-							},
-							{
-								name: "🟩await returned promise & 🟩show output [default]",
-								value: -1,
-							},
-						],
-					},
-					{
-						type: 5,
-						name: "global",
-						description: "Whether to evaluate in global scope (default: false)",
-					},
-					{
-						type: 5,
-						name: "return",
-						description:
-							"Whether to return the returned value so it works as a real slash command (default: false)",
-					},
-				],
-				execute: async (args, ctx) =>
-					await exeCute({
-						...ctx,
-						args: new Map(args.map((o) => [o.name, o])),
-						plugin: this,
-					}),
-			})
-		);
+			this.onUnload = registerCommand(
+				hlp.cmdDisplays({
+					type: 1,
+					inputType: 1,
+					applicationId: "-1",
+					name: "!eval",
+					displayName: "eval",
+					description: "Evaluates code",
+					options: [
+						{
+							required: true,
+							type: 3,
+							name: "code",
+							description: "The code to evaluate",
+							min_length: 1,
+						},
+						{
+							type: 4,
+							name: "type",
+							description: "How to handle the evaluation",
+							choices: [
+								{
+									name: "🟥await returned promise & 🟩show output",
+									value: 0,
+								},
+								{
+									name: "🟩await returned promise & 🟥show output",
+									value: 1,
+								},
+								{
+									name: "🟥await returned promise & 🟥show output",
+									value: 2,
+								},
+								{
+									name: "🟩await returned promise & 🟩show output [default]",
+									value: -1,
+								},
+							],
+						},
+						{
+							type: 5,
+							name: "global",
+							description:
+								"Whether to evaluate in global scope (default: false)",
+						},
+						{
+							type: 5,
+							name: "return",
+							description:
+								"Whether to return the returned value so it works as a real slash command (default: false)",
+						},
+					],
+					execute: async (args, ctx) =>
+						await exeCute({
+							...ctx,
+							args: new Map(args.map((o) => [o.name, o])),
+							plugin: this,
+						}),
+				})
+			);
 		} catch (e) {
 			console.error(e);
-			alert(`There was an error while loading the plugin "${plugin.meta.name}"\n${e.stack}`);
+			alert(
+				`There was an error while loading the plugin "${plugin.meta.name}"\n${e.stack}`
+			);
 		}
 	},
 };
