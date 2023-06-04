@@ -92,12 +92,6 @@ const plugin = {
 						},
 						{
 							type: 5,
-							name: "global",
-							description:
-								"Whether to evaluate in global scope (default: false)",
-						},
-						{
-							type: 5,
 							name: "return",
 							description:
 								"Whether to return the returned value so it works as a real slash command (default: false)",
@@ -120,14 +114,13 @@ const plugin = {
 							const { channel, args } = interaction;
 							const ignorePromise = [0, 2].includes(args.get("type")?.value);
 							const silent = [1, 2].includes(args.get("type")?.value);
-							const global = !!args.get("global")?.value;
 							const code = args.get("code")?.value;
-
+							window.currentEvalInteraction = interaction;
 							let result, errored;
 
 							let start = +new Date();
 							try {
-								result = global ? (0, eval)(code) : eval(code);
+								result = (0, eval)(code);
 								if (result instanceof Promise && !ignorePromise) {
 									result = await result;
 								}
@@ -135,9 +128,9 @@ const plugin = {
 								result = e;
 								errored = true;
 							}
-
+							
 							let elapsed = +new Date() - start;
-
+							window.currentEvalInteraction = undefined
 							console.log("[eval › evaluate() result]", {
 								result,
 								errored,
