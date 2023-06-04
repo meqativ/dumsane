@@ -102,7 +102,7 @@ const plugin = {
 								"Whether to return the returned value so it works as a real slash command (default: false)",
 						},
 					],
-					execute: async (args, ctx) => {
+					async execute(args, ctx) {
 						const interaction = {
 							...ctx,
 							args: new Map(args.map((o) => [o.name, o])),
