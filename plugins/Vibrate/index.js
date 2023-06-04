@@ -151,14 +151,16 @@ export default {
 			}
 		});
 		try {
+			const plugin = this;
 			[
 				hlp.cmdDisplays({
-					execute: async (args, ctx) =>
-						cmd2.exeCute({
+					async execute(args, ctx){
+						return await cmd2.exeCute({
 							...ctx,
 							args: new Map(args.map((o) => [o.name, o])),
-							plugin: this,
-						}),
+							command: this,
+							plugin,
+						})},
 					type: 1,
 					inputType: 1,
 					applicationId: "-1",
@@ -175,12 +177,13 @@ export default {
 					],
 				}),
 				hlp.cmdDisplays({
-					execute: async (args, ctx) =>
-						cmd1.exeCute({
+					async execute(args, ctx){
+						return await cmd1.exeCute({
 							...ctx,
 							args: new Map(args.map((o) => [o.name, o])),
-							plugin: this,
-						}),
+							command: this,
+							plugin,
+						})},
 					type: 1,
 					inputType: 1,
 					applicationId: "-1",
