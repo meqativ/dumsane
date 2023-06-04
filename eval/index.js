@@ -1,4 +1,4 @@
-(function (exports, commands, metro, plugin, ui) {
+(function (exports, commands, metro, plugin$1, ui) {
 	'use strict';
 
 	function cmdDisplays(obj, translations, locale) {
@@ -61,10 +61,10 @@
 	    avatarURL: AVATARS.command
 	  }
 	};
-	if (!("stats" in plugin.storage))
-	  plugin.storage["stats"] = {};
+	if (!("stats" in plugin$1.storage))
+	  plugin$1.storage["stats"] = {};
 	{
-	  const stats = plugin.storage["stats"];
+	  const stats = plugin$1.storage["stats"];
 	  if (!("runs" in stats))
 	    stats.runs = {
 	      failed: 0,
@@ -177,68 +177,74 @@ took: ${elapsed2}ms`
 	  meta: vendetta.plugin,
 	  onLoad() {
 	    var _this = this;
-	    this.onUnload = commands.registerCommand(cmdDisplays({
-	      type: 1,
-	      inputType: 1,
-	      applicationId: "-1",
-	      name: "!eval",
-	      displayName: "eval",
-	      description: "Evaluates code",
-	      options: [
-	        {
-	          required: true,
-	          type: 3,
-	          name: "code",
-	          description: "The code to evaluate",
-	          min_length: 1
-	        },
-	        {
-	          type: 4,
-	          name: "type",
-	          description: "How to handle the evaluation",
-	          choices: [
-	            {
-	              name: "\u{1F7E5}await returned promise & \u{1F7E9}show output",
-	              value: 0
-	            },
-	            {
-	              name: "\u{1F7E9}await returned promise & \u{1F7E5}show output",
-	              value: 1
-	            },
-	            {
-	              name: "\u{1F7E5}await returned promise & \u{1F7E5}show output",
-	              value: 2
-	            },
-	            {
-	              name: "\u{1F7E9}await returned promise & \u{1F7E9}show output [default]",
-	              value: -1
-	            }
-	          ]
-	        },
-	        {
-	          type: 5,
-	          name: "global",
-	          description: "Whether to evaluate in global scope (default: false)"
-	        },
-	        {
-	          type: 5,
-	          name: "return",
-	          description: "Whether to return the returned value so it works as a real slash command (default: false)"
+	    try {
+	      this.onUnload = commands.registerCommand(cmdDisplays({
+	        type: 1,
+	        inputType: 1,
+	        applicationId: "-1",
+	        name: "!eval",
+	        displayName: "eval",
+	        description: "Evaluates code",
+	        options: [
+	          {
+	            required: true,
+	            type: 3,
+	            name: "code",
+	            description: "The code to evaluate",
+	            min_length: 1
+	          },
+	          {
+	            type: 4,
+	            name: "type",
+	            description: "How to handle the evaluation",
+	            choices: [
+	              {
+	                name: "\u{1F7E5}await returned promise & \u{1F7E9}show output",
+	                value: 0
+	              },
+	              {
+	                name: "\u{1F7E9}await returned promise & \u{1F7E5}show output",
+	                value: 1
+	              },
+	              {
+	                name: "\u{1F7E5}await returned promise & \u{1F7E5}show output",
+	                value: 2
+	              },
+	              {
+	                name: "\u{1F7E9}await returned promise & \u{1F7E9}show output [default]",
+	                value: -1
+	              }
+	            ]
+	          },
+	          {
+	            type: 5,
+	            name: "global",
+	            description: "Whether to evaluate in global scope (default: false)"
+	          },
+	          {
+	            type: 5,
+	            name: "return",
+	            description: "Whether to return the returned value so it works as a real slash command (default: false)"
+	          }
+	        ],
+	        execute: async function(args, ctx) {
+	          return await exeCute({
+	            ...ctx,
+	            args: new Map(args.map(function(o) {
+	              return [
+	                o.name,
+	                o
+	              ];
+	            })),
+	            plugin: _this
+	          });
 	        }
-	      ],
-	      execute: async function(args, ctx) {
-	        return await exeCute({
-	          ...ctx,
-	          args: new Map(args.map(function(o) {
-	            return [
-	              o.name,
-	              o
-	            ];
-	          })),
-	          plugin: _this
-	        });
-	      }
-	    }));
+	      }));
+	    } catch (e) {
+	      console.error(e);
+	      alert(`There was an error while loading the plugin "${plugin.meta.name}"
+${e.stack}`);
+	    }
 	  }
 	};
 
