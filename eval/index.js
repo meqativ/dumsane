@@ -124,7 +124,11 @@
 	            {
 	              type: "rich",
 	              color: EMBED_COLOR("exploded"),
-	              description: result2.stack.split("\n    at eval (native)")[0]
+	              description: result2.stack.split("\n    at eval (native)")[0],
+	              footer: {
+	                text: `type: ${typeof result2}
+took: ${elapsed2}ms`
+	              }
 	            }
 	          ]
 	        }, {
@@ -141,8 +145,10 @@ ${vendetta.metro.findByProps("inspect").inspect(result2)}\`\`\``,
 	            {
 	              type: "rich",
 	              color: EMBED_COLOR("satisfactory"),
-	              footer: `type: ${typeof result2}
+	              footer: {
+	                text: `type: ${typeof result2}
 took: ${elapsed2}ms`
+	              }
 	            }
 	          ]
 	        }, {
