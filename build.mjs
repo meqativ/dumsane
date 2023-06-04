@@ -10,7 +10,7 @@ import nodeResolve from "@rollup/plugin-node-resolve";
 import swc from "@swc/core";
 
 const extensions = [".js", ".jsx", ".mjs", ".ts", ".tsx", ".cts", ".mts"];
-const minifyWhitelist = ["Vibrate", "eval", "selfexplode", "Uwuify"];
+const minifyBlacklist = ["Vibrate", "eval", "selfexplode", "Uwuify"];
 const stfuWarningCodes = ["MISSING_NAME_OPTION_FOR_IIFE_EXPORT"];
 
 /** @type import("rollup").InputPluginOption */
@@ -59,7 +59,7 @@ for (let plug of await readdir("./plugins")) {
 		await readFile(`./plugins/${plug}/manifest.json`)
 	);
 	const outPath = `./dist/${plug}/index.js`;
-	const minify = minifyWhitelist.includes(plug);
+	const minify = !minifyBlacklist.includes(plug);
 	try {
 		console.log(prefix,`Building ${plug}...`);
 		plugins[3] = esbuild({ minify });
