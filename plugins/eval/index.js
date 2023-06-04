@@ -1,6 +1,6 @@
 import * as hlp from "../../helpers/index.js";
 import { registerCommand } from "@vendetta/commands";
-import { findByProps } from "@vendetta/metro";
+import { findByProps, findByStoreName } from "@vendetta/metro";
 import { storage } from "@vendetta/plugin";
 import { semanticColors } from "@vendetta/ui";
 const authorMods = {
