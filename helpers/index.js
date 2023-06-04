@@ -11,7 +11,8 @@ export function cmdDisplays(obj, translations, locale) {
 			throw new Error(
 				`Options is not an array (received: ${typeof obj.options})`
 			);
-		obj.options = obj.options.map((option, optionIndex) => {
+		for (var optionIndex = 0; optionIndex < obj.options.length; optionIndex++) {
+			const option = obj.options[optionIndex];
 			// TODO: Handle subcommands (type 1, 2 probably i forgor)
 			if (!option?.name || !option?.description)
 				throw new Error(
@@ -22,10 +23,27 @@ export function cmdDisplays(obj, translations, locale) {
 			option.displayDescription ??=
 				translations?.options?.[optionIndex]?.descriptions?.[locale] ??
 				option.description;
-			// TODO: handle choices
-			// if (option?.choices)
-			return option;
-		});
+			if (option?.choices) {
+				if (!Array.isArray(option?.choices))
+					throw new Error(
+						`Choices is not an array (received: ${typeof option.choices})`
+					);
+				if (!choice?.name)
+					throw new Error(
+						`No name of choice with index ${choiceIndex} in option with index ${optionIndex}`
+					);
+				for (
+					var choiceIndex = 0;
+					choiceIndex < option.choices.length;
+					choiceIndex++
+				) {
+					const choice = option.choices[choiceIndex];
+					choice.displayName ??=
+						translations?.options?.[optionIndex]?.choices?.[choiceIndex]
+							?.names?.[locale] ?? choice.name;
+				}
+			}
+		}
 	}
 	return obj;
 }
