@@ -48,7 +48,8 @@ function sendMessage() {
 }
 const plugin = {
 	meta: vendetta.plugin,
-	onLoad() {
+	onUnload() {
+		"use strict";
 		try {
 			this.onUnload = registerCommand(
 				hlp.cmdDisplays({
@@ -102,7 +103,7 @@ const plugin = {
 								"Whether to return the returned value so it works as a real slash command (default: false)",
 						},
 					],
-					async execute(args, ctx) {
+					execute: async (args, ctx) => {
 						const interaction = {
 							...ctx,
 							args: new Map(args.map((o) => [o.name, o])),
