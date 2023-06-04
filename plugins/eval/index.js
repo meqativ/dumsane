@@ -61,27 +61,23 @@ async function exeCute(interaction) {
 		const global = !!args.get("global")?.value;
 		const code = args.get("code")?.value;
 
-		const evaluated = await (async (code, ignorePromise, global) => {
-			let result, errored;
+		let result, errored;
 
-			let start = +new Date();
-			try {
-				result = global ? (0, eval)(code) : eval(code);
-				if (result instanceof Promise && !ignorePromise) {
-					result = await result;
-				}
-			} catch (e) {
-				result = e;
-				errored = true;
+		let start = +new Date();
+		try {
+			result = global ? (0, eval)(code) : eval(code);
+			if (result instanceof Promise && !ignorePromise) {
+				result = await result;
 			}
+		} catch (e) {
+			result = e;
+			errored = true;
+		}
 
-			let elapsed = +new Date() - start;
-			return { errored, result, elapsed };
-		})(code, ignorePromise, global);
+		let elapsed = +new Date() - start;
 
-		console.log("[eval › evaluate() result]", evaluated);
+		console.log("[eval › evaluate() result]", { result, errored, elapsed });
 
-		const { errored, result, elapsed } = evaluated;
 		if (!silent) {
 			if (errored) {
 				sendMessage(
