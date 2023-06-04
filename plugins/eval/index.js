@@ -73,19 +73,19 @@ const plugin = {
 							description: "How to handle the evaluation",
 							choices: [
 								{
-									name: "🟥await returned promise & 🟩show output",
+									name: "no await & show output",
 									value: 0,
 								},
 								{
-									name: "🟩await returned promise & 🟥show output",
+									name: "await & no output",
 									value: 1,
 								},
 								{
-									name: "🟥await returned promise & 🟥show output",
+									name: "no await & no output",
 									value: 2,
 								},
 								{
-									name: "🟩await returned promise & 🟩show output [default]",
+									name: "await & output [default]",
 									value: -1,
 								},
 							],
