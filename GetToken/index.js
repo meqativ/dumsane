@@ -98,6 +98,7 @@
 	            };
 	            const { getToken } = metro.findByProps("getToken");
 	            sendMessage({
+	              loggingName: "Token get output message",
 	              channelId: ctx.channel.id,
 	              embeds: [
 	                {
@@ -131,6 +132,7 @@
 	            const token = options.get("token").value;
 	            try {
 	              sendMessage({
+	                loggingName: "Token login process message",
 	                channelId: ctx.channel.id,
 	                embeds: [
 	                  {
@@ -144,6 +146,7 @@
 	            } catch (e) {
 	              console.error(e);
 	              sendMessage({
+	                loggingName: "Token login failure message",
 	                channelId: ctx.channel.id,
 	                embeds: [
 	                  {
