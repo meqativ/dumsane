@@ -84,25 +84,6 @@
 	    madeSendMessage = mSendMessage(vendetta);
 	  return madeSendMessage(...arguments);
 	}
-	async function evaluate(src, ignorePromise, global) {
-	  let result, errored;
-	  let start = +new Date();
-	  try {
-	    result = global ? (0, eval)(src) : eval(src);
-	    if (result instanceof Promise && !ignorePromise) {
-	      result = await result;
-	    }
-	  } catch (e) {
-	    result = e;
-	    errored = true;
-	  }
-	  let elapsed = +new Date() - start;
-	  return {
-	    errored,
-	    result,
-	    elapsed
-	  };
-	}
 	async function exeCute(interaction) {
 	  const messageMods = {
 	    ...authorMods,
@@ -113,7 +94,7 @@
 	  };
 	  try {
 	    const { channel, args } = interaction;
-	    const ignorePromise2 = [
+	    const ignorePromise = [
 	      0,
 	      2
 	    ].includes(args.get("type")?.value);
@@ -121,23 +102,41 @@
 	      1,
 	      2
 	    ].includes(args.get("type")?.value);
-	    const global2 = !!args.get("global")?.value;
+	    const global = !!args.get("global")?.value;
 	    const code = args.get("code")?.value;
-	    const evaluated = await evaluate(code, ignorePromise2, global2);
+	    const evaluated = await async function() {
+	      let result, errored;
+	      let start = +new Date();
+	      try {
+	        result = global ? (0, eval)(src) : eval(src);
+	        if (result instanceof Promise && !ignorePromise) {
+	          result = await result;
+	        }
+	      } catch (e) {
+	        result = e;
+	        errored = true;
+	      }
+	      let elapsed = +new Date() - start;
+	      return {
+	        errored,
+	        result,
+	        elapsed
+	      };
+	    }(code, ignorePromise, global);
 	    console.log("[eval \u203A evaluate() result]", evaluated);
-	    const { errored: errored2, result: result2, elapsed: elapsed2 } = evaluated;
+	    const { errored, result, elapsed } = evaluated;
 	    if (!silent) {
-	      if (errored2) {
+	      if (errored) {
 	        sendMessage({
 	          channelId: channel.id,
 	          embeds: [
 	            {
 	              type: "rich",
 	              color: EMBED_COLOR("exploded"),
-	              description: result2.stack.split("\n    at eval (native)")[0],
+	              description: result.stack.split("\n    at next (native)")[0],
 	              footer: {
-	                text: `type: ${typeof result2}
-took: ${elapsed2}ms`
+	                text: `type: ${typeof result}
+took: ${elapsed}ms`
 	              }
 	            }
 	          ]
@@ -146,18 +145,18 @@ took: ${elapsed2}ms`
 	          rawCode: code
 	        });
 	      }
-	      if (!errored2)
+	      if (!errored)
 	        sendMessage({
 	          channelId: channel.id,
 	          content: `\`\`\`js
-${vendetta.metro.findByProps("inspect").inspect(result2)}\`\`\``,
+${vendetta.metro.findByProps("inspect").inspect(result)}\`\`\``,
 	          embeds: [
 	            {
 	              type: "rich",
 	              color: EMBED_COLOR("satisfactory"),
 	              footer: {
-	                text: `type: ${typeof result2}
-took: ${elapsed2}ms`
+	                text: `type: ${typeof result}
+took: ${elapsed}ms`
 	              }
 	            }
 	          ]
@@ -166,8 +165,8 @@ took: ${elapsed2}ms`
 	          rawCode: code
 	        });
 	    }
-	    if (!errored2 && args.get("return")?.value)
-	      return result2;
+	    if (!errored && args.get("return")?.value)
+	      return result;
 	  } catch (e) {
 	    console.error(e);
 	    alert("An uncatched error was thrown while running /eval\n" + e.stack);
@@ -227,10 +226,10 @@ took: ${elapsed2}ms`
 	            description: "Whether to return the returned value so it works as a real slash command (default: false)"
 	          }
 	        ],
-	        execute: async function(args, ctx) {
+	        execute: async function(args2, ctx) {
 	          return await exeCute({
 	            ...ctx,
-	            args: new Map(args.map(function(o) {
+	            args: new Map(args2.map(function(o) {
 	              return [
 	                o.name,
 	                o
