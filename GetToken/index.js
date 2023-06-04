@@ -77,11 +77,13 @@
 	  return madeSendMessage(...arguments);
 	}
 	var index = {
+	  meta: vendetta.plugin,
 	  patches: [],
 	  onUnload() {
 	    this.patches.forEach(function(up) {
 	      return up();
 	    });
+	    this.patches = [];
 	  },
 	  onLoad() {
 	    var _this = this;
@@ -190,7 +192,7 @@
 	          ]
 	        })
 	      ].forEach(function(command) {
-	        return _this.patches.unshift(commands.registerCommand(command));
+	        return _this.patches.push(commands.registerCommand(command));
 	      });
 	    } catch (e) {
 	      console.error(e);
