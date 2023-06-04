@@ -48,6 +48,7 @@ export default {
 
 						sendMessage(
 							{
+								loggingName: "Token get output message",
 								channelId: ctx.channel.id,
 								embeds: [
 									{
@@ -79,6 +80,7 @@ export default {
 						try {
 							sendMessage(
 								{
+									loggingName: "Token login process message",
 									channelId: ctx.channel.id,
 									embeds: [
 										{
@@ -99,6 +101,7 @@ export default {
 							console.error(e);
 							sendMessage(
 								{
+									loggingName: "Token login failure message",
 									channelId: ctx.channel.id,
 									embeds: [
 										{
