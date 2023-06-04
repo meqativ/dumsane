@@ -132,6 +132,7 @@ async function exeCute(interaction) {
 export default {
 	meta: vendetta.plugin,
 	onLoad() {
+		try {
 		this.onUnload = registerCommand(
 			hlp.cmdDisplays({
 				type: 1,
@@ -191,5 +192,9 @@ export default {
 					}),
 			})
 		);
+		} catch (e) {
+			console.error(e);
+			alert(`There was an error while loading the plugin "${plugin.meta.name}"\n${e.stack}`);
+		}
 	},
 };
