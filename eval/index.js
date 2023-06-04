@@ -18,11 +18,11 @@
 	      if (option?.choices) {
 	        if (!Array.isArray(option?.choices))
 	          throw new Error(`Choices is not an array (received: ${typeof option.choices})`);
-	        if (!choice?.name)
-	          throw new Error(`No name of choice with index ${choiceIndex} in option with index ${optionIndex}`);
 	        for (var choiceIndex = 0; choiceIndex < option.choices.length; choiceIndex++) {
-	          const choice1 = option.choices[choiceIndex];
-	          choice1.displayName ??= translations?.options?.[optionIndex]?.choices?.[choiceIndex]?.names?.[locale] ?? choice1.name;
+	          const choice = option.choices[choiceIndex];
+	          if (!choice?.name)
+	            throw new Error(`No name of choice with index ${choiceIndex} in option with index ${optionIndex}`);
+	          choice.displayName ??= translations?.options?.[optionIndex]?.choices?.[choiceIndex]?.names?.[locale] ?? choice.name;
 	        }
 	      }
 	    }
