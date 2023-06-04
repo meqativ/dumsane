@@ -66,6 +66,13 @@ async function evaluate(src, ignorePromise, global) {
 }
 
 async function exeCute(interaction) {
+		const messageMods = {
+			...authorMods,
+			interaction: {
+				name: "/eval",
+				user: findByStoreName("UserStore").getCurrentUser(),
+			},
+		};
 	try {
 		const { channel, args } = interaction;
 		const ignorePromise = [0, 2].includes(args.get("type")?.value);
@@ -76,7 +83,6 @@ async function exeCute(interaction) {
 		console.log("[eval › evaluate() result]", evaluated);
 
 		const { errored, result, elapsed } = evaluated;
-
 		if (!silent) {
 			if (errored) {
 				sendMessage(
