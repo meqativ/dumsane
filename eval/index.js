@@ -95,7 +95,8 @@
 	      2
 	    ].includes(args.get("type")?.value);
 	    const global2 = !!args.get("global")?.value;
-	    const evaluated = await evaluate(src, ignorePromise2, global2);
+	    const code = args.get("code")?.value;
+	    const evaluated = await evaluate(code, ignorePromise2, global2);
 	    console.log("[eval \u203A evaluate() result]", evaluated);
 	    const { errored: errored2, result: result2, elapsed: elapsed2 } = evaluated;
 	    if (!silent) {
@@ -109,6 +110,9 @@
 	              description: result2.stack.split("\n    at eval (native)")[0]
 	            }
 	          ]
+	        }, {
+	          ...messageMods,
+	          rawCode: code
 	        });
 	      }
 	      if (!errored2)
@@ -124,7 +128,10 @@ ${vendetta.metro.findByProps("inspect").inspect(result2)}\`\`\``,
 took: ${elapsed2}ms`
 	            }
 	          ]
-	        }, messageMods);
+	        }, {
+	          ...messageMods,
+	          rawCode: code
+	        });
 	    }
 	    if (!errored2 && args.get("return")?.value)
 	      return result2;
