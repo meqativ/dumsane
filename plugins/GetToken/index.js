@@ -34,10 +34,11 @@ function sendMessage() {
 }
 
 export default {
+	meta: vendetta.plugin,
 	patches: [],
-	onUnload() {
-		this.patches.forEach((up) => up()); // unpatch every added patch
-	},
+	onUnload(){
+		this.patches.forEach((up) => up()); // unpatch every patch
+		this.patches = [];},
 	onLoad() {
 		try {
 			const exeCute = {
@@ -154,7 +155,7 @@ export default {
 						},
 					],
 				}),
-			].forEach((command) => this.patches.unshift(registerCommand(command)));
+			].forEach((command) => this.patches.push(registerCommand(command)));
 		} catch (e) {
 			console.error(e);
 			alert("There was an error while loading TokenUtils\n" + e.stack);
