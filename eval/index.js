@@ -40,7 +40,17 @@
 	    return msg;
 	  };
 	}
+	const AVATARS = {
+	  command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
+	};
 
+	const authorMods = {
+	  author: {
+	    username: "eval",
+	    avatar: "command",
+	    avatarURL: AVATARS.command
+	  }
+	};
 	if (!("stats" in plugin.storage))
 	  plugin.storage["stats"] = {};
 	{
@@ -84,6 +94,13 @@
 	  };
 	}
 	async function exeCute(interaction) {
+	  const messageMods = {
+	    ...authorMods,
+	    interaction: {
+	      name: "/eval",
+	      user: metro.findByStoreName("UserStore").getCurrentUser()
+	    }
+	  };
 	  try {
 	    const { channel, args } = interaction;
 	    const ignorePromise2 = [
