@@ -18,6 +18,7 @@ export default {
 				if (event?.type === "MESSAGE_DELETE") {
 					if (!event?.id || !event?.channelId) return;
 					const message = MessageStore.getMessage(event.channelId, event.id);
+					console.log(message, event)
 					if (storage["ignore"]["users"].includes(message?.author?.id)) return;
 					if (storage["ignore"]["bots"] && message?.author?.bot) return;
 					if (deleteable.includes(event.id)) {
