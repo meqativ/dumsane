@@ -49,6 +49,7 @@ export default {
 							message: redText,
 						},
 					};
+					console.log(args)
 					return args;
 				}
 			});
