@@ -37,6 +37,8 @@ export default {
 							return args;
 						}
 						deleteable.push(event.id);
+
+
 						let automodMessage =
 							storage["message"] || "This message was deleted";
 						if (storage["timestamps"])
@@ -62,13 +64,13 @@ export default {
 						return args;
 					} catch (e) {
 						console.error(e);
-						alert("Nodelete→patch died\n" + e.stack);
+						alert("[Nodelete → patch] died\n" + e.stack);
 					}
 				})
 			);
 		} catch (e) {
 			console.error(e);
-			alert("NoDelete died\n" + e.stack);
+			alert("[NoDelete] dead\n" + e.stack);
 		}
 	},
 };
