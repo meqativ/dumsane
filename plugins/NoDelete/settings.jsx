@@ -1,35 +1,42 @@
-const { React, ReactNative } = vendetta.metro.common;
-const {
-	plugin: { storage },
-	storage: { useProxy },
-	ui: {
-		components: { Forms },
-	},
-} = vendetta;
+import { React, ReactNative } from "@vendetta/metro/common";
+import { storage } from "@vendetta/plugin";
+import { useProxy } from "@vendetta/storage";
+import { Forms } from "@vendetta/ui/components";
+if (!storage["ignore"]) storage["ignore"] = {
+	users: [],
+	bots: false
+}
 if (!("timestamps" in storage)) storage["timestamps"] = false;
+if (!("onlyTimestamps" in storage)) storage["onlyTimestamps"] = false;
+if (!("ew" in storage)) storage["ew"] = false; // AM/PM
 
-const { FormRow, FormSection, FormSwitch } = Forms;
 
 export default (props) => {
 	useProxy(storage);
 	return (
 		<ReactNative.ScrollView style={{ flex: 1 }}>
 			{[
-				{ label: "Show the time of deletion", default: false, id: "timestamps" },
-				{ label: "Use AM/PM", default: false, id: "ew" },
-				{ label: "The plugin does not keep the messages you've deleted", },
+				{ type: "switch", label: "Show the time of deletion", propId: "timestamps" },
+				{ type: "switch", label: "Use AM/PM", propId: "ew" },
+				{ type: "separator" },
+				{ type: "switch", label: "Ignore bots" },
+				{ type: "text", label: "The plugin does not keep the messages you've deleted", },
 			].map((config) => {
-				return (
-					<FormRow
+				if (config.type === "switch") return (
+					<Forms.FormRow
 						label={config.label}
 						trailing={
-							("id" in config) ? (<FormSwitch
-								value={storage[config.id] ?? config.default}
-								onValueChange={(value) => (storage[config.id] = value)}
-							/>) : undefined
+							<Forms.FormSwitch
+								value={storage[config.propId]}
+								onValueChange={(value) => (storage[config.propId] = value)}
+							/>
 						}
 					/>
 				);
+				if (config.type === "text") return (
+					<Forms.FormLabel label={config.label} />
+				);
+				if (config.type === "separator") return (<Forms.FormDivider/>);
 			})}
 		</ReactNative.ScrollView>
 	);
