@@ -125,7 +125,6 @@ const plugin = {
 
 							let result, errored;
 							const functioner = new (Async ? AsyncFunction : Function)(code);
-							console.log(functioner);
 							let start = +new Date();
 							try {
 								result = await (global
@@ -137,11 +136,11 @@ const plugin = {
 							}
 
 							let elapsed = +new Date() - start;
-							console.log("[eval › evaluate() result]", {
+							/*	console.log("[eval › evaluate() result]", {
 								result,
 								errored,
 								elapsed,
-							});
+							});*/
 
 							if (!silent) {
 								if (errored) {
@@ -156,7 +155,8 @@ const plugin = {
 														? result.stack.split("\n    at next (native)")[0]
 														: result.stack,
 													footer: {
-														text: `type: ${typeof result}\ntook: ${elapsed}ms`,
+														text:
+															`type: ${typeof result}\n` + `took: ${elapsed}ms`,
 													},
 												},
 											],
@@ -176,12 +176,12 @@ const plugin = {
 													type: "rich",
 													color: EMBED_COLOR("satisfactory"),
 													footer: {
-														text: `type: ${typeof result}${
-															typeof result === "undefined" &&
+														text:
+															`type: ${typeof result}\n` +
+															(typeof result === "undefined" &&
 															!code.includes("return")
-																? "\nhint: use the return keyword"
-																: ""
-														}\ntook: ${elapsed}ms`,
+																? "hint: use the return keyword\n"
+																: "")`took: ${elapsed}ms`,
 													},
 												},
 											],
