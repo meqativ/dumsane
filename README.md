@@ -1,8 +1,6 @@
-detta plugins
-
-## [TokenUtils](/dumsane/GetToken)
-## [NoDelete](/dumsane/NoDelete)
-## [Vibrate](/dumsane/Vibrate)
-## [eval](/dumsane/eval)
-## [Insult](/dumsane/Insult)
-## [NoBandwidthKick](/dumsane/NoBandwidthKick)
+## [src](https://github.com/Meqativ/dumsane/edit/master/TokenUtils) → [TokenUtils](/dumsane/GetToken)
+## [src](https://github.com/Meqativ/dumsane/edit/master/NoDelete) → [NoDelete](/dumsane/NoDelete)
+## [src](https://github.com/Meqativ/dumsane/edit/master/Vibrate) → [Vibrate](/dumsane/Vibrate)
+## [src](https://github.com/Meqativ/dumsane/edit/master/eval) → [eval](/dumsane/eval)
+## [src](https://github.com/Meqativ/dumsane/edit/master/Insult) → [Insult](/dumsane/Insult)
+## [src](https://github.com/Meqativ/dumsane/edit/master/NoBandidthKick) → [NoBandwidthKick](/dumsane/NoBandwidthKick)
