@@ -25,7 +25,7 @@ export default {
 						deleteable.splice(deleteable.indexOf(event.id), 1);
 						return args;
 					}
-					deleteable.push(event.id);//*//
+					deleteable.push(event.id);//*/
 					let redText = storage["onlyTimestamp"]
 						? ""
 						: storage["message"]?.trim?.() || "This message was deleted";
