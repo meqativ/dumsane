@@ -14,7 +14,7 @@ export default {
 				if (!MessageStore) MessageStore = findByStoreName("MessageStore");
 				const event = args[0];
 				if (!event) return;
-				if (event?.optimistic) return;
+				if (!("guildId" in event)) return;
 				if (event?.type === "MESSAGE_DELETE") {
 					if (!event?.id || !event?.channelId) return;
 					const message = MessageStore.getMessage(event.channelId, event.id);
