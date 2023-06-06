@@ -155,7 +155,7 @@ const plugin = {
 														? result.stack.split("\n    at next (native)")[0]
 														: result.stack,
 													footer: {
-														text: `type: ${typeof result}${(typeof result === "undefined" && !code.includes("return")) ? "\nhint: use the return keyword": ""}\ntook: ${elapsed}ms`,
+														text: `type: ${typeof result}\ntook: ${elapsed}ms`,
 													},
 												},
 											],
@@ -175,7 +175,7 @@ const plugin = {
 													type: "rich",
 													color: EMBED_COLOR("satisfactory"),
 													footer: {
-														text: `type: ${typeof result}\ntook: ${elapsed}ms`,
+														text: `type: ${typeof result}${(typeof result === "undefined" && !code.includes("return")) ? "\nhint: use the return keyword": ""}\ntook: ${elapsed}ms`,
 													},
 												},
 											],
