@@ -5,3 +5,4 @@ detta plugins
 ## [Vibrate](/dumsane/Vibrate)
 ## [eval](/dumsane/eval)
 ## [Insult](/dumsane/Insult)
+## [NoBandwidthKick](/dumsane/NoBandwidthKick)
