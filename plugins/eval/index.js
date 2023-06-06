@@ -98,7 +98,8 @@ const plugin = {
 						{
 							type: 5,
 							name: "silent",
-							description: "Show the output of the evaluation? (default: false)",
+							description:
+								"Show the output of the evaluation? (default: false)",
 						},
 					],
 					async execute(args, ctx) {
@@ -124,12 +125,12 @@ const plugin = {
 
 							let result, errored;
 							const functioner = new (Async ? AsyncFunction : Function)(code);
-							console.log(functioner)
+							console.log(functioner);
 							let start = +new Date();
 							try {
 								result = await (global
-									? functioner.bind(interaction)()
-									: functioner());
+									? functioner()
+									: functioner.bind(interaction)());
 							} catch (e) {
 								result = e;
 								errored = true;
@@ -175,7 +176,12 @@ const plugin = {
 													type: "rich",
 													color: EMBED_COLOR("satisfactory"),
 													footer: {
-														text: `type: ${typeof result}${(typeof result === "undefined" && !code.includes("return")) ? "\nhint: use the return keyword": ""}\ntook: ${elapsed}ms`,
+														text: `type: ${typeof result}${
+															typeof result === "undefined" &&
+															!code.includes("return")
+																? "\nhint: use the return keyword"
+																: ""
+														}\ntook: ${elapsed}ms`,
 													},
 												},
 											],
