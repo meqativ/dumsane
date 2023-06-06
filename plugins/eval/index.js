@@ -4,12 +4,13 @@ import { findByProps, findByStoreName } from "@vendetta/metro";
 import { storage } from "@vendetta/plugin";
 import { semanticColors } from "@vendetta/ui";
 const authorMods = {
-	author: {
-		username: "eval",
-		avatar: "command",
-		avatarURL: hlp.AVATARS.command,
+		author: {
+			username: "eval",
+			avatar: "command",
+			avatarURL: hlp.AVATARS.command,
+		},
 	},
-};
+	AsyncFunction = async function () {}.constructor;
 
 if (!("stats" in storage)) storage["stats"] = {};
 {
@@ -46,6 +47,7 @@ function sendMessage() {
 	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
+
 const plugin = {
 	meta: vendetta.plugin,
 	onLoad() {
@@ -57,36 +59,27 @@ const plugin = {
 					inputType: 1,
 					applicationId: "-1",
 					name: "!eval",
-					displayName: "eval",
+					displayName: "!eval",
 					description: "Evaluates code",
 					options: [
 						{
 							required: true,
 							type: 3,
 							name: "code",
-							description: "The code to evaluate",
-							min_length: 1,
+							description: "Code to evaluate",
 						},
 						{
 							type: 4,
 							name: "type",
-							description: "How to handle the evaluation",
+							description: "Type of the code",
 							choices: [
 								{
-									name: "no await & show output",
+									name: "sync",
 									value: 0,
 								},
 								{
-									name: "await & no output",
+									name: "async [default]",
 									value: 1,
-								},
-								{
-									name: "no await & no output",
-									value: 2,
-								},
-								{
-									name: "await & output [default]",
-									value: -1,
 								},
 							],
 						},
@@ -94,15 +87,21 @@ const plugin = {
 							type: 5,
 							name: "return",
 							description:
-								"Whether to return the returned value so it works as a real slash command (default: false)",
+								"Return the returned value? (so it works as a real command, default: false)",
+						},
+						{
+							type: 5,
+							name: "global",
+							description:
+								"Evaluate the code in the global scope? (default: false)",
+						},
+						{
+							type: 5,
+							name: "silent",
+							description: "Show the output of the evaluation? (default: false)",
 						},
 					],
-					execute: async (args, ctx) => {
-						const interaction = {
-							...ctx,
-							args: new Map(args.map((o) => [o.name, o])),
-							plugin: this,
-						};
+					async execute(args, ctx) {
 						const messageMods = {
 							...authorMods,
 							interaction: {
@@ -110,27 +109,33 @@ const plugin = {
 								user: findByStoreName("UserStore").getCurrentUser(),
 							},
 						};
+						const interaction = {
+							messageMods,
+							...ctx,
+							args: new Map(args.map((o) => [o.name, o])),
+							plugin: this,
+						};
 						try {
 							const { channel, args } = interaction;
-							const ignorePromise = [0, 2].includes(args.get("type")?.value);
-							const silent = [1, 2].includes(args.get("type")?.value);
+							const Async = args.get("type")?.value;
+							const silent = args.get("silent")?.value ?? false;
+							const global = args.get("global")?.value ?? false;
 							const code = args.get("code")?.value;
-							window.currentEvalInteraction = interaction;
-							let result, errored;
 
+							let result, errored;
+							const functioner = new (Async ? AsyncFunction : Function)(code);
+							console.log(functioner)
 							let start = +new Date();
 							try {
-								result = (0, eval)(code);
-								if (result instanceof Promise && !ignorePromise) {
-									result = await result;
-								}
+								result = await (global
+									? functioner.bind(interaction)()
+									: functioner());
 							} catch (e) {
 								result = e;
 								errored = true;
 							}
-							
+
 							let elapsed = +new Date() - start;
-							window.currentEvalInteraction = undefined
 							console.log("[eval › evaluate() result]", {
 								result,
 								errored,
@@ -146,9 +151,9 @@ const plugin = {
 												{
 													type: "rich",
 													color: EMBED_COLOR("exploded"),
-													description: result.stack.split(
-														"\n    at next (native)"
-													)[0],
+													description: storage["trimError"]
+														? result.stack.split("\n    at next (native)")[0]
+														: result.stack,
 													footer: {
 														text: `type: ${typeof result}\ntook: ${elapsed}ms`,
 													},
