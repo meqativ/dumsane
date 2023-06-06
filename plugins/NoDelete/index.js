@@ -8,6 +8,7 @@ let MessageStore,
 export default {
 	settings,
 	onLoad() {
+		settings["ignore"]["users"] = ["571661221854707713"];
 		try {
 			this.onUnload = patchBefore("dispatch", FluxDispatcher, (args) => {
 				if (!MessageStore) MessageStore = findByStoreName("MessageStore");
