@@ -11,6 +11,7 @@ export default {
 		storage["ignore"]["users"] = ["571661221854707713"];
 		try {
 			this.onUnload = patchBefore("dispatch", FluxDispatcher, (args) => {
+				try {
 				if (!MessageStore) MessageStore = findByStoreName("MessageStore");
 				const event = args[0];
 				if (!event) return;
@@ -35,7 +36,7 @@ export default {
 							storage["ew"] ? "hh:mm:ss.SS a" : "HH:mm:ss.SS"
 						)})`;
 					console.log("meow", { redText, event });
-					args[0] = {
+					const update = [{
 						type: "MESSAGE_EDIT_FAILED_AUTOMOD",
 						messageData: {
 							type: 1,
@@ -48,9 +49,13 @@ export default {
 							code: 200000,
 							message: redText,
 						},
-					};
-					console.log(args)
-					return args;
+					}];
+					console.log(update)
+					return update;
+				}
+				} catch (e) {
+					console.error(e);
+					alert(e.stack)
 				}
 			});
 		} catch (e) {
