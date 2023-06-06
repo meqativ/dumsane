@@ -3,8 +3,8 @@ import { FluxDispatcher, moment } from "@vendetta/metro/common";
 import { storage } from "@vendetta/plugin";
 import { before as patchBefore } from "@vendetta/patcher";
 import { findByProps, findByStoreName } from "@vendetta/metro";
-let MessageStore,
-	deleteable = [];
+let MessageStore
+	//,deleteable = [];
 export default {
 	settings,
 	onLoad() {
@@ -21,11 +21,11 @@ export default {
 					console.log(message, event)
 					if (storage["ignore"]["users"].includes(message?.author?.id)) return;
 					if (storage["ignore"]["bots"] && message?.author?.bot) return;
-					if (deleteable.includes(event.id)) {
+					/*if (deleteable.includes(event.id)) {
 						deleteable.splice(deleteable.indexOf(event.id), 1);
 						return args;
 					}
-					deleteable.push(event.id);
+					deleteable.push(event.id);//*//
 					let redText = storage["onlyTimestamp"]
 						? ""
 						: storage["message"]?.trim?.() || "This message was deleted";
