@@ -36,7 +36,7 @@ export const EMBED_COLOR = (color) => {
 			: resolveSemanticColor(
 					ThemeStore.theme,
 					semanticColors.BACKGROUND_SECONDARY
-			  ).slice(1),
+			  ).slice(1), // i know
 		16
 	);
 };
@@ -155,7 +155,7 @@ const plugin = {
 														? result.stack.split("\n    at next (native)")[0]
 														: result.stack,
 													footer: {
-														text: `type: ${typeof result}\ntook: ${elapsed}ms`,
+														text: `type: ${typeof result}${(typeof result === "undefined" && !code.includes("return")) ? " (use the return keyword)"}\ntook: ${elapsed}ms`,
 													},
 												},
 											],
