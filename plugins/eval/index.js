@@ -155,7 +155,7 @@ const plugin = {
 														? result.stack.split("\n    at next (native)")[0]
 														: result.stack,
 													footer: {
-														text: `type: ${typeof result}${(typeof result === "undefined" && !code.includes("return")) ? " (use the return keyword)"}\ntook: ${elapsed}ms`,
+														text: `type: ${typeof result}${(typeof result === "undefined" && !code.includes("return")) ? "\nhint: use the return keyword": ""}\ntook: ${elapsed}ms`,
 													},
 												},
 											],
