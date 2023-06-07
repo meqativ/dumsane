@@ -1,8 +1,245 @@
-(function(d,C,u,l,f){"use strict";function R(e,r,s){if(!e.name||!e?.description)throw new Error(`No name(${e?.name}) or description(${e?.description}) in the passed command (command name: ${e?.name})`);if(e.displayName??=r?.names?.[s]??e.name,e.displayDescription??=r?.names?.[s]??e.description,e.options){if(!Array.isArray(e.options))throw new Error(`Options is not an array (received: ${typeof e.options})`);for(var o=0;o<e.options.length;o++){const t=e.options[o];if(!t?.name||!t?.description)throw new Error(`No name(${t?.name}) or description(${t?.description} in the option with index ${o}`);if(t.displayName??=r?.options?.[o]?.names?.[s]??t.name,t.displayDescription??=r?.options?.[o]?.descriptions?.[s]??t.description,t?.choices){if(!Array.isArray(t?.choices))throw new Error(`Choices is not an array (received: ${typeof t.choices})`);for(var n=0;n<t.choices.length;n++){const a=t.choices[n];if(!a?.name)throw new Error(`No name of choice with index ${n} in option with index ${o}`);a.displayName??=r?.options?.[o]?.choices?.[n]?.names?.[s]??a.name}}}}return e}function E(e){const{metro:r}=e,{receiveMessage:s}=r.findByProps("sendMessage","receiveMessage"),{createBotMessage:o}=r.findByProps("createBotMessage"),n=r.findByProps("BOT_AVATARS");return function(t,a){if(!t.channelId)throw new Error("No channel id to receive the message into (channelId)");typeof a<"u"&&"author"in a&&"avatar"in a.author&&"avatarURL"in a.author&&(n.BOT_AVATARS[a.author.avatar]=a.author.avatarURL,delete a.author.avatarURL);let c=a===!0?t:o(t);return typeof a=="object"&&(c=e.metro.findByProps("merge").merge(c,a)),s(t.channelId,c),c}}const M={author:{username:"eval",avatar:"command",avatarURL:{command:"https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"}.command}},N=async function(){}.constructor;"stats"in l.storage||(l.storage.stats={});{const e=l.storage.stats;"runs"in e||(e.runs={failed:0,succeeded:0})}const{meta:{resolveSemanticColor:v}}=u.findByProps("colors","meta"),g=u.findByStoreName("ThemeStore"),h=function(e){parseInt(v(g.theme,f.semanticColors.BACKGROUND_SECONDARY).slice(1),16)};let y;function w(){return window.sendMessage?window.sendMessage?.(...arguments):(y||(y=E(vendetta)),y(...arguments))}const A={meta:vendetta.plugin,onLoad(){try{this.onUnload=C.registerCommand(R({type:1,inputType:1,applicationId:"-1",name:"!eval",displayName:"!eval",description:"Evaluates code",options:[{required:!0,type:3,name:"code",description:"Code to evaluate"},{type:4,name:"type",description:"Type of the code",choices:[{name:"sync",value:0},{name:"async [default]",value:1}]},{type:5,name:"return",description:"Return the returned value? (so it works as a real command, default: false)"},{type:5,name:"global",description:"Evaluate the code in the global scope? (default: false)"},{type:5,name:"silent",description:"Show the output of the evaluation? (default: false)"}],async execute(e,r){const s={...M,interaction:{name:"/eval",user:u.findByStoreName("UserStore").getCurrentUser()}},o={messageMods:s,...r,args:new Map(e.map(function(n){return[n.name,n]})),plugin:this};try{const{channel:n,args:t}=o,a=t.get("type")?.value,c=t.get("silent")?.value??!1,S=t.get("global")?.value??!1,m=t.get("code")?.value;let i,p;const $=new(a?N:Function)(m);let O=+new Date;try{i=await(S?$():$.bind(o)())}catch(D){i=D,p=!0}let B=+new Date-O;if(c||(p&&w({channelId:n.id,embeds:[{type:"rich",color:h("exploded"),description:l.storage.trimError?i.stack.split(`
-    at next (native)`)[0]:i.stack,footer:{text:`type: ${typeof i}
-took: ${B}ms`}}]},{...s,rawCode:m}),p||w({channelId:n.id,content:`\`\`\`js
-${vendetta.metro.findByProps("inspect").inspect(i)}\`\`\``,embeds:[{type:"rich",color:h("satisfactory"),footer:{text:`type: ${typeof i}
-`+(typeof i>"u"&&!m.includes("return")?`hint: use the return keyword
-`:"")`took: ${B}ms`}}]},{...s,rawCode:m})),!p&&t.get("return")?.value)return i}catch(n){console.error(n),alert(`An uncatched error was thrown while running /eval
-`+n.stack)}}}))}catch(e){console.error(e),alert(`There was an error while loading the plugin "${A.meta.name}"
-${e.stack}`)}}};return d.EMBED_COLOR=h,d.default=A,Object.defineProperty(d,"__esModule",{value:!0}),d})({},vendetta.commands,vendetta.metro,vendetta.plugin,vendetta.ui);
+(function (exports, commands, metro, plugin$2, ui) {
+	'use strict';
+
+	function cmdDisplays(obj, translations, locale) {
+	  if (!obj.name || !obj?.description)
+	    throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command (command name: ${obj?.name})`);
+	  obj.displayName ??= translations?.names?.[locale] ?? obj.name;
+	  obj.displayDescription ??= translations?.names?.[locale] ?? obj.description;
+	  if (obj.options) {
+	    if (!Array.isArray(obj.options))
+	      throw new Error(`Options is not an array (received: ${typeof obj.options})`);
+	    for (var optionIndex = 0; optionIndex < obj.options.length; optionIndex++) {
+	      const option = obj.options[optionIndex];
+	      if (!option?.name || !option?.description)
+	        throw new Error(`No name(${option?.name}) or description(${option?.description} in the option with index ${optionIndex}`);
+	      option.displayName ??= translations?.options?.[optionIndex]?.names?.[locale] ?? option.name;
+	      option.displayDescription ??= translations?.options?.[optionIndex]?.descriptions?.[locale] ?? option.description;
+	      if (option?.choices) {
+	        if (!Array.isArray(option?.choices))
+	          throw new Error(`Choices is not an array (received: ${typeof option.choices})`);
+	        for (var choiceIndex = 0; choiceIndex < option.choices.length; choiceIndex++) {
+	          const choice = option.choices[choiceIndex];
+	          if (!choice?.name)
+	            throw new Error(`No name of choice with index ${choiceIndex} in option with index ${optionIndex}`);
+	          choice.displayName ??= translations?.options?.[optionIndex]?.choices?.[choiceIndex]?.names?.[locale] ?? choice.name;
+	        }
+	      }
+	    }
+	  }
+	  return obj;
+	}
+	function mSendMessage(vendetta) {
+	  const { metro } = vendetta;
+	  const { receiveMessage } = metro.findByProps("sendMessage", "receiveMessage");
+	  const { createBotMessage } = metro.findByProps("createBotMessage");
+	  const Avatars = metro.findByProps("BOT_AVATARS");
+	  return function(message, mod) {
+	    if (!message.channelId)
+	      throw new Error("No channel id to receive the message into (channelId)");
+	    if (typeof mod !== "undefined" && "author" in mod) {
+	      if ("avatar" in mod.author && "avatarURL" in mod.author) {
+	        Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
+	        delete mod.author.avatarURL;
+	      }
+	    }
+	    let msg = mod === true ? message : createBotMessage(message);
+	    if (typeof mod === "object")
+	      msg = vendetta.metro.findByProps("merge").merge(msg, mod);
+	    receiveMessage(message.channelId, msg);
+	    return msg;
+	  };
+	}
+	const AVATARS = {
+	  command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
+	};
+
+	const authorMods = {
+	  author: {
+	    username: "eval",
+	    avatar: "command",
+	    avatarURL: AVATARS.command
+	  }
+	}, AsyncFunction = async function() {
+	}.constructor;
+	plugin$2.storage["stats"] ??= {};
+	plugin$2.storage["stats"]["runs"] ??= {
+	  failed: 0,
+	  succeeded: 0
+	};
+	const { meta: { resolveSemanticColor } } = metro.findByProps("colors", "meta");
+	const ThemeStore = metro.findByStoreName("ThemeStore");
+	const EMBED_COLOR = function(color) {
+	  parseInt(resolveSemanticColor(ThemeStore.theme, ui.semanticColors.BACKGROUND_SECONDARY).slice(1), 16);
+	};
+	let madeSendMessage, plugin;
+	function sendMessage() {
+	  if (window.sendMessage)
+	    return window.sendMessage?.(...arguments);
+	  if (!madeSendMessage)
+	    madeSendMessage = mSendMessage(vendetta);
+	  return madeSendMessage(...arguments);
+	}
+	plugin = {
+	  meta: vendetta.plugin,
+	  patches: [],
+	  onUnload() {
+	    this.patches.forEach(function(up) {
+	      return up();
+	    });
+	    this.patches = [];
+	  },
+	  onLoad() {
+	    try {
+	      this.patches.push(commands.registerCommand({
+	        ...this.command,
+	        async execute(args, ctx) {
+	          const messageMods = {
+	            ...authorMods,
+	            interaction: {
+	              name: this.displayName,
+	              user: metro.findByStoreName("UserStore").getCurrentUser()
+	            }
+	          };
+	          const interaction = {
+	            messageMods,
+	            ...ctx,
+	            args: new Map(args.map(function(o) {
+	              return [
+	                o.name,
+	                o
+	              ];
+	            })),
+	            plugin
+	          };
+	          try {
+	            const { channel, args: args2 } = interaction;
+	            const Async = args2.get("type")?.value;
+	            const silent = args2.get("silent")?.value ?? false;
+	            const global = args2.get("global")?.value ?? false;
+	            const code = args2.get("code")?.value;
+	            let result, errored, start = +new Date();
+	            try {
+	              const evalFunction = new (Async ? AsyncFunction : Function)(code);
+	              result = await (global ? evalFunction() : evalFunction.bind(interaction)());
+	            } catch (e) {
+	              result = e;
+	              errored = true;
+	            }
+	            let elapsed = +new Date() - start;
+	            if (!silent) {
+	              if (errored) {
+	                sendMessage({
+	                  channelId: channel.id,
+	                  embeds: [
+	                    {
+	                      type: "rich",
+	                      color: EMBED_COLOR("exploded"),
+	                      description: plugin$2.storage["trimError"] ? result.stack.split("\n    at next (native)")[0] : result.stack,
+	                      footer: {
+	                        text: `type: ${typeof result}
+took: ${elapsed}ms`
+	                      }
+	                    }
+	                  ]
+	                }, {
+	                  ...messageMods,
+	                  rawCode: code
+	                });
+	              }
+	              if (!errored)
+	                sendMessage({
+	                  channelId: channel.id,
+	                  content: `\`\`\`js
+${vendetta.metro.findByProps("inspect").inspect(result)}\`\`\``,
+	                  embeds: [
+	                    {
+	                      type: "rich",
+	                      color: EMBED_COLOR("satisfactory"),
+	                      footer: {
+	                        text: `type: ${typeof result}
+` + (typeof result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "") + `took: ${elapsed}ms`
+	                      }
+	                    }
+	                  ]
+	                }, {
+	                  ...messageMods,
+	                  rawCode: code
+	                });
+	            }
+	            console.log({
+	              result: typeof result,
+	              global,
+	              elapsed
+	            });
+	            if (!errored && args2.get("return")?.value)
+	              return result;
+	          } catch (e) {
+	            console.error(e);
+	            alert("An uncatched error was thrown while running /eval\n" + e.stack);
+	          }
+	        }
+	      }));
+	    } catch (e) {
+	      console.error(e);
+	      alert(`There was an error while loading the plugin "${plugin.meta.name}"
+${e.stack}`);
+	    }
+	  },
+	  command: cmdDisplays({
+	    type: 1,
+	    inputType: 1,
+	    applicationId: "-1",
+	    name: "!eval",
+	    displayName: "!eval",
+	    description: "Evaluates code",
+	    options: [
+	      {
+	        required: true,
+	        type: 3,
+	        name: "code",
+	        description: "Code to evaluate"
+	      },
+	      {
+	        type: 4,
+	        name: "type",
+	        description: "Type of the code",
+	        choices: [
+	          {
+	            name: "sync",
+	            value: 0
+	          },
+	          {
+	            name: "async [default]",
+	            value: 1
+	          }
+	        ]
+	      },
+	      {
+	        type: 5,
+	        name: "return",
+	        description: "Return the returned value? (so it works as a real command, default: false)"
+	      },
+	      {
+	        type: 5,
+	        name: "global",
+	        description: "Evaluate the code in the global scope? (default: false)"
+	      },
+	      {
+	        type: 5,
+	        name: "silent",
+	        description: "Show the output of the evaluation? (default: false)"
+	      }
+	    ]
+	  })
+	};
+	var plugin$1 = plugin;
+
+	exports.EMBED_COLOR = EMBED_COLOR;
+	exports.default = plugin$1;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
+
+	return exports;
+
+})({}, vendetta.commands, vendetta.metro, vendetta.plugin, vendetta.ui);
