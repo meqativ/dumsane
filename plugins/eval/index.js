@@ -53,18 +53,19 @@ plugin = {
 				registerCommand(
 					{
 						...this.command,
-						async execute(args, ctx) {
+						async execute(rawArgs, ctx) {
 							const messageMods = {
 								...authorMods,
 								interaction: {
-									name: this.displayName,
+									name: "/" + this.displayName,
 									user: findByStoreName("UserStore").getCurrentUser(),
 								},
 							};
 							const interaction = {
 								messageMods,
 								...ctx,
-								args: new Map(args.map((o) => [o.name, o])),
+								args: new Map(rawArgs.map((o) => [o.name, o])),
+								rawArgs,
 								plugin,
 							};
 							try {
@@ -96,9 +97,9 @@ plugin = {
 													{
 														type: "rich",
 														color: EMBED_COLOR("exploded"),
-														description: storage["trimError"]
+														description: "```js\n" + (storage["trimError"]
 															? result.stack.split("\n    at next (native)")[0]
-															: result.stack,
+															: result.stack) + "```",
 														footer: {
 															text:
 																`type: ${typeof result}\n` +
@@ -116,7 +117,7 @@ plugin = {
 												channelId: channel.id,
 												content: `\`\`\`js\n${vendetta.metro
 													.findByProps("inspect")
-													.inspect(result)}\`\`\``,
+													.inspect(result).slice(0,15000)}\`\`\``,
 												embeds: [
 													{
 														type: "rich",
