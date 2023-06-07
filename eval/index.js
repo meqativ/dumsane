@@ -93,31 +93,32 @@
 	    try {
 	      this.patches.push(commands.registerCommand({
 	        ...this.command,
-	        async execute(args, ctx) {
+	        async execute(rawArgs, ctx) {
 	          const messageMods = {
 	            ...authorMods,
 	            interaction: {
-	              name: this.displayName,
+	              name: "/" + this.displayName,
 	              user: metro.findByStoreName("UserStore").getCurrentUser()
 	            }
 	          };
 	          const interaction = {
 	            messageMods,
 	            ...ctx,
-	            args: new Map(args.map(function(o) {
+	            args: new Map(rawArgs.map(function(o) {
 	              return [
 	                o.name,
 	                o
 	              ];
 	            })),
+	            rawArgs,
 	            plugin
 	          };
 	          try {
-	            const { channel, args: args2 } = interaction;
-	            const Async = args2.get("type")?.value;
-	            const silent = args2.get("silent")?.value ?? false;
-	            const global = args2.get("global")?.value ?? false;
-	            const code = args2.get("code")?.value;
+	            const { channel, args } = interaction;
+	            const Async = args.get("type")?.value;
+	            const silent = args.get("silent")?.value ?? false;
+	            const global = args.get("global")?.value ?? false;
+	            const code = args.get("code")?.value;
 	            let result, errored, start = +new Date();
 	            try {
 	              const evalFunction = new (Async ? AsyncFunction : Function)(code);
@@ -135,7 +136,7 @@
 	                    {
 	                      type: "rich",
 	                      color: EMBED_COLOR("exploded"),
-	                      description: plugin$2.storage["trimError"] ? result.stack.split("\n    at next (native)")[0] : result.stack,
+	                      description: "```js\n" + (plugin$2.storage["trimError"] ? result.stack.split("\n    at next (native)")[0] : result.stack) + "```",
 	                      footer: {
 	                        text: `type: ${typeof result}
 took: ${elapsed}ms`
@@ -151,7 +152,7 @@ took: ${elapsed}ms`
 	                sendMessage({
 	                  channelId: channel.id,
 	                  content: `\`\`\`js
-${vendetta.metro.findByProps("inspect").inspect(result)}\`\`\``,
+${vendetta.metro.findByProps("inspect").inspect(result).slice(0, 15e3)}\`\`\``,
 	                  embeds: [
 	                    {
 	                      type: "rich",
@@ -172,7 +173,7 @@ ${vendetta.metro.findByProps("inspect").inspect(result)}\`\`\``,
 	              global,
 	              elapsed
 	            });
-	            if (!errored && args2.get("return")?.value)
+	            if (!errored && args.get("return")?.value)
 	              return result;
 	          } catch (e) {
 	            console.error(e);
