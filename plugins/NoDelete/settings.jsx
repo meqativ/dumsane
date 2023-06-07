@@ -22,7 +22,7 @@ export default (props) => {
 					label: "Show the time of deletion",
 					setting: storage["timestamps"],
 					onChange(value) {
-						return (this.setting = value);
+						return (storage["timestamps"] = value);
 					},
 				},
 				{
@@ -30,7 +30,7 @@ export default (props) => {
 					label: "Use AM/PM",
 					setting: storage["ew"],
 					onChange(value) {
-						return (this.setting = value);
+						return (storage["ew"] = value);
 					},
 				},
 				{ type: "separator" },
@@ -39,7 +39,7 @@ export default (props) => {
 					label: "Ignore bots",
 					setting: storage["ignore"]["bots"],
 					onChange(value) {
-						return (this.setting = value);
+						return (storage["ignore"]["bots"] = value);
 					},
 				},
 				{
