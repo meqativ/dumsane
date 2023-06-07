@@ -1,4 +1,4 @@
-console.log("Initialising...");
+console.log("Initialising...\n");
 import { readFile, writeFile, readdir } from "fs/promises";
 import { extname } from "path";
 import { createHash } from "crypto";
@@ -11,7 +11,8 @@ import swc from "@swc/core";
 
 const extensions = [".js", ".jsx", ".mjs", ".ts", ".tsx", ".cts", ".mts"];
 const minifyBlacklist = [
-  /*"Vibrate", "eval", "selfexplode", "Uwuify"*/
+	"eval",
+  /*"Vibrate", "selfexplode", "Uwuify"*/
 ];
 const stfuWarningCodes = ["MISSING_NAME_OPTION_FOR_IIFE_EXPORT"];
 const onlyBuild = process.argv.slice(2, process.argv.length);
@@ -122,7 +123,7 @@ for (let plug of pluggers) {
   }
 }
 console.log(
-  `\n\nBuilt ${
+  `\nBuilt ${
     built.total === built.succeeded
       ? "all plugins with no errors"
       : `${built.succeeded} out of ${built.total} plugin${
