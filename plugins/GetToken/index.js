@@ -47,10 +47,10 @@ export default {
 				if (!a || !a.props || a.props.sheetKey !== "UserProfileOverflow") return;
 				const props = a.props.content.props;
 				if (props.options.some((option) => option?.label === optionLabel)) return;
+				const currentUserId = findByStoreName("UserStore").getCurrentUser()?.id;
 				const focusedUserId = Object.keys(a._owner.stateNode._keyChildMapping)
 					.find((str) => a._owner.stateNode._keyChildMapping[str] && str.match(/(?<=\$UserProfile)\d+/))
-					?.slice?.(".$UserProfile".length);
-				const currentUserId = findByStoreName("UserStore").getCurrentUser()?.id;
+					?.slice?.(".$UserProfile".length) || currentUserId;
 				const token = findByProps("getToken").getToken();
 
 				props.options.unshift({
