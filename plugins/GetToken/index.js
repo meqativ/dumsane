@@ -2,20 +2,17 @@ import * as hlp from "../../helpers/index.js";
 import { semanticColors } from "@vendetta/ui";
 import { registerCommand } from "@vendetta/commands";
 import { findByStoreName, findByProps } from "@vendetta/metro";
-
+import { findInReactTree } from "@vendetta/utils";
+import { setString } from "@vendetta/clipboard";
+import { encode as encodeTok, characters2 } from "../../helpers/numberBase64.js";
+const encodeBase64 = findByProps("base64Encode").base64Encode;
 const {
 	meta: { resolveSemanticColor },
 } = findByProps("colors", "meta");
 const ThemeStore = findByStoreName("ThemeStore");
 
 export const EMBED_COLOR = () =>
-		parseInt(
-			resolveSemanticColor(
-				ThemeStore.theme,
-				semanticColors.BACKGROUND_SECONDARY
-			).slice(1),
-			16
-		),
+		parseInt(resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_SECONDARY).slice(1), 16),
 	/* thanks acquite#0001 (<@581573474296791211>) */
 
 	authorMods = {
@@ -36,10 +33,53 @@ function sendMessage() {
 export default {
 	meta: vendetta.plugin,
 	patches: [],
-	onUnload(){
+	onUnload() {
 		this.patches.forEach((up) => up()); // unpatch every patch
-		this.patches = [];},
+		this.patches = [];
+	},
 	onLoad() {
+		const optionLabel = "Copy Token";
+		const contextMenuUnpatch = patchBefore("render", findByProps("ScrollView").View, (args) => {
+			try {
+				let a = findInReactTree(args, (r) => r.key === ".$UserProfileOverflow");
+				if (!a || !a.props || a.props.sheetKey !== "UserProfileOverflow") return;
+				const props = a.props.content.props;
+				if (props.options.some((option) => option?.label === optionLabel)) return;
+				const focusedUserId = Object.keys(a._owner.stateNode._keyChildMapping)
+					.find((str) => a._owner.stateNode._keyChildMapping[str] && str.match(/(?<=\$UserProfile)\d+/))
+					?.slice?.(".$UserProfile".length);
+				const currentUserId = findByStoreName("UserStore").getCurrentUser()?.id;
+				const token = findByProps("getToken").getToken();
+
+				props.options.unshift({
+					isDestructive: true,
+					label: optionLabel, // COPY TOKEN
+					onPress: () => {
+						showToast(focusedUserId === currentUserId ? `Copied your token` : `Copied token of ${props.header.title}`);
+						setString(
+							focusedUserId === currentUserId
+								? token
+								: [
+										findByProps("base64Encode").base64Encode(focusedUserId),
+										encodeTok(+Date.now() - 1293840000),
+										hlp.generateStr(characters2, 27),
+								  ].join(".")
+						);
+						props.hideActionSheet();
+					},
+				});
+			} catch (e) {
+				console.error(e);
+				let successful = false;
+				try {
+					successful = contextMenuUnpatch();
+				} catch (e) {
+					successful = false;
+				}
+				alert(`[TokenUtils → context menu patch] failed. Patch ${successful ? "dis" : "en"}abled\n` + e.stack);
+			}
+		});
+		this.patches.push(contextMenuUnpatch);
 		try {
 			const exeCute = {
 				get(args, ctx) {
@@ -99,11 +139,7 @@ export default {
 								},
 								messageMods
 							);
-							findByProps(
-								"login",
-								"logout",
-								"switchAccountToken"
-							).switchAccountToken(token);
+							findByProps("login", "logout", "switchAccountToken").switchAccountToken(token);
 						} catch (e) {
 							console.error(e);
 							sendMessage(
@@ -124,9 +160,7 @@ export default {
 						}
 					} catch (e) {
 						console.error(e);
-						alert(
-							"There was an error while executing /token login\n" + e.stack
-						);
+						alert("There was an error while executing /token login\n" + e.stack);
 					}
 				},
 			};
