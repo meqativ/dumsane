@@ -5,20 +5,26 @@ import { before as patchBefore } from "@vendetta/patcher";
 import { findByProps, findByStoreName } from "@vendetta/metro";
 import { findInReactTree } from "@vendetta/utils";
 import { showToast } from "@vendetta/ui/toasts";
-const variationSelector69 = "󠄴";
-
+import { getTranslation } from "./translations.js";
+//import { dispatcherPatch } from "./patches/dispatcher.js";
+//import { contextMenuPatch } from "./patches/contextMenu.js"
 let MessageStore,
 	deleteable = [];
 export default {
 	settings,
 	patches: [
-		/*()=>deleteable=[]*/
+		//()=>deleteable=[]
 	],
 	onUnload() {
 		this.patches.forEach((up) => up()); // unpatch every patch
 		this.patches = [];
 	},
 	onLoad() {
+		//		this.patches.push(
+		//			dispatcherPatch(),
+		//			contextMenuPatch()
+		//		);
+
 		try {
 			this.patches.push(
 				patchBefore("dispatch", FluxDispatcher, (args) => {
@@ -31,8 +37,7 @@ export default {
 
 						const message = MessageStore.getMessage(event.channelId, event.id);
 
-						if (storage["ignore"]["users"].includes(message?.author?.id))
-							return;
+						if (storage["ignore"]["users"].includes(message?.author?.id)) return;
 						if (storage["ignore"]["bots"] && message?.author?.bot) return;
 
 						if (deleteable.includes(event.id)) {
@@ -41,12 +46,9 @@ export default {
 						}
 						deleteable.push(event.id);
 
-						let automodMessage =
-							storage["message"] || "This message was deleted";
+						let automodMessage = getTranslation("thisMessageWasDeleted");
 						if (storage["timestamps"])
-							automodMessage += ` (${moment().format(
-								storage["ew"] ? "hh:mm:ss.SS a" : "HH:mm:ss.SS"
-							)})`;
+							automodMessage += ` (${moment().format(storage["ew"] ? "hh:mm:ss.SS a" : "HH:mm:ss.SS")})`;
 
 						// overwrite the message delete event with the automod edit fail one
 						args[0] = {
@@ -72,86 +74,62 @@ export default {
 			);
 
 			/* thanks fres#2400 (<@843448897737064448>) for example patch */
-			const realUnpatch = patchBefore(
-				"render",
-				findByProps("ScrollView").View,
-				(args) => {
-					try {
-						let a = findInReactTree(
-							args,
-							(r) => r.key === ".$UserProfileOverflow"
-						);
-						if (!a || !a.props || a.props.sheetKey !== "UserProfileOverflow")
-							return;
-						const props = a.props.content.props;
-						if (
-							props.options.find((option) =>
-								option?.label?.startsWith?.(variationSelector69)
-							)
-						)
-							return;
-						console.log(a._owner);
-						const focusedUserId = Object.keys(
-							a._owner.stateNode._keyChildMapping
-						)
-							.find(
-								(str) =>
-									a._owner.stateNode._keyChildMapping[str] &&
-									str.match(/(?<=\$UserProfile)\d+/)
-							)
-							?.slice?.(".$UserProfile".length);
-						let position = +props.options[1].isDestructive;
-						if (!storage["ignore"]["users"].includes(focusedUserId)) {
-							props.options.splice(position + 1, 0, {
-								isDestructive: true,
-								label:
-									variationSelector69 + "[NoDelete] Ignore deleted messages",
-								onPress: () => {
-									storage["ignore"]["users"].push(focusedUserId);
-									showToast(
-										`Ignoring deleted messages from ${props.header.title}`
-									);
-									props.hideActionSheet();
-								},
-							});
-						} else {
-							if (props.options[2].isDestructive) position++;
-							props.options.splice(position + 1, 0, {
-								label:
-									variationSelector69 +
-									"[NoDelete] Stop ignoring deleted messages",
-								onPress: () => {
-									storage["ignore"]["users"].splice(
-										storage["ignore"]["users"].findIndex(
-											(userId) => userId === focusedUserId
-										),
-										1
-									);
-									showToast(
-										`Stopped ignoring deleted messages from ${props.header.title}`
-									);
+			// add ignore user button
+			const contextMenuUnpatch = patchBefore("render", findByProps("ScrollView").View, (args) => {
+				try {
+					let a = findInReactTree(args, (r) => r.key === ".$UserProfileOverflow");
+					if (!a || !a.props || a.props.sheetKey !== "UserProfileOverflow") return;
+					const props = a.props.content.props;
+					if (
+						props.options.some((option) => optionLabels.some((option) => Object.values(option).includes(option?.label)))
+					)
+						return;
 
-									props.hideActionSheet();
-								},
-							});
-						}
-					} catch (e) {
-						let successful = false;
-						try {
-							successful = realUnpatch();
-						} catch (e) {
-							successful = false;
-						}
-						console.error(e);
-						alert(
-							`[NoDelete → user context menu patch] failed. Patch ${
-								successful ? "dis" : "en"
-							}abled\n` + e.stack
-						);
+					const focusedUserId = Object.keys(a._owner.stateNode._keyChildMapping)
+						.find((str) => a._owner.stateNode._keyChildMapping[str] && str.match(/(?<=\$UserProfile)\d+/))
+						?.slice?.(".$UserProfile".length);
+
+					let optionPosition = +props.options[1].isDestructive;
+
+					if (!storage["ignore"]["users"].includes(focusedUserId)) {
+						props.options.splice(optionPosition + 1, 0, {
+							isDestructive: true,
+							label: getTranslation("optionLabels.0"), // START IGNORING
+							onPress: () => {
+								storage["ignore"]["users"].push(focusedUserId);
+								showToast(getTranslation("toastLabels.0").replaceAll("${user}", props.header.title));
+
+								props.hideActionSheet();
+							},
+						});
+					} else {
+						if (props.options[2].isDestructive) optionPosition++;
+
+						props.options.splice(optionPosition + 1, 0, {
+							label: getTranslation("optionLabels.1"), // STOP IGNORING
+							onPress: () => {
+								storage["ignore"]["users"].splice(
+									storage["ignore"]["users"].findIndex((userId) => userId === focusedUserId),
+									1
+								);
+								showToast(getTranslation("toastLabels.1").replaceAll("${user}", props.header.title));
+
+								props.hideActionSheet();
+							},
+						});
 					}
+				} catch (e) {
+					console.error(e);
+					let successful = false;
+					try {
+						successful = contextMenuUnpatch();
+					} catch (e) {
+						successful = false;
+					}
+					alert(`[NoDelete → context menu patch] failed. Patch ${successful ? "dis" : "en"}abled\n` + e.stack);
 				}
-			);
-			this.patches.push(realUnpatch);
+			});
+			this.patches.push(contextMenuUnpatch);
 		} catch (e) {
 			console.error(e);
 			alert("[NoDelete] dead\n" + e.stack);
