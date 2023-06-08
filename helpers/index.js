@@ -49,7 +49,7 @@ export function cmdDisplays(obj, translations, locale) {
 }
 export function generateStr(chars, length=27) {
   if (typeof chars !== "string") throw new Error("Passed chars isn't a string");
-  if (chars.length <= 0) throw new Error("Invalid chars length");
+  if (chars?.length <= 0) throw new Error("Invalid chars length");
 
   let result = "";
 
