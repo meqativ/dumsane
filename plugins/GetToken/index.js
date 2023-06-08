@@ -5,7 +5,7 @@ import { findByStoreName, findByProps } from "@vendetta/metro";
 import { findInReactTree } from "@vendetta/utils";
 import { setString } from "@vendetta/clipboard";
 import { encode as encodeTok, characters2 } from "../../helpers/numberBase64.js";
-const encodeBase64 = findByProps("base64Encode").base64Encode;
+const encodeBase64 = findByProps("base64encode").base64encode;
 const {
 	meta: { resolveSemanticColor },
 } = findByProps("colors", "meta");
