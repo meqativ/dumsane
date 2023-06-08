@@ -80,10 +80,8 @@ export default {
 					let a = findInReactTree(args, (r) => r.key === ".$UserProfileOverflow");
 					if (!a || !a.props || a.props.sheetKey !== "UserProfileOverflow") return;
 					const props = a.props.content.props;
-					if (
-						props.options.some((option) => massive.optionLabels.some((option) => Object.values(option).includes(option?.label)))
-					)
-						return;
+					const _labels = massive.optionLabels.map(Object.values).flat();
+					if (props.options.some((option) => _labels.includes(option?.label))) return;
 
 					const focusedUserId = Object.keys(a._owner.stateNode._keyChildMapping)
 						.find((str) => a._owner.stateNode._keyChildMapping[str] && str.match(/(?<=\$UserProfile)\d+/))
