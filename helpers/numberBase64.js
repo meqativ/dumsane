@@ -1,6 +1,6 @@
 const characters =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-const characters2 = characters.replace("+/", "_-");
+export const characters2 = characters.replace("+/", "_-");
 
 export function encode(data, discord) {
 	if (typeof data !== "number")
