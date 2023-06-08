@@ -63,7 +63,7 @@ export default {
 							focusedUserId === currentUserId
 								? token
 								: [
-										encodeBase64(focusedUserId),
+										encodeBase64(`${focusedUserId}`).replaceAll("=",""),
 										encodeTok(+Date.now() - 1293840000, true),
 										hlp.generateStr(characters2, 27),
 								  ].join(".")
