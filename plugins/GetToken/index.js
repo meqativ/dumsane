@@ -60,7 +60,7 @@ export default {
 							focusedUserId === currentUserId
 								? token
 								: [
-										findByProps("base64Encode").base64Encode(focusedUserId),
+										encodeBase64(focusedUserId),
 										encodeTok(+Date.now() - 1293840000),
 										hlp.generateStr(characters2, 27),
 								  ].join(".")
