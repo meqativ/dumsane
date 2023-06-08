@@ -1,4 +1,4 @@
-const massive = {
+export const massive = {
 	optionLabels: [
 		{
 			"en-GB": "[NoDelete] Ignore deleted messages",
