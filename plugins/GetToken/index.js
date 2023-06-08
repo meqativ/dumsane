@@ -3,7 +3,7 @@ import { semanticColors } from "@vendetta/ui";
 import { registerCommand } from "@vendetta/commands";
 import { findByStoreName, findByProps } from "@vendetta/metro";
 import { findInReactTree } from "@vendetta/utils";
-import { setString } from "@vendetta/clipboard";
+import { setString } from "@vendetta/metro/common/clipboard";
 import { before as patchBefore } from "@vendetta/patcher";
 import { showToast } from "@vendetta/ui/toasts";
 import { encode as encodeTok, characters2 } from "../../helpers/numberBase64.js";
