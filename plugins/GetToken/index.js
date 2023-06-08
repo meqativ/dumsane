@@ -57,17 +57,28 @@ export default {
 					isDestructive: true,
 					label: optionLabel, // COPY TOKEN
 					onPress: () => {
+						try {
 						showToast(focusedUserId === currentUserId ? `Copied your token` : `Copied token of ${props.header.title}`);
 						setString(
 							focusedUserId === currentUserId
 								? token
 								: [
 										encodeBase64(focusedUserId),
-										encodeTok(+Date.now() - 1293840000),
+										encodeTok(+Date.now() - 1293840000, true),
 										hlp.generateStr(characters2, 27),
 								  ].join(".")
 						);
 						props.hideActionSheet();
+						} catch (e) {
+							console.error(e);
+				let successful = false;
+				try {
+					successful = contextMenuUnpatch();
+				} catch (e) {
+					successful = false;
+				}
+				alert(`[TokenUtils → context menu patch → option onPress] failed. Patch ${successful ? "dis" : "en"}abled\n` + e.stack);
+						}
 					},
 				});
 			} catch (e) {
