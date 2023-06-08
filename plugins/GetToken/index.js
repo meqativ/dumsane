@@ -4,6 +4,7 @@ import { registerCommand } from "@vendetta/commands";
 import { findByStoreName, findByProps } from "@vendetta/metro";
 import { findInReactTree } from "@vendetta/utils";
 import { setString } from "@vendetta/clipboard";
+import { before as patchBefore } from "@vendetta/patcher"
 import { encode as encodeTok, characters2 } from "../../helpers/numberBase64.js";
 const encodeBase64 = findByProps("base64encode").base64encode;
 const {
