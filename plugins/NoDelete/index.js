@@ -5,7 +5,7 @@ import { before as patchBefore } from "@vendetta/patcher";
 import { findByProps, findByStoreName } from "@vendetta/metro";
 import { findInReactTree } from "@vendetta/utils";
 import { showToast } from "@vendetta/ui/toasts";
-import { getTranslation } from "./translations.js";
+import { getTranslation, massive } from "./translations.js";
 //import { dispatcherPatch } from "./patches/dispatcher.js";
 //import { contextMenuPatch } from "./patches/contextMenu.js"
 let MessageStore,
@@ -81,7 +81,7 @@ export default {
 					if (!a || !a.props || a.props.sheetKey !== "UserProfileOverflow") return;
 					const props = a.props.content.props;
 					if (
-						props.options.some((option) => optionLabels.some((option) => Object.values(option).includes(option?.label)))
+						props.options.some((option) => massive.optionLabels.some((option) => Object.values(option).includes(option?.label)))
 					)
 						return;
 
