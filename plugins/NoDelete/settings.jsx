@@ -67,7 +67,7 @@ export default (props) => {
 			<Forms.FormSection title="Filters" titleStyleType="no_border">
 				<Forms.FormRow
 					label={`Clear user ignore list ${storage["ignore"]["users"].length}`}
-					trailing={<FormRow.Icon source={getAssetIDByName("ic_trash_24px")} />}
+					trailing={<Forms.FormRow.Icon source={getAssetIDByName("ic_trash_24px")} />}
 					onPress={() => {
 						storage["ignore"]["users"] = [];
 						showToast("Successfully cleared");
