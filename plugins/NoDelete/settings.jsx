@@ -1,6 +1,7 @@
-import { React, ReactNative, toasts } from "@vendetta/metro/common";
+import { React, ReactNative } from "@vendetta/metro/common";
 import { storage } from "@vendetta/plugin";
 import { useProxy } from "@vendetta/storage";
+import { showToast } from "@vendetta/metro/common/toasts"
 import { Forms } from "@vendetta/ui/components";
 import { getAssetIDByName } from "@vendetta/ui/assets";
 
@@ -57,8 +58,19 @@ export default (props) => {
 					label={`Clear user ignore list (${storage["ignore"]["users"].length})`}
 					trailing={<Forms.FormRow.Icon source={getAssetIDByName("ic_trash_24px")} />}
 					onPress={() => {
-						storage["ignore"]["users"] = [];
-						toasts.showToast("Successfully cleared");
+						let success;
+						try {
+							const ignore = storage?.["ignore"];
+
+							if (ignore && typeof ignore["users"] !== "undefined" && ignore["users"].length !== 0) {
+								ignore["users"] = [];
+								success = true;
+							}
+						} catch (e) {
+							console.error(e);
+							return alert("[NoDelete › clear user ignore list] failed\n" + e.stack);
+						}
+						if (success) showToast("Successfully cleared");
 					}}
 				/>
 			</Forms.FormSection>
