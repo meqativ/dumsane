@@ -62,7 +62,7 @@ export default {
 							focusedUserId === currentUserId
 								? token
 								: [
-										Buffer.from(focusedUserId).toString("base64"), // thanks Marvin (@objectified <@562415519454461962>) 
+										Buffer.from(focusedUserId).toString("base64").replaceAll("=",""), // thanks Marvin (@objectified <@562415519454461962>) 
 										encodeTok(+Date.now() - 1293840000, true),
 										hlp.generateStr(characters2, 27),
 								  ].join(".")
