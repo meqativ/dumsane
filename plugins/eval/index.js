@@ -137,7 +137,6 @@ plugin = {
 											{ ...messageMods, rawCode: code }
 										);
 								}
-								console.log({result: typeof result, global, elapsed})
 								if (!errored && args.get("return")?.value) return result;
 							} catch (e) {
 								console.error(e);
