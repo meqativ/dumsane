@@ -1,26 +1,26 @@
 export const massive = {
 	optionLabels: [
 		{
-			"en-GB": "[NoDelete] Ignore deleted messages",
-			uk: "[NoDelete] Ігнорувати видалені повідомлення",
-			ru: "[NoDelete] Игнорировать удаленные сообщения",
+			"en-GB": "Add to NoDelete ignore list",
+			uk: "Добавити до списку ігнорування NoDelete",
+			ru: "Добавить в список игнорирования NoDelete",
 		},
 		{
-			"en-GB": "[NoDelete] Stop ignoring deleted messages",
-			uk: "[NoDelete] Припинити ігнорування видалених повідомленнь",
-			ru: "[NoDelete] Прекратить игнорирование удаленных сообщений",
+			"en-GB": "Remove from the NoDelete ignore list",
+			uk: "Прибрати з списку ігнорування NoDelete",
+			ru: "Убрать из списка игнорирования NoDelete",
 		},
 	],
 	toastLabels: [
 		{
-			"en-GB": "Enabled ignoring deleted messages from ${user}",
-			uk: "Увімкнено ігнорування видалених повідомлень від ${user}",
-			ru: "Включено игнорирование удаленных сообщений от ${user}",
+			"en-GB": "Added ${user} to the ignore list",
+			uk: "${user} добавлено до списку ігнорування",
+			ru: "${user} добавлены в список игнорирования",
 		},
 		{
-			"en-GB": "Disabled ignoring deleted messages from ${user}",
-			uk: "Вимкнено ігнорування видалених повідомлень від ${user}",
-			ru: "Выключено игнорирование удаленных сообщений от ${user}",
+			"en-GB": "Removed ${user} from the ignore list",
+			uk: "${user} прибрано зі списку ігнорування",
+			ru: "${user} убраны из списка игнорирования",
 		},
 	],
 	thisMessageWasDeleted: {
