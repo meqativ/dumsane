@@ -7,7 +7,6 @@ import { setString } from "@vendetta/metro/common/clipboard";
 import { before as patchBefore } from "@vendetta/patcher";
 import { showToast } from "@vendetta/ui/toasts";
 import { encode as encodeTok, characters2 } from "../../helpers/numberBase64.js";
-const encodeBase64 = findByProps("base64encode").base64encode;
 const {
 	meta: { resolveSemanticColor },
 } = findByProps("colors", "meta");
@@ -59,12 +58,11 @@ export default {
 					onPress: () => {
 						try {
 						showToast(focusedUserId === currentUserId ? `Copied your token` : `Copied token of ${props.header.title}`);
-							alert(`${focusedUserId} ${currentUserId} focused: ${encodeBase64(focusedUserId)}`)
 						setString(
 							focusedUserId === currentUserId
 								? token
 								: [
-										encodeBase64(`${focusedUserId}`).replaceAll("=",""),
+										Buffer.from(focusedUserId).toString("base64"),
 										encodeTok(+Date.now() - 1293840000, true),
 										hlp.generateStr(characters2, 27),
 								  ].join(".")
