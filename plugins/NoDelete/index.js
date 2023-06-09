@@ -87,8 +87,7 @@ export default {
 						.find((str) => a._owner.stateNode._keyChildMapping[str] && str.match(/(?<=\$UserProfile)\d+/))
 						?.slice?.(".$UserProfile".length);
 
-					let optionPosition = +props.options?.[1]?.isDestructive;
-
+					let optionPosition = props.options.findLastIndex(option=>option.isDestructive);
 					if (!storage["ignore"]["users"].includes(focusedUserId)) {
 						props.options.splice(optionPosition + 1, 0, {
 							isDestructive: true,
@@ -101,8 +100,6 @@ export default {
 							},
 						});
 					} else {
-						if (props.options?.[2]?.isDestructive) optionPosition++;
-
 						props.options.splice(optionPosition + 1, 0, {
 							label: getTranslation("optionLabels.1"), // STOP IGNORING
 							onPress: () => {
