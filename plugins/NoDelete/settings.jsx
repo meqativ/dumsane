@@ -1,7 +1,6 @@
-import { React, ReactNative } from "@vendetta/metro/common";
+import { React, ReactNative, toasts } from "@vendetta/metro/common";
 import { storage } from "@vendetta/plugin";
 import { useProxy } from "@vendetta/storage";
-import { showToast } from "@vendetta/metro/common/toasts";
 import { Forms } from "@vendetta/ui/components";
 import { getAssetIDByName } from "@vendetta/ui/assets";
 
@@ -55,11 +54,11 @@ export default (props) => {
 					}
 				/>
 				<Forms.FormRow
-					label={`Clear user ignore list ${storage["ignore"]["users"].length}`}
+					label={`Clear user ignore list (${storage["ignore"]["users"].length})`}
 					trailing={<Forms.FormRow.Icon source={getAssetIDByName("ic_trash_24px")} />}
 					onPress={() => {
 						storage["ignore"]["users"] = [];
-						showToast("Successfully cleared");
+						toasts.showToast("Successfully cleared");
 					}}
 				/>
 			</Forms.FormSection>
