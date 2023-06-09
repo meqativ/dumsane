@@ -43,7 +43,7 @@ export default (props) => {
 				})}
 				<Forms.FormLabel label={"The plugin does not keep the messages you've deleted"} />
 			</Forms.FormSection>
-			<Forms.FormSection title="Filters" titleStyleType="no_border">
+			<Forms.FormSection title="Filters">
 				<Forms.FormRow
 					label={"Ignore bots"}
 					trailing={
