@@ -1,7 +1,7 @@
 import { React, ReactNative } from "@vendetta/metro/common";
 import { storage } from "@vendetta/plugin";
 import { useProxy } from "@vendetta/storage";
-import { showToast } from "@vendetta/metro/common/toasts"
+import { showConfirmationAlert } from "@vendetta/ui/alerts";
 import { Forms } from "@vendetta/ui/components";
 import { getAssetIDByName } from "@vendetta/ui/assets";
 
@@ -55,22 +55,23 @@ export default (props) => {
 					}
 				/>
 				<Forms.FormRow
-					label={`Clear user ignore list (${storage["ignore"]["users"].length})`}
+					label={`You have ${storage["ignore"]["users"].length} user${
+						storage["ignore"]["users"] === 1 ? "" : "s"
+					} ignored`}
 					trailing={<Forms.FormRow.Icon source={getAssetIDByName("ic_trash_24px")} />}
 					onPress={() => {
-						let success;
-						try {
-							const ignore = storage?.["ignore"];
-
-							if (ignore && typeof ignore["users"] !== "undefined" && ignore["users"].length !== 0) {
-								ignore["users"] = [];
-								success = true;
-							}
-						} catch (e) {
-							console.error(e);
-							return alert("[NoDelete › clear user ignore list] failed\n" + e.stack);
-						}
-						if (success) showToast("Successfully cleared");
+						const ignore = storage?.["ignore"];
+						if (ignore && typeof ignore["users"] !== "undefined" && ignore["users"].length !== 0)
+							showConfirmationAlert({
+								title: "Are you sure?",
+								content: `This will clear all users (${ignore["users"].length}) you have added to the ignore list. Do you want to proceed?`,
+								confirmText: "Yes",
+								cancelText: "Cancel",
+								confirmColor: "brand",
+								onConfirm: () => {
+									ignore["users"] = [];
+								},
+							});
 					}}
 				/>
 			</Forms.FormSection>
