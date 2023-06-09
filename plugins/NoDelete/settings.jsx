@@ -63,7 +63,7 @@ export default (props) => {
 					}}
 				/>
 		<Forms.FormDivider />
-				<Forms.FormRow label={"To add users: Open their profile → Press ••• → \"Add to NoDelete ignore list\""} />
+				<Forms.FormRow label={"To add users: Open their profile → ••• → \"Add to NoDelete ignore list\""} />
 			</Forms.FormSection>
 		</ReactNative.ScrollView>
 	);
