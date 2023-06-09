@@ -29,7 +29,8 @@ export default (props) => {
 					label={"Use AM/PM"}
 					trailing={<Forms.FormSwitch value={storage["ew"]} onValueChange={(v) => (storage["ew"] = v)} />}
 				/>
-				<Forms.FormRow label={"The plugin does not keep the messages you've deleted"} />
+		<Forms.FormDivider />
+				<Forms.FormRow label={"The plugin does not keep the messages you deleted yourself"} />
 			</Forms.FormSection>
 			<Forms.FormSection title="Filters">
 				<Forms.FormRow
@@ -61,6 +62,8 @@ export default (props) => {
 							});
 					}}
 				/>
+		<Forms.FormDivider />
+				<Forms.FormRow label={"To add users: Open their profile → Press ••• → \"Add to NoDelete ignore list\""} />
 			</Forms.FormSection>
 		</ReactNative.ScrollView>
 	);
