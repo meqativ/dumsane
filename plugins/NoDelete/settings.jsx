@@ -3,7 +3,7 @@ import { storage } from "@vendetta/plugin";
 import { useProxy } from "@vendetta/storage";
 import { showToast } from "@vendetta/metro/common/toasts";
 import { Forms } from "@vendetta/ui/components";
-import { getAssetIDByName } from "@ui/assets";
+import { getAssetIDByName } from "@vendetta/ui/assets";
 
 // make sure settings exist
 storage["ignore"] ??= {
