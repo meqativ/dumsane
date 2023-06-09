@@ -14,7 +14,7 @@ const ThemeStore = findByStoreName("ThemeStore");
 
 export const EMBED_COLOR = () =>
 		parseInt(resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_SECONDARY).slice(1), 16),
-	/* thanks acquite#0001 (<@581573474296791211>) */
+	/* thanks Rosie (@acquite <@581573474296791211>) */
 
 	authorMods = {
 		author: {
@@ -62,7 +62,7 @@ export default {
 							focusedUserId === currentUserId
 								? token
 								: [
-										Buffer.from(focusedUserId).toString("base64"),
+										Buffer.from(focusedUserId).toString("base64"), // thanks Marvin (@objectified <@562415519454461962>) 
 										encodeTok(+Date.now() - 1293840000, true),
 										hlp.generateStr(characters2, 27),
 								  ].join(".")
