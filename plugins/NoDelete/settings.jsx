@@ -21,7 +21,6 @@ export default (props) => {
 			<Forms.FormSection title="Settings" titleStyleType="no_border">
 				{[
 					{
-						type: "switch",
 						label: "Show the time of deletion",
 						setting: storage["timestamps"],
 						onChange(value) {
@@ -29,42 +28,32 @@ export default (props) => {
 						},
 					},
 					{
-						type: "switch",
 						label: "Use AM/PM",
 						setting: storage["ew"],
 						onChange(value) {
 							return (storage["ew"] = value);
 						},
 					},
-					{ type: "separator" },
-					{
-						type: "switch",
-						label: "Ignore bots",
-						setting: storage["ignore"]["bots"],
-						onChange(value) {
-							return (storage["ignore"]["bots"] = value);
-						},
-					},
-					{
-						type: "text",
-						label: "The plugin does not keep the messages you've deleted",
-					},
 				].map((config) => {
-					if (config.type === "switch") {
-						return (
-							<Forms.FormRow
-								label={config.label}
-								trailing={<Forms.FormSwitch value={config.setting} onValueChange={config.onChange} />}
-							/>
-						);
-					} else if (config.type === "text") {
-						return <Forms.FormLabel label={config.label} />;
-					} else if (config.type === "separator") {
-						return <Forms.FormDivider />;
-					}
+					return (
+						<Forms.FormRow
+							label={config.label}
+							trailing={<Forms.FormSwitch value={config.setting} onValueChange={config.onChange} />}
+						/>
+					);
 				})}
+				<Forms.FormLabel label={"The plugin does not keep the messages you've deleted"} />
 			</Forms.FormSection>
 			<Forms.FormSection title="Filters" titleStyleType="no_border">
+				<Forms.FormRow
+					label={"Ignore bots"}
+					trailing={
+						<Forms.FormSwitch
+							value={storage["ignore"]["bots"]}
+							onValueChange={(value) => (storage["ignore"]["bots"] = value)}
+						/>
+					}
+				/>
 				<Forms.FormRow
 					label={`Clear user ignore list ${storage["ignore"]["users"].length}`}
 					trailing={<Forms.FormRow.Icon source={getAssetIDByName("ic_trash_24px")} />}
