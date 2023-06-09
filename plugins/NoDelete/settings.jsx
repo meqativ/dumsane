@@ -19,30 +19,17 @@ export default (props) => {
 	return (
 		<ReactNative.ScrollView style={{ flex: 1 }}>
 			<Forms.FormSection title="Settings" titleStyleType="no_border">
-				{[
-					{
-						label: "Show the time of deletion",
-						setting: storage["timestamps"],
-						onChange(value) {
-							return (storage["timestamps"] = value);
-						},
-					},
-					{
-						label: "Use AM/PM",
-						setting: storage["ew"],
-						onChange(value) {
-							return (storage["ew"] = value);
-						},
-					},
-				].map((config) => {
-					return (
-						<Forms.FormRow
-							label={config.label}
-							trailing={<Forms.FormSwitch value={config.setting} onValueChange={config.onChange} />}
-						/>
-					);
-				})}
-				<Forms.FormLabel label={"The plugin does not keep the messages you've deleted"} />
+				<Forms.FormRow
+					label={"Show the time of deletion"}
+					trailing={
+						<Forms.FormSwitch value={storage["timestamps"]} onValueChange={(v) => (storage["timestamps"] = v)} />
+					}
+				/>
+				<Forms.FormRow
+					label={"Use AM/PM"}
+					trailing={<Forms.FormSwitch value={storage["ew"]} onValueChange={(v) => (storage["ew"] = v)} />}
+				/>
+				<Forms.FormRow label={"The plugin does not keep the messages you've deleted"} />
 			</Forms.FormSection>
 			<Forms.FormSection title="Filters">
 				<Forms.FormRow
