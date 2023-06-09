@@ -168,11 +168,6 @@ ${vendetta.metro.findByProps("inspect").inspect(result).slice(0, 15e3)}\`\`\``,
 	                  rawCode: code
 	                });
 	            }
-	            console.log({
-	              result: typeof result,
-	              global,
-	              elapsed
-	            });
 	            if (!errored && args.get("return")?.value)
 	              return result;
 	          } catch (e) {
