@@ -30,7 +30,7 @@ export const massive = {
 	},
 };
 
-let locale = "undefined";
+export const locale = () => vendetta.metro.findByStoreName("LocaleStore").locale;
 const defaultLocale = "en-GB";
 export function getTranslation(find) {
 	let value = massive;
@@ -43,5 +43,5 @@ export function getTranslation(find) {
 		}
 	}
 	if (value === massive) return find;
-	return value[locale] ?? value[defaultLocale] ?? find;
+	return value[locale()] ?? value[defaultLocale] ?? find;
 }
