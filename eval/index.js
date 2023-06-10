@@ -62,11 +62,31 @@
 	  }
 	}, AsyncFunction = async function() {
 	}.constructor;
-	plugin$2.storage["stats"] ??= {};
-	plugin$2.storage["stats"]["runs"] ??= {
-	  failed: 0,
-	  succeeded: 0
-	};
+	{
+	  plugin$2.storage["stats"] ??= {};
+	  const stats = plugin$2.storage["stats"];
+	  {
+	    plugin$2.storage["stats"]["runs"] ??= {};
+	    const runs = stats["runs"];
+	    runs["hist"] ??= [];
+	    runs["failed"] ??= 0;
+	    runs["succeeded"] ??= 0;
+	  }
+	  {
+	    plugin$2.storage["settings"] ??= {};
+	    const settings = plugin$2.storage["settings"];
+	    settings["trimErrors"] ??= true;
+	    settings["saveHistory"] ??= true;
+	    settings["saveFailHistory"] ??= false;
+	    {
+	      settings["defaults"] ??= {};
+	      const defaults = settings["defaults"];
+	      defaults["type"] ??= 0;
+	      defaults["global"] ??= false;
+	      defaults["silent"] ??= false;
+	    }
+	  }
+	}
 	const { meta: { resolveSemanticColor } } = metro.findByProps("colors", "meta");
 	const ThemeStore = metro.findByStoreName("ThemeStore");
 	const EMBED_COLOR = function(color) {
@@ -83,6 +103,7 @@
 	plugin = {
 	  meta: vendetta.plugin,
 	  patches: [],
+	  storage: plugin$2.storage,
 	  onUnload() {
 	    this.patches.forEach(function(up) {
 	      return up();
@@ -115,10 +136,14 @@
 	          };
 	          try {
 	            const { channel, args } = interaction;
-	            const Async = args.get("type")?.value;
-	            const silent = args.get("silent")?.value ?? false;
-	            const global = args.get("global")?.value ?? false;
 	            const code = args.get("code")?.value;
+	            if (typeof code !== "string")
+	              throw new Error("No code argument passed");
+	            const settings = plugin$2.storage["settings"];
+	            const defaults = settings["defaults"];
+	            const Async = args.get("type")?.value ?? defaults["type"];
+	            const silent = args.get("silent")?.value ?? defaults["silent"];
+	            const global = args.get("global")?.value ?? defaults["global"];
 	            let result, errored, start = +new Date();
 	            try {
 	              const evalFunction = new (Async ? AsyncFunction : Function)(code);
@@ -128,6 +153,20 @@
 	              errored = true;
 	            }
 	            let elapsed = +new Date() - start;
+	            const runs = plugin$2.storage["stats"]["runs"];
+	            if (errored) {
+	              if (settings["saveHistory"] && settings["saveFailHistory"])
+	                runs["hist"].push({
+	                  code
+	                });
+	              runs["failed"]++;
+	            } else {
+	              if (settings["saveHistory"])
+	                runs["hist"].push({
+	                  code
+	                });
+	              runs["succeeded"]++;
+	            }
 	            if (!silent) {
 	              if (errored) {
 	                sendMessage({
@@ -136,7 +175,7 @@
 	                    {
 	                      type: "rich",
 	                      color: EMBED_COLOR("exploded"),
-	                      description: "```js\n" + (plugin$2.storage["trimError"] ? result.stack.split("\n    at next (native)")[0] : result.stack) + "```",
+	                      description: "```js\n" + (settings["trimErrors"] ? result.stack.split("\n    at next (native)")[0] : result.stack) + "```",
 	                      footer: {
 	                        text: `type: ${typeof result}
 took: ${elapsed}ms`
