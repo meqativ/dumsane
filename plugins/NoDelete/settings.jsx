@@ -4,7 +4,7 @@ import { useProxy } from "@vendetta/storage";
 import { showConfirmationAlert } from "@vendetta/ui/alerts";
 import { Forms } from "@vendetta/ui/components";
 import { getAssetIDByName } from "@vendetta/ui/assets";
-
+import { getTranslation } from "./translations.js";
 // make sure settings exist
 storage["ignore"] ??= {
 	users: [],
@@ -18,23 +18,27 @@ export default (props) => {
 	useProxy(storage);
 	return (
 		<ReactNative.ScrollView style={{ flex: 1 }}>
-			<Forms.FormSection title="Settings" titleStyleType="no_border">
+			<Forms.FormSection title={getTranslation("settings.titles.settings")} titleStyleType="no_border">
 				<Forms.FormRow
-					label={"Show the time of deletion"}
+					label={getTranslation("settings.showTimestamps")}
 					trailing={
 						<Forms.FormSwitch value={storage["timestamps"]} onValueChange={(v) => (storage["timestamps"] = v)} />
 					}
 				/>
 				<Forms.FormRow
-					label={"Use AM/PM"}
+					label={getTranslation("settings.ewTimestampFormat")}
 					trailing={<Forms.FormSwitch value={storage["ew"]} onValueChange={(v) => (storage["ew"] = v)} />}
 				/>
-		<Forms.FormDivider />
-				<Forms.FormRow label={"The plugin does not keep the messages you deleted yourself"} />
-			</Forms.FormSection>
-			<Forms.FormSection title="Filters">
+				<Forms.FormDivider />
 				<Forms.FormRow
-					label={"Ignore bots"}
+					label={
+						getTranslation("settings.youDeletedItWarning")
+					}
+				/>
+			</Forms.FormSection>
+			<Forms.FormSection title={getTranslation("settings.titles.filters")}>
+				<Forms.FormRow
+					label={getTranslation("settings.ignoreBots")}
 					trailing={
 						<Forms.FormSwitch
 							value={storage["ignore"]["bots"]}
@@ -43,18 +47,19 @@ export default (props) => {
 					}
 				/>
 				<Forms.FormRow
-					label={`You have ${storage["ignore"]["users"].length} user${
-						storage["ignore"]["users"] === 1 ? "" : "s"
-					} ignored`}
+					label={
+						getTranslation("settings.clearUsersLabel", true)?.make?.(storage["ignore"]["users"].length) 
+					}
 					trailing={<Forms.FormRow.Icon source={getAssetIDByName("ic_trash_24px")} />}
 					onPress={() => {
-						const ignore = storage?.["ignore"];
-						if (ignore && typeof ignore["users"] !== "undefined" && ignore["users"].length !== 0)
+						const ignore = storage["ignore"];
+						if (ignore["users"].length !== 0)
 							showConfirmationAlert({
-								title: "Are you sure?",
-								content: `This will clear all users (${ignore["users"].length}) you have added to the ignore list. Do you want to proceed?`,
-								confirmText: "Yes",
-								cancelText: "Cancel",
+								title: getTranslation("settings.confirmClear.title"),
+								content:
+									getTranslation("settings.confirmClear.description", true)?.make?.(ignore["users"].length),
+								confirmText: getTranslation("settings.confirmClear.yes"),
+								cancelText: getTranslation("settings.confirmClear.no"),
 								confirmColor: "brand",
 								onConfirm: () => {
 									ignore["users"] = [];
@@ -62,8 +67,12 @@ export default (props) => {
 							});
 					}}
 				/>
-		<Forms.FormDivider />
-				<Forms.FormRow label={"To add users: Open their profile → ••• → \"Add to NoDelete ignore list\""} />
+				<Forms.FormDivider />
+				<Forms.FormRow
+					label={
+						getTranslation("settings.addUsersInfo")
+					}
+				/>
 			</Forms.FormSection>
 		</ReactNative.ScrollView>
 	);
