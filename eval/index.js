@@ -147,7 +147,9 @@
 	            let result, errored, start = +new Date();
 	            try {
 	              const evalFunction = new (Async ? AsyncFunction : Function)(code);
-	              result = await (global ? evalFunction() : evalFunction.bind(interaction)());
+	              result = await (global ? evalFunction() : evalFunction.bind({
+	                interaction
+	              })());
 	            } catch (e) {
 	              result = e;
 	              errored = true;
