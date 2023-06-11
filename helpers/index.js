@@ -103,6 +103,19 @@ export function prettyTypeof(value, raw){
 	return name.join(" ");
 };
 
+export function makeDefaults(object, defaults) {
+	if (typeof object === "undefined") throw new Error("No object passed to make defaults for");
+	if (typeof defaultd === "undefined") throw new Error("No defaults object passed to make defaults off of");
+
+  for (const [key, value] of Object.entries(object)) {
+    if (typeof defaults[key] === "object") {
+      makeDefaults(defaults[key], object[key]);
+    } else {
+      object[key] ??= defaults[key];
+    }
+  }
+}
+
 export const EMOJIS = {
   loadingDiscordSpinner: "a:loading:1105495814073229393",
   aol: "a:aol:1108834296359301161",
