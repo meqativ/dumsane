@@ -3,62 +3,109 @@ import { registerCommand } from "@vendetta/commands";
 import { findByProps, findByStoreName } from "@vendetta/metro";
 import { storage } from "@vendetta/plugin";
 import { semanticColors } from "@vendetta/ui";
-const authorMods = {
+const { inspect } = findByProps("inspect"),
+	authorMods = {
 		author: {
 			username: "eval",
 			avatar: "command",
 			avatarURL: hlp.AVATARS.command,
 		},
 	},
-	AsyncFunction = async function () {}.constructor;
-
-{
-	storage["stats"] ??= {};
-	const stats = storage["stats"];
-
-	{
-		storage["stats"]["runs"] ??= {};
-		const runs = stats["runs"];
-
-		runs["hist"] ??= [];
-		runs["failed"] ??= 0;
-		runs["succeeded"] ??= 0;
-	}
-
-	{
-		storage["settings"] ??= {};
-		const settings = storage["settings"];
-		
-		settings["trimErrors"] ??= true;
-		settings["saveHistory"] ??= true;
-		settings["saveFailHistory"] ??= false;
-		{
-			settings["defaults"] ??= {};
-			const defaults = settings["defaults"];
-
-			//defaults["code"] ??= 8 am brain
-			defaults["type"] ??= 0;
-			defaults["global"] ??= false;
-			defaults["silent"] ??= false;
-		}
-	}
+	AsyncFunction = (async () => {}).constructor,
+	VARIATION_SELECTOR_69 = "󠄴";
+if (storage["settings"]["saveHistory"] === true) {
+	vendetta.plugin.storage = {}; // kill old storage style, do not touch untill proxy
 }
+	vendetta.plugin.storage = {}; // kill old storage style, do not touch untill proxy
+hlp.makeDefaults(vendetta.plugin.storage, {
+	stats: {
+		commandUseSessions: [],
+		runs: {
+			history: [],
+			failed: 0,
+			succeeded: 0,
+			plugin: 0,
+			sessionHistory: [],
+		},
+	},
+	settings: {
+		history: {
+			enabled: true,
+			saveContext: false,
+			saveOnError: false,
+			checkLatestDupes: true, // not functional
+		},
+		output: {
+			location: 0, // 0: content, 1: embed
+			trim: 15000, // Number: enabled, specifies end; Undefined: disabled
+			sourceEmbed: true,
+			info: {
+				enabled: true,
+				prettyTypeof: true,
+				hints: true,
+			},
+			useToString: false,
+			inspect: {
+				showHidden: false,
+				depth: 2,
+				maxArrayLength: 15,
+				compact: 2,
+				numericSeparator: true,
+				getters: false,
+			},
+			codeblock: {
+				enabled: true,
+				escape: true,
+				language: "js\n",
+			},
+			errors: {
+				trim: true,
+				stack: true,
+			},
+		},
+		defaults: {
+			type: 0,
+			global: false,
+			silent: false,
+		},
+	},
+});
 const {
 	meta: { resolveSemanticColor },
 } = findByProps("colors", "meta");
 const ThemeStore = findByStoreName("ThemeStore");
 
 export const EMBED_COLOR = (color) => {
-	parseInt(resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_SECONDARY).slice(1), 16);
+	return parseInt(resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_SECONDARY).slice(1), 16);
 };
 /* thanks acquite#0001 (<@581573474296791211>) */
-let madeSendMessage, plugin;
+let madeSendMessage,
+	plugin,
+	usedInSession = { status: false, position: -1 };
 function sendMessage() {
 	if (window.sendMessage) return window.sendMessage?.(...arguments);
 	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
-
+async function evaluate(code, Async, global, that) {
+	let result,
+		errored = false,
+		start = +new Date();
+	try {
+		let evalFunction = new (Async ? AsyncFunction : Function)(code);
+		if (!global) evalFunction = evalFunction.bind(that);
+		if (Async) {
+			result = await evalFunction();
+		} else {
+			result = evalFunction();
+		}
+	} catch (e) {
+		result = e;
+		errored = true;
+	}
+	let end = +new Date();
+	return { result, errored, start, end, elapsed: end - start };
+}
 plugin = {
 	meta: vendetta.plugin,
 	patches: [],
@@ -68,21 +115,32 @@ plugin = {
 		this.patches = [];
 	},
 	onLoad() {
+		storage["stats"]["runs"]["plugin"]++;
+		let UserStore;
 		try {
 			this.patches.push(
 				registerCommand({
 					...this.command,
 					async execute(rawArgs, ctx) {
+						UserStore ??= findByStoreName("UserStore");
+
+						if (!usedInSession.status) {
+							usedInSession.status = true;
+							usedInSession.position = storage["stats"]["commandUseSessions"].length;
+							if (storage["stats"]["commandUseSessions"].length === 0) storage["stats"]["commandUseSessions"] = [0]
+						}
+						const currentUser = UserStore.getCurrentUser();
 						const messageMods = {
 							...authorMods,
 							interaction: {
 								name: "/" + this.displayName,
-								user: findByStoreName("UserStore").getCurrentUser(),
+								user: currentUser,
 							},
 						};
 						const interaction = {
 							messageMods,
 							...ctx,
+							user: currentUser,
 							args: new Map(rawArgs.map((o) => [o.name, o])),
 							rawArgs,
 							plugin,
@@ -90,7 +148,7 @@ plugin = {
 						try {
 							const { channel, args } = interaction;
 							const code = args.get("code")?.value;
-							if (typeof code !== "string") throw new Error("No code argument passed")
+							if (typeof code !== "string") throw new Error("No code argument passed");
 							const settings = storage["settings"];
 
 							const defaults = settings["defaults"];
@@ -98,67 +156,122 @@ plugin = {
 							const silent = args.get("silent")?.value ?? defaults["silent"];
 							const global = args.get("global")?.value ?? defaults["global"];
 
-							let result,
-								errored,
-								start = +new Date();
-							try {
-								const evalFunction = new (Async ? AsyncFunction : Function)(code);
-								result = await (global ? evalFunction() : evalFunction.bind(interaction)());
-							} catch (e) {
-								result = e;
-								errored = true;
-							}
+							const { result, errored, start, end, elapsed } = await evaluate(code, Async, global, {interaction});
 
-							let elapsed = +new Date() - start;
-							const runs = storage["stats"]["runs"];
-							if (errored) {
-								if (settings["saveHistory"] && settings["saveFailHistory"]) runs["hist"].push({ code });
-								runs["failed"]++;
-							} else {
-								if (settings["saveHistory"]) runs["hist"].push({ code });
-								runs["succeeded"]++;
+							const { runs, commandUseSessions } = storage["stats"],
+								history = settings["history"];
+							let thisEvaluation;
+							if (history.enabled) {
+								const sessionPosition = usedInSession.position;
+								thisEvaluation = {
+									session: sessionPosition,
+									position: commandUseSessions[sessionPosition],
+									start,
+									end,
+									elapsed,
+									code,
+									result,
+									errored,
+								};
+								if (history.saveContext) thisEvaluation.context = interaction;
+								(() => {
+									if (!history.saveOnError && errored) return runs["failed"]++;
+									runs["succeeded"]++;
+									//if (history.checkLatestDupes && runs["sessionHistory"].at(-1)?.code === thisEvaluation.code) return;
+									runs["history"].push(thisEvaluation);
+									runs["sessionHistory"].push(thisEvaluation);
+									commandUseSessions[thisEvaluation.session]++;
+								})();
 							}
 
 							if (!silent) {
+								const outputSettings = settings["output"];
+								let outputStringified = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
+
+								if (errored) {
+									const errorSettings = outputSettings["errors"];
+									if (errorSettings["stack"]) outputStringified = result.stack;
+									if (errorSettings["trim"]) outputStringified = outputStringified.split("    at ?anon_0_?anon_0_evaluate")[0];
+								}
+								if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < outputStringified.length) outputStringified = outputStringified(0, outputSettings["trim"]);
+
+								if (outputSettings["codeblock"].enabled) {
+									if (outputSettings["codeblock"].escape) outputStringified = outputStringified.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
+									outputStringified = "```" + outputSettings["codeblock"].language + outputStringified + "```";
+								}
+
+								let infoString;
+								if (outputSettings["info"].enabled) {
+									let type = outputSettings["info"].prettyTypeof ? hlp.prettyTypeof(result) : typeof result;
+									if (errored) type = `Error (${type})`;
+									const hint = outputSettings["info"]["hints"] ? (result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "") : "";
+									infoString = `${type}\n${hint}took: ${elapsed}ms`;
+								}
+								let sourceFooterString = `length: ${code.length}`;
+								let newlineCount = code.split("").filter(($) => $ === "\n").length;
+								if (newlineCount < 0) sourceFooterString += `\nnewlines: ${newlineCount}`;
 								if (errored) {
 									sendMessage(
 										{
 											channelId: channel.id,
+											content: !outputSettings["location"] ? outputStringified : undefined,
 											embeds: [
 												{
 													type: "rich",
 													color: EMBED_COLOR("exploded"),
-													description: "```js\n" + (settings["trimErrors"] ? result.stack.split("\n    at next (native)")[0] : result.stack) + "```",
-													footer: {
-														text: `type: ${typeof result}\n` + `took: ${elapsed}ms`,
-													},
+													title: "Error returned",
+													description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : undefined,
+													footer: outputSettings["info"].enabled ? (outputSettings["location"] ? { infoString } : undefined) : undefined,
 												},
-											],
+
+												!outputSettings["sourceEmbed"]
+													? undefined
+													: {
+															type: "rich",
+															color: EMBED_COLOR("source"),
+															title: "Code",
+															description: code,
+															footer: {
+																text: sourceFooterString,
+															},
+													  },
+											].filter(($) => $ !== void 0),
 										},
-										{ ...messageMods, rawCode: code }
+										messageMods
 									);
 								}
 								if (!errored)
 									sendMessage(
 										{
 											channelId: channel.id,
-											content: `\`\`\`js\n${vendetta.metro.findByProps("inspect").inspect(result).slice(0, 15000)}\`\`\``,
+											content: !outputSettings["location"] ? outputStringified : undefined,
 											embeds: [
 												{
 													type: "rich",
 													color: EMBED_COLOR("satisfactory"),
-													footer: {
-														text: `type: ${typeof result}\n` + (typeof result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "") + `took: ${elapsed}ms`,
-													},
+													description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : undefined,
+													footer: outputSettings["info"].enabled ? (outputSettings["location"] ? { infoString } : undefined) : undefined,
 												},
-											],
+												!outputSettings["sourceEmbed"]
+													? undefined
+													: {
+															type: "rich",
+															color: EMBED_COLOR("source"),
+															title: "Code",
+															description: code,
+															footer: {
+																text: sourceFooterString,
+															},
+													  },
+											].filter(($) => $ !== void 0),
 										},
-										{ ...messageMods, rawCode: code }
+										messageMods
 									);
 							}
 							if (!errored && args.get("return")?.value) return result;
 						} catch (e) {
 							console.error(e);
+							console.log(e.stack);
 							alert("An uncatched error was thrown while running /eval\n" + e.stack);
 						}
 					},
@@ -166,6 +279,7 @@ plugin = {
 			);
 		} catch (e) {
 			console.error(e);
+			console.log(e.stack);
 			alert(`There was an error while loading the plugin "${plugin.meta.name}"\n${e.stack}`);
 		}
 	},
