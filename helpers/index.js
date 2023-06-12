@@ -84,7 +84,7 @@ export function makeDefaults(object, defaults) {
 
 	for (const key of Object.keys(defaults)) {
 		if (typeof defaults[key] === "object" && !Array.isArray(defaults[key])) {
-			object[key] = {};
+			if (typeof object[key] !== "object") object[key] = {};
 			makeDefaults(object[key], defaults[key]);
 		} else {
 			object[key] ??= defaults[key];
