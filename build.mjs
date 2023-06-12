@@ -11,7 +11,7 @@ import swc from "@swc/core";
 
 const extensions = [".js", ".jsx", ".mjs", ".ts", ".tsx", ".cts", ".mts"];
 const minifyBlacklist = [
-	"eval",
+	//"eval",
   /*"Vibrate", "selfexplode", "Uwuify"*/
 ];
 const stfuWarningCodes = ["MISSING_NAME_OPTION_FOR_IIFE_EXPORT"];
