@@ -16,7 +16,7 @@ const { inspect } = findByProps("inspect"),
 if (storage["settings"]["saveHistory"] === true) {
 	vendetta.plugin.storage = {}; // kill old storage style, do not touch untill proxy
 }
-	vendetta.plugin.storage = {}; // kill old storage style, do not touch untill proxy
+vendetta.plugin.storage = {}; // kill old storage style, do not touch untill proxy
 hlp.makeDefaults(vendetta.plugin.storage, {
 	stats: {
 		commandUseSessions: [],
@@ -64,7 +64,7 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 			},
 		},
 		defaults: {
-			type: 0,
+			await: true,
 			global: false,
 			silent: false,
 		},
@@ -87,14 +87,16 @@ function sendMessage() {
 	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
-async function evaluate(code, Async, global, that) {
+async function evaluate(code, aweight, global, that = {}) {
 	let result,
 		errored = false,
 		start = +new Date();
 	try {
-		let evalFunction = new (Async ? AsyncFunction : Function)(code);
-		if (!global) evalFunction = evalFunction.bind(that);
-		if (Async) {
+		const args = [];
+		if (!global) args.push(...Object.keys(that));
+		args.push(code)
+		let evalFunction = new AsyncFunction(...args);
+		if (aweight) {
 			result = await evalFunction();
 		} else {
 			result = evalFunction();
@@ -127,7 +129,7 @@ plugin = {
 						if (!usedInSession.status) {
 							usedInSession.status = true;
 							usedInSession.position = storage["stats"]["commandUseSessions"].length;
-							if (storage["stats"]["commandUseSessions"].length === 0) storage["stats"]["commandUseSessions"] = [0]
+							if (storage["stats"]["commandUseSessions"].length === 0) storage["stats"]["commandUseSessions"] = [0];
 						}
 						const currentUser = UserStore.getCurrentUser();
 						const messageMods = {
@@ -152,11 +154,11 @@ plugin = {
 							const settings = storage["settings"];
 
 							const defaults = settings["defaults"];
-							const Async = args.get("type")?.value ?? defaults["type"];
+							const aweight = args.get("await")?.value ?? defaults["await"];
 							const silent = args.get("silent")?.value ?? defaults["silent"];
 							const global = args.get("global")?.value ?? defaults["global"];
 
-							const { result, errored, start, end, elapsed } = await evaluate(code, Async, global, {interaction});
+							const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, interaction);
 
 							const { runs, commandUseSessions } = storage["stats"],
 								history = settings["history"];
@@ -298,34 +300,24 @@ plugin = {
 				description: "Code to evaluate",
 			},
 			{
-				type: 4,
-				name: "type",
-				description: "Type of the code",
-				choices: [
-					{
-						name: "sync",
-						value: 0,
-					},
-					{
-						name: "async [default]",
-						value: 1,
-					},
-				],
-			},
-			{
 				type: 5,
 				name: "return",
-				description: "Return the returned value? (so it works as a real command, default: false)",
+				description: "Return the returned value? (so it works as a real command)",
 			},
 			{
 				type: 5,
 				name: "global",
-				description: "Evaluate the code in the global scope? (default: false)",
+				description: "Evaluate the code in the global scope?",
 			},
 			{
 				type: 5,
 				name: "silent",
 				description: "Show the output of the evaluation? (default: false)",
+			},
+			{
+				type: 5,
+				name: "await",
+				description: "await the evaluation?",
 			},
 		],
 	}),
