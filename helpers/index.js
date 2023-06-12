@@ -71,7 +71,8 @@ export function prettyTypeof(value, raw) {
 	} else if (typeof value === "string") {
 		name[1] = string.length;
 	} else if (typeof value === "number" && value !== 0) {
-		name[1] = value.toExponential();
+		const expo = value.toExponential();
+		if (!expo.endsWith("e+1")) name[1] = expo
 	}
 
 	return name.join(" ");
