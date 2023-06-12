@@ -42,7 +42,7 @@ export function mSendMessage(vendetta) {
 	return function (message, mod) {
 		message.channelId ??= metro.findByStoreName("SelectedChannelStore").getChannelId();
 		if ([null, undefined].includes(message.channelId)) throw new Error("No channel id to receive the message into (channelId)");
-		if (typeof mod !== "undefined" && "author" in mod) {
+		if (mod !== undefined && "author" in mod) {
 			if ("avatar" in mod.author && "avatarURL" in mod.author) {
 				Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
 				delete mod.author.avatarURL;
@@ -78,8 +78,8 @@ export function prettyTypeof(value, raw) {
 }
 
 export function makeDefaults(object, defaults) {
-	if (typeof object === "undefined") throw new Error("No object passed to make defaults for");
-	if (typeof defaultd === "undefined") throw new Error("No defaults object passed to make defaults off of");
+	if (object === undefined) throw new Error("No object passed to make defaults for");
+	if (defaults === undefined) throw new Error("No defaults object passed to make defaults off of");
 
 	for (const [key, value] of Object.entries(object)) {
 		if (typeof defaults[key] === "object") {
