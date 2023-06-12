@@ -69,7 +69,7 @@ export function prettyTypeof(value, raw) {
 	} else if (typeof value === "boolean") {
 		name[1] = `${value}`;
 	} else if (typeof value === "string") {
-		name[1] = string.length;
+		name[1] = value.length;
 	} else if (typeof value === "number" && value !== 0) {
 		const expo = value.toExponential();
 		if (!expo.endsWith("e+1")) name[1] = expo
