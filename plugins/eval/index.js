@@ -16,7 +16,6 @@ const { inspect } = findByProps("inspect"),
 if (storage["settings"]["saveHistory"] === true) {
 	vendetta.plugin.storage = {}; // kill old storage style, do not touch untill proxy
 }
-vendetta.plugin.storage = {}; // kill old storage style, do not touch untill proxy
 hlp.makeDefaults(vendetta.plugin.storage, {
 	stats: {
 		commandUseSessions: [],
@@ -47,7 +46,7 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 			useToString: false,
 			inspect: {
 				showHidden: false,
-				depth: 2,
+				depth: 3,
 				maxArrayLength: 15,
 				compact: 2,
 				numericSeparator: true,
@@ -79,6 +78,8 @@ export const EMBED_COLOR = (color) => {
 	return parseInt(resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_SECONDARY).slice(1), 16);
 };
 /* thanks acquite#0001 (<@581573474296791211>) */
+
+
 let madeSendMessage,
 	plugin,
 	usedInSession = { status: false, position: -1 };
@@ -209,7 +210,7 @@ plugin = {
 
 								let infoString;
 								if (outputSettings["info"].enabled) {
-									let type = outputSettings["info"].prettyTypeof ? hlp.prettyTypeof(result) : typeof result;
+									let type = outputSettings["info"].prettyTypeof ? hlp.prettyTypeof(result) : "type: "+typeof result;
 									if (errored) type = `Error (${type})`;
 									const hint = outputSettings["info"]["hints"] ? (result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "") : "";
 									infoString = `${type}\n${hint}took: ${elapsed}ms`;
