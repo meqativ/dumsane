@@ -96,10 +96,15 @@ async function evaluate(code, aweight, global, that = {}) {
 		if (!global) args.push(...Object.keys(that));
 		args.push(code)
 		let evalFunction = new AsyncFunction(...args);
+		let i = 0;
+		for (var key of Object.keys(that)) {
+			args[i] = that[key];
+			i++
+		}
 		if (aweight) {
-			result = await evalFunction();
+			result = await evalFunction(...args);
 		} else {
-			result = evalFunction();
+			result = evalFunction(...args);
 		}
 	} catch (e) {
 		result = e;
@@ -158,7 +163,7 @@ plugin = {
 							const silent = args.get("silent")?.value ?? defaults["silent"];
 							const global = args.get("global")?.value ?? defaults["global"];
 
-							const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, interaction);
+							const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {interaction});
 
 							const { runs, commandUseSessions } = storage["stats"],
 								history = settings["history"];
@@ -195,7 +200,7 @@ plugin = {
 									if (errorSettings["stack"]) outputStringified = result.stack;
 									if (errorSettings["trim"]) outputStringified = outputStringified.split("    at ?anon_0_?anon_0_evaluate")[0];
 								}
-								if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < outputStringified.length) outputStringified = outputStringified(0, outputSettings["trim"]);
+								if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < outputStringified.length) outputStringified = outputStringified.slice(0, outputSettings["trim"]);
 
 								if (outputSettings["codeblock"].enabled) {
 									if (outputSettings["codeblock"].escape) outputStringified = outputStringified.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
