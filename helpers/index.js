@@ -81,9 +81,9 @@ export function makeDefaults(object, defaults) {
 	if (object === undefined) throw new Error("No object passed to make defaults for");
 	if (defaults === undefined) throw new Error("No defaults object passed to make defaults off of");
 
-	for (const [key, value] of Object.entries(object)) {
+	for (const [key, value] of Object.entries(defaults)) {
 		if (typeof defaults[key] === "object") {
-			makeDefaults(defaults[key], object[key]);
+			makeDefaults(object[key], defaults[key]);
 		} else {
 			object[key] ??= defaults[key];
 		}
