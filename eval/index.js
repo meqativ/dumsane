@@ -41,7 +41,7 @@
 	      void 0
 	    ].includes(message.channelId))
 	      throw new Error("No channel id to receive the message into (channelId)");
-	    if (typeof mod !== "undefined" && "author" in mod) {
+	    if (mod !== void 0 && "author" in mod) {
 	      if ("avatar" in mod.author && "avatarURL" in mod.author) {
 	        Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
 	        delete mod.author.avatarURL;
