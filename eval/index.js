@@ -35,7 +35,11 @@
 	  const { createBotMessage } = metro.findByProps("createBotMessage");
 	  const Avatars = metro.findByProps("BOT_AVATARS");
 	  return function(message, mod) {
-	    if (!message.channelId)
+	    message.channelId ??= metro.findByStoreName("SelectedChannelStore").getChannelId();
+	    if ([
+	      null,
+	      void 0
+	    ].includes(message.channelId))
 	      throw new Error("No channel id to receive the message into (channelId)");
 	    if (typeof mod !== "undefined" && "author" in mod) {
 	      if ("avatar" in mod.author && "avatarURL" in mod.author) {
