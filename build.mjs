@@ -10,8 +10,9 @@ import nodeResolve from "@rollup/plugin-node-resolve";
 import swc from "@swc/core";
 
 const extensions = [".js", ".jsx", ".mjs", ".ts", ".tsx", ".cts", ".mts"];
+const repoPluginName = "PluginRepo"
 const minifyBlacklist = [
-	//"eval",
+	"eval",
   /*"Vibrate", "selfexplode", "Uwuify"*/
 ];
 const stfuWarningCodes = ["MISSING_NAME_OPTION_FOR_IIFE_EXPORT"];
@@ -68,7 +69,7 @@ for (let plug of pluggers) {
   const manifest = JSON.parse(
     await readFile(`./plugins/${plug}/manifest.json`)
   );
-  const outPath = `./dist/${plug}/index.js`;
+  const outPath = `./dist/${plug === repoPluginName ? "" : plug+"/"}index.js`;
   const minify = !minifyBlacklist.includes(plug);
   try {
     console.log(prefix, `Building ${plug}...`);
@@ -107,7 +108,7 @@ for (let plug of pluggers) {
     const toHash = await readFile(outPath);
     manifest.hash = createHash("sha256").update(toHash).digest("hex");
     manifest.main = "index.js";
-    await writeFile(`./dist/${plug}/manifest.json`, JSON.stringify(manifest));
+    await writeFile(`./dist/${plug === repoPluginName ? "" : plug+"/"}manifest.json`, JSON.stringify(manifest));
 
     console.log(
       prefix,
