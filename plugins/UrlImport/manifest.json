@@ -1,0 +1,18 @@
+{
+  "name": "URL import",
+  "description": "Allows you to install links as plugins directly from a URL's action sheet.",
+  "authors": [
+    {
+      "name": "redstonekasi",
+      "id": "265064055490871297"
+    },
+		{ 
+			"name": "meqativ :3",
+			"id": "744276454946242723"
+		}
+  ],
+  "main": "index.js",
+  "vendetta": {
+    "icon": "ic_link"
+  }
+}
