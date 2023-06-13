@@ -177,10 +177,13 @@ plugin = {
 									end,
 									elapsed,
 									code,
-									result: hlp.cloneWithout(result, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved"),
 									errored,
 								};
+								if (!interaction.dontSaveResult) {
+									thisEvaluation.result = hlp.cloneWithout(result, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
+
 								if (history.saveContext) thisEvaluation.context = hlp.cloneWithout(interaction, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
+								}
 								(() => {
 									if (!history.saveOnError && errored) return runs["failed"]++;
 									runs["succeeded"]++;
