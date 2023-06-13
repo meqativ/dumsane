@@ -33,17 +33,35 @@ export function generateStr(chars, length = 27) {
 
 	return result;
 }
-export function cloneWithout(obj, without, replace) {
-	if (without.includes(obj)) return replace;
-	if (typeof obj !== "object") return obj;
-	const newObj = Array.isArray(obj) ? [] : {};
-	for (const key in obj) {
-		if (Array.isArray(obj[key])) {
-			newObj[key] = cloneWithout(obj[key], without, replace);
-		} else if (without.includes(obj[key])) {
+function isArraysEqual(arr1, arr2) {
+	if (arr1.length !== arr2.length) return false;
+
+	for (let i = 0; i < arr1.length; i++) {
+		const item1 = arr1[i];
+		const item2 = arr2[i];
+
+		if (Array.isArray(item1) && Array.isArray(item2)) {
+			if (!isArraysEqual(item1, item2)) return false;
+		} else if (typeof item1 === "object" && typeof item2 === "object") {
+			if (!isArraysEqual(Object.values(item1), Object.values(item2))) return false;
+		} else if (item1 !== item2) {
+			return false;
+		}
+	}
+
+	return true;
+}
+export function cloneWithout(value, without, replace) {
+	if (without.some(($) => (Array.isArray($) ? areArraysEqual($, value) : $ === value))) return replace;
+	if (typeof value !== "object") return value;
+	const newObj = Array.isArray(value) ? [] : {};
+	for (const key in value) {
+		if (Array.isArray(value[key])) {
+			newObj[key] = cloneWithout(value[key], without, replace);
+		} else if (without.includes(value[key])) {
 			newObj[key] = replace;
 		} else {
-			newObj[key] = cloneWithout(obj[key], without, replace);
+			newObj[key] = cloneWithout(value[key], without, replace);
 		}
 	}
 	return newObj;
