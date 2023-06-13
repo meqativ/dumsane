@@ -52,8 +52,8 @@ export function areArraysEqual(arr1, arr2) {
 	return true;
 }
 export function cloneWithout(value, without, replace) {
-	if (without.some(($) => (Array.isArray($) ? areArraysEqual($, value) : $ === value))) return replace;
 	if (typeof value !== "object") return value;
+	if (without.some(($) => (Array.isArray($) ? areArraysEqual($, value) : $ === value))) return replace;
 	const newObj = Array.isArray(value) ? [] : {};
 	for (const key in value) {
 		if (Array.isArray(value[key])) {
