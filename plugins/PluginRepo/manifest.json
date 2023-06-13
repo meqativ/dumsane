@@ -1,0 +1,9 @@
+{
+    "name": "PluginRepo",
+    "description": "A plugger to install pluggers",
+	"authors": [{ "name": "meqativ :3", "id": "744276454946242723" }],
+    "main": "index.js",
+    "vendetta": {
+        "icon": "ic_badge_staff"
+    }
+}
