@@ -33,7 +33,7 @@ export function generateStr(chars, length = 27) {
 
 	return result;
 }
-function isArraysEqual(arr1, arr2) {
+export function areArraysEqual(arr1, arr2) {
 	if (arr1.length !== arr2.length) return false;
 
 	for (let i = 0; i < arr1.length; i++) {
