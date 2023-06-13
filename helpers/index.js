@@ -41,9 +41,9 @@ export function areArraysEqual(arr1, arr2) {
 		const item2 = arr2[i];
 
 		if (Array.isArray(item1) && Array.isArray(item2)) {
-			if (!isArraysEqual(item1, item2)) return false;
+			if (!areArraysEqual(item1, item2)) return false;
 		} else if (typeof item1 === "object" && typeof item2 === "object") {
-			if (!isArraysEqual(Object.values(item1), Object.values(item2))) return false;
+			if (!areArraysEqual(Object.values(item1), Object.values(item2))) return false;
 		} else if (item1 !== item2) {
 			return false;
 		}
