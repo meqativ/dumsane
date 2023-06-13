@@ -34,6 +34,7 @@ export function generateStr(chars, length = 27) {
 	return result;
 }
 export function cloneWithout(obj, without, replace) {
+	if (obj === without) return replace;
 	if (typeof obj !== "object") return obj;
 	const newObj = Array.isArray(obj) ? [] : {};
 	for (const key of Object.keys(obj)) {
