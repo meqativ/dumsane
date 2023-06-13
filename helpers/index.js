@@ -33,6 +33,20 @@ export function generateStr(chars, length = 27) {
 
 	return result;
 }
+export function cloneWithout(obj, without, replace) {
+	if (typeof obj !== "object") return obj;
+	const newObj = Array.isArray(obj) ? [] : {};
+	for (const key of Object.keys(obj)) {
+		if (Array.isArray(obj[key])) {
+			newObj[key] = cloneWithout(obj[key], without, replace);
+		} else if (without.includes(obj[key])) {
+			newObj[key] = replace;
+		} else {
+			newObj[key] = cloneWithout(obj[key], without, replace);
+		}
+	}
+	return newObj;
+}
 
 export function mSendMessage(vendetta) {
 	const { metro } = vendetta;
@@ -72,7 +86,7 @@ export function prettyTypeof(value, raw) {
 		name[1] = value.length;
 	} else if (typeof value === "number" && value !== 0) {
 		const expo = value.toExponential();
-		if (!expo.endsWith("e+1")) name[1] = expo
+		if (!expo.endsWith("e+1")) name[1] = expo;
 	}
 
 	return name.join(" ");

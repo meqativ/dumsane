@@ -13,9 +13,7 @@ const { inspect } = findByProps("inspect"),
 	},
 	AsyncFunction = (async () => {}).constructor,
 	VARIATION_SELECTOR_69 = "󠄴";
-if (storage["settings"]["saveHistory"] === true) {
-	vendetta.plugin.storage = {}; // kill old storage style, do not touch untill proxy
-}
+console.log("eval", vendetta.plugin.storage);
 hlp.makeDefaults(vendetta.plugin.storage, {
 	stats: {
 		commandUseSessions: [],
@@ -79,7 +77,6 @@ export const EMBED_COLOR = (color) => {
 };
 /* thanks acquite#0001 (<@581573474296791211>) */
 
-
 let madeSendMessage,
 	plugin,
 	usedInSession = { status: false, position: -1 };
@@ -95,12 +92,12 @@ async function evaluate(code, aweight, global, that = {}) {
 	try {
 		const args = [];
 		if (!global) args.push(...Object.keys(that));
-		args.push(code)
+		args.push(code);
 		let evalFunction = new AsyncFunction(...args);
 		let i = 0;
 		for (var key of Object.keys(that)) {
 			args[i] = that[key];
-			i++
+			i++;
 		}
 		if (aweight) {
 			result = await evalFunction(...args);
@@ -117,7 +114,6 @@ async function evaluate(code, aweight, global, that = {}) {
 plugin = {
 	meta: vendetta.plugin,
 	patches: [],
-	storage,
 	onUnload() {
 		this.patches.forEach((up) => up()); // unpatch every patch
 		this.patches = [];
@@ -134,8 +130,11 @@ plugin = {
 
 						if (!usedInSession.status) {
 							usedInSession.status = true;
-							usedInSession.position = storage["stats"]["commandUseSessions"].length;
-							if (storage["stats"]["commandUseSessions"].length === 0) storage["stats"]["commandUseSessions"] = [0];
+							usedInSession.position = storage["stats"]["commandUseSessions"].length + 1;
+							if (storage["stats"]["commandUseSessions"].length === 0) {
+								storage["stats"]["commandUseSessions"] = [0];
+								usedInSession.position = 0;
+							}
 						}
 						const currentUser = UserStore.getCurrentUser();
 						const messageMods = {
@@ -164,7 +163,7 @@ plugin = {
 							const silent = args.get("silent")?.value ?? defaults["silent"];
 							const global = args.get("global")?.value ?? defaults["global"];
 
-							const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {interaction});
+							const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, { interaction });
 
 							const { runs, commandUseSessions } = storage["stats"],
 								history = settings["history"];
@@ -178,13 +177,14 @@ plugin = {
 									end,
 									elapsed,
 									code,
-									result,
+									result: hlp.cloneWithout(result, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved"),
 									errored,
 								};
-								if (history.saveContext) thisEvaluation.context = interaction;
+								if (history.saveContext) thisEvaluation.context = hlp.cloneWithout(interaction, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
 								(() => {
 									if (!history.saveOnError && errored) return runs["failed"]++;
 									runs["succeeded"]++;
+
 									//if (history.checkLatestDupes && runs["sessionHistory"].at(-1)?.code === thisEvaluation.code) return;
 									runs["history"].push(thisEvaluation);
 									runs["sessionHistory"].push(thisEvaluation);
@@ -210,7 +210,7 @@ plugin = {
 
 								let infoString;
 								if (outputSettings["info"].enabled) {
-									let type = outputSettings["info"].prettyTypeof ? hlp.prettyTypeof(result) : "type: "+typeof result;
+									let type = outputSettings["info"].prettyTypeof ? hlp.prettyTypeof(result) : "type: " + typeof result;
 									if (errored) type = `Error (${type})`;
 									const hint = outputSettings["info"]["hints"] ? (result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "") : "";
 									infoString = `${type}\n${hint}took: ${elapsed}ms`;
