@@ -48,12 +48,12 @@
 	  return true;
 	}
 	function cloneWithout(value, without, replace) {
+	  if (typeof value !== "object")
+	    return value;
 	  if (without.some(function($) {
 	    return Array.isArray($) ? areArraysEqual($, value) : $ === value;
 	  }))
 	    return replace;
-	  if (typeof value !== "object")
-	    return value;
 	  const newObj = Array.isArray(value) ? [] : {};
 	  for (const key in value) {
 	    if (Array.isArray(value[key])) {
