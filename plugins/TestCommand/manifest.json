@@ -1,0 +1,7 @@
+{
+	"name": "TestComamand",
+	"description": "testing",
+	"authors": [{ "name": "meqativ :3", "id": "744276454946242723" }],
+	"main": "./index.js",
+	"vendetta": { "icon": "ic_full_server_gating_24px" }
+}
