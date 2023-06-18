@@ -1,4 +1,4 @@
-import { React, ReactNative, Profiles } from "@vendetta/metro/common";
+import { React, ReactNative } from "@vendetta/metro/common";
 import { storage } from "@vendetta/plugin";
 import { useProxy } from "@vendetta/storage";
 import { showConfirmationAlert } from "@vendetta/ui/alerts";
@@ -7,15 +7,16 @@ import { getAssetIDByName } from "@vendetta/ui/assets";
 import { getTranslation } from "./translations.js";
 import ItemWithRemove from "../../helpers/ui/ItemWithRemove.jsx";
 import { findByStoreName, findByProps } from "@vendetta/metro";
-let UserStore, UncachedUserManager;
+let UserStore, UncachedUserManager, Profiles;
 export default (props) => {
-	UserStore ??= findByStoreName("UserStore");
-	UncachedUserManager ??= findByProps("fetchProfile", "getUser", "setFlag");
-async function openProfile(userId) {
-	const show = Profiles.showUserProfile;
+	async function openProfile(userId) {
+		UserStore ??= findByStoreName("UserStore");
+		UncachedUserManager ??= findByProps("fetchProfile", "getUser", "setFlag");
+		Profiles ??= findByProps("showUserProfile");
+		const show = Profiles.showUserProfile;
 
-	UserStore.getUser(userId) ? show({ userId }) : UncachedUserManager.getUser(userId).then(({ id }) => show({ id }));
-}
+		UserStore.getUser(userId) ? show({ userId }) : UncachedUserManager.getUser(userId).then(({ id }) => show({ id }));
+	}
 
 	useProxy(storage);
 	const [users, setUsers] = React.useState(storage["ignore"]["users"]);
@@ -62,9 +63,9 @@ async function openProfile(userId) {
 						let pfp = User?.getAvatarURL?.()?.replace?.(/\.(gif|webp)/, ".png");
 						if (!pfp) {
 							pfp = "https://cdn.discordapp.com/embed/avatars/1.png";
-							User.username = `${id} Uncached, `;
+							User.username = `${id} Uncached`;
 							User.discriminator = "0";
-							if (uncached === 0) User.username += "press the avatar";
+							if (uncached === 0) User.username += ", press the avatar";
 							uncached++;
 						}
 
