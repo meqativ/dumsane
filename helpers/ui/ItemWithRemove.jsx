@@ -8,6 +8,8 @@ const stylesheet = createThemedStyleSheet({
 		alignItems: "center",
 	},
 	image: {
+		marginLeft: 5,
+		marginRight: 5,
 		width: 25,
 		height: 25,
 		borderRadius: 100,
