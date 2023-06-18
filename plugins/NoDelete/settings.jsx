@@ -30,6 +30,7 @@ export default (props) => {
 		storage["ignore"].users = [];
 		setUsers([]);
 	};
+	let uncached = 0;
 
 	return (
 		<ReactNative.ScrollView style={{ flex: 1 }}>
@@ -57,32 +58,29 @@ export default (props) => {
 					}}
 				/>
 				<ReactNative.ScrollView style={{ flex: 1, marginLeft: 15 }}>
-					{
-						((uncached = 0),
-						users.map((id) => {
-							const User = UserStore.getUser(id) ?? {};
-							let pfp = User?.getAvatarURL?.()?.replace?.(/\.(gif|webp)/, ".png");
-							if (!pfp) {
-								pfp = "https://cdn.discordapp.com/embed/avatars/1.png";
-								User.username = `Uncached (${id})`;
-								User.discriminator = "0";
-								if (uncached === 0) User.username += " Press the avatar to open their profile";
-								uncached++;
-							}
+					{users.map((id) => {
+						const User = UserStore.getUser(id) ?? {};
+						let pfp = User?.getAvatarURL?.()?.replace?.(/\.(gif|webp)/, ".png");
+						if (!pfp) {
+							pfp = "https://cdn.discordapp.com/embed/avatars/1.png";
+							User.username = `Uncached (${id})`;
+							User.discriminator = "0";
+							if (uncached === 0) User.username += " Press the avatar to open their profile";
+							uncached++;
+						}
 
-							return (
-								<ItemWithRemove
-									imageSource={{ uri: pfp }}
-									onImagePress={() => {
-										openProfile(id);
-									}}
-									onRemove={() => handleRemoveUser(id)}
-									label={User.username + (User.discriminator == 0 ? "" : `#${User.discriminator}`)}
-									labelRemove={getTranslation("settings.removeUserButton")}
-								/>
-							);
-						}))
-					}
+						return (
+							<ItemWithRemove
+								imageSource={{ uri: pfp }}
+								onImagePress={() => {
+									openProfile(id);
+								}}
+								onRemove={() => handleRemoveUser(id)}
+								label={User.username + (User.discriminator == 0 ? "" : `#${User.discriminator}`)}
+								labelRemove={getTranslation("settings.removeUserButton")}
+							/>
+						);
+					})}
 				</ReactNative.ScrollView>
 				<Forms.FormDivider />
 				<Forms.FormRow label={getTranslation("settings.addUsersInfo")} />
