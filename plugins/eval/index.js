@@ -3,7 +3,6 @@ import { registerCommand } from "@vendetta/commands";
 import { findByProps, findByStoreName } from "@vendetta/metro";
 import { storage } from "@vendetta/plugin";
 import { semanticColors } from "@vendetta/ui";
-import settings from "./settings.jsx"
 const { inspect } = findByProps("inspect"),
 	authorMods = {
 		author: {
@@ -120,7 +119,6 @@ async function evaluate(code, aweight, global, that = {}) {
 	return { result, errored, start, end, elapsed: end - start };
 }
 plugin = {
-	settings,
 	meta: vendetta.plugin,
 	patches: [],
 	onUnload() {
