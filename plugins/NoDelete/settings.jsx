@@ -57,7 +57,7 @@ export default (props) => {
 							});
 					}}
 				/>
-				<ReactNative.ScrollView style={{ flex: 1, marginLeft: 15 }}>
+				<ReactNative.ScrollView style={{ flex: 1, gap: 3, marginLeft: 15 }}>
 					{users.map((id) => {
 						const User = UserStore.getUser(id) ?? {};
 						let pfp = User?.getAvatarURL?.(null,26)?.replace?.(/\.(gif|webp)/, ".png");
