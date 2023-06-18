@@ -16,8 +16,8 @@ export default (props) => {
 
 	const handleRemoveUser = (userId) => {
 		const newArr = users.filter((id) => id !== userId);
-		storage["ignore"].users = newArr
-		setUsers(newArr)
+		storage["ignore"].users = newArr;
+		setUsers(newArr);
 	};
 	const handleClearUsers = () => {
 		storage["ignore"].users = [];
@@ -45,21 +45,22 @@ export default (props) => {
 								confirmText: getTranslation("settings.confirmClear.yes"),
 								cancelText: getTranslation("settings.confirmClear.no"),
 								confirmColor: "brand",
-								onConfirm: handleClearUsers
+								onConfirm: handleClearUsers,
 							});
 					}}
 				/>
 				<ReactNative.ScrollView style={{ flex: 1, marginLeft: 15 }}>
 					{users.map((id) => {
-						const User = vendetta.metro.findByStoreName("UserStore").getUser(id);
-						const pfp = User.getAvatarURL().replace(/\.(gif|webp)/, ".png");
+						const User = UserStore.getUser(id);
+						const pfp = User?.getAvatarURL?.()?.replace?.(/\.(gif|webp)/, ".png");
 
 						return (
 							<ItemWithRemove
-								imageSource={{ uri: pfp }}
+								imageSource={{ uri: pfp ?? "https://cdn.discordapp.com/embed/avatars/1.png" }}
 								onImagePress={() => {}}
 								onRemove={() => handleRemoveUser(id)}
-								label={User.username + (User.discriminator == 0 ? "" : `#${User.discriminator}`)}
+								label={!User?.username ? `??? (${id})` : User.username + (User.discriminator == 0 ? "" : `#${User.discriminator}`)}
+								labelRemove={getTranslation("settings.removeUserButton")}
 							/>
 						);
 					})}
