@@ -1,4 +1,5 @@
 import settings from "./settings.jsx";
+import * as hlp from "../../helpers/index.js";
 import { FluxDispatcher, moment } from "@vendetta/metro/common";
 import { storage } from "@vendetta/plugin";
 import { before as patchBefore } from "@vendetta/patcher";
@@ -8,8 +9,21 @@ import { showToast } from "@vendetta/ui/toasts";
 import { getTranslation, massive } from "./translations.js";
 //import { dispatcherPatch } from "./patches/dispatcher.js";
 //import { contextMenuPatch } from "./patches/contextMenu.js"
+
+hlp.makeDefaults(storage, {
+	ignore: {
+		users: [],
+		channels: [],
+		bots: false,
+	},
+	timestamps: false,
+	ew: false,
+	onlyTimestamps: false,
+});
 let MessageStore,
 	deleteable = [];
+
+
 export default {
 	settings,
 	patches: [
@@ -47,8 +61,7 @@ export default {
 						deleteable.push(event.id);
 
 						let automodMessage = getTranslation("thisMessageWasDeleted");
-						if (storage["timestamps"])
-							automodMessage += ` (${moment().format(storage["ew"] ? "hh:mm:ss.SS a" : "HH:mm:ss.SS")})`;
+						if (storage["timestamps"]) automodMessage += ` (${moment().format(storage["ew"] ? "hh:mm:ss.SS a" : "HH:mm:ss.SS")})`;
 
 						// overwrite the message delete event with the automod edit fail one
 						args[0] = {
@@ -73,8 +86,9 @@ export default {
 				})
 			);
 
-			/* thanks fres#2400 (<@843448897737064448>) for example patch */
-			// add ignore user button
+			/* thanks fres#2400 (<@843448897737064448>) for example patch
+			 * add ignore user button
+			 */
 			const contextMenuUnpatch = patchBefore("render", findByProps("ScrollView").View, (args) => {
 				try {
 					let a = findInReactTree(args, (r) => r.key === ".$UserProfileOverflow");
@@ -87,7 +101,7 @@ export default {
 						.find((str) => a._owner.stateNode._keyChildMapping[str] && str.match(/(?<=\$UserProfile)\d+/))
 						?.slice?.(".$UserProfile".length);
 
-					let optionPosition = props.options.findLastIndex(option=>option.isDestructive);
+					let optionPosition = props.options.findLastIndex((option) => option.isDestructive);
 					if (!storage["ignore"]["users"].includes(focusedUserId)) {
 						props.options.splice(optionPosition + 1, 0, {
 							isDestructive: true,
