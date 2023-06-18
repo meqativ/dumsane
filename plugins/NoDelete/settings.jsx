@@ -15,7 +15,7 @@ export default (props) => {
 	async function openProfile(userId) {
 		const show = Profiles.showUserProfile;
 
-		UserStore.getUser(userId) ? show({ userId }) : UncachedUserManager.getUser(userId).then(({ id }) => show({ id }));
+		UserStore.getUser(userId) ? show({ userId }) : UncachedUserManager.getUser(userId).then(({ id }) => show({ userId: id }));
 	}
 
 	useProxy(storage);
