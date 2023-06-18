@@ -90,11 +90,11 @@ massive = {
 				ru: "Отменить",
 			},
 		},
-	},
-	removeUserButton: {
-		"en-GB": "REMOVE",
-		uk: "ПРИБРАТИ",
-		ru: "УБРАТЬ",
+		removeUserButton: {
+			"en-GB": "REMOVE",
+			uk: "ПРИБРАТИ",
+			ru: "УБРАТЬ",
+		},
 	},
 	optionLabels: [
 		{
