@@ -91,6 +91,11 @@ massive = {
 			},
 		},
 	},
+	removeUserButton: {
+		"en-GB": "REMOVE",
+		uk: "ПРИБРАТИ",
+		ru: "УБРАТЬ",
+	},
 	optionLabels: [
 		{
 			"en-GB": "Add to NoDelete ignored users list",
