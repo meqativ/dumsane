@@ -1,4 +1,4 @@
-(function (exports, commands, metro, plugin$2, ui) {
+(function (exports, commands, metro, plugin$2, ui, common, storage, components, General, stylesheet$1) {
 	'use strict';
 
 	function cmdDisplays(obj, translations, locale) {
@@ -51,11 +51,13 @@
 	  if (typeof value !== "object")
 	    return value;
 	  if (without.some(function($) {
-	    return Array.isArray($) ? areArraysEqual($, value) : $ === value;
+	    return Array.isArray($) ? Array.isArray(value) ? areArraysEqual($, value) : false : $ === value;
 	  }))
 	    return replace;
 	  const newObj = Array.isArray(value) ? [] : {};
 	  for (const key in value) {
+	    if (value[key] === null)
+	      console.log(value, key);
 	    if (Array.isArray(value[key])) {
 	      newObj[key] = cloneWithout(value[key], without, replace);
 	    } else if (without.includes(value[key])) {
@@ -137,6 +139,83 @@
 	  command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
 	};
 
+	const stylesheet = stylesheet$1.createThemedStyleSheet({
+	  container: {
+	    flexDirection: "row",
+	    alignItems: "center"
+	  },
+	  image: {
+	    width: 25,
+	    height: 25,
+	    borderRadius: 100
+	  },
+	  label: {
+	    color: ui.semanticColors.HEADER_PRIMARY
+	  },
+	  labelRemove: {
+	    color: ui.semanticColors.TEXT_WARNING
+	  }
+	});
+	function ItemWithRemove(param) {
+	  let { imageSource, onImagePress, label, labelRemove = "REMOVE", onRemove } = param;
+	  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(General.View, {
+	    style: stylesheet.container
+	  }, /* @__PURE__ */ React.createElement(General.TouchableOpacity, {
+	    onPress: onRemove
+	  }, /* @__PURE__ */ React.createElement(General.Text, {
+	    style: stylesheet.labelRemove
+	  }, labelRemove)), /* @__PURE__ */ React.createElement(General.TouchableOpacity, {
+	    onPress: onImagePress
+	  }, /* @__PURE__ */ React.createElement(General.Image, {
+	    style: [
+	      stylesheet.image
+	    ],
+	    source: imageSource
+	  })), /* @__PURE__ */ React.createElement(General.Text, {
+	    style: stylesheet.label
+	  }, label)));
+	}
+
+	const Real = Array.from({
+	  length: 50
+	}, function(arr, i) {
+	  return {
+	    pfp: "https://github.com/meqativ.png",
+	    username: "meqativ",
+	    id: i
+	  };
+	});
+	function settings(props) {
+	  storage.useProxy(plugin$2.storage);
+	  const [users, setUsers] = common.React.useState(Real);
+	  const handleRemoveUser = function(userId) {
+	    setUsers(users.filter(function(u) {
+	      return u.id !== userId;
+	    }));
+	  };
+	  return /* @__PURE__ */ common.React.createElement(common.ReactNative.ScrollView, {
+	    style: {
+	      flex: 1
+	    }
+	  }, /* @__PURE__ */ common.React.createElement(components.Forms.FormSection, {
+	    title: "List",
+	    titleStyleType: "no_border"
+	  }, users.map(function(u) {
+	    return /* @__PURE__ */ common.React.createElement(ItemWithRemove, {
+	      imageSource: {
+	        uri: u.pfp
+	      },
+	      onImagePress: function() {
+	        return console.log(`${u.id} onImagePress`);
+	      },
+	      onRemove: function() {
+	        return handleRemoveUser(u.id);
+	      },
+	      label: u.username
+	    });
+	  })));
+	}
+
 	const { inspect } = metro.findByProps("inspect"), authorMods = {
 	  author: {
 	    username: "eval",
@@ -196,6 +275,12 @@
 	      await: true,
 	      global: false,
 	      silent: false
+	    },
+	    command: {
+	      name: "!eval",
+	      predicate: function() {
+	        return true;
+	      }
 	    }
 	  }
 	});
@@ -248,6 +333,7 @@
 	  };
 	}
 	plugin = {
+	  settings,
 	  meta: vendetta.plugin,
 	  patches: [],
 	  onUnload() {
@@ -260,186 +346,184 @@
 	    plugin$2.storage["stats"]["runs"]["plugin"]++;
 	    let UserStore;
 	    try {
-	      this.patches.push(commands.registerCommand({
-	        ...this.command,
-	        async execute(rawArgs, ctx) {
-	          UserStore ??= metro.findByStoreName("UserStore");
-	          if (!usedInSession.status) {
-	            usedInSession.status = true;
-	            usedInSession.position = plugin$2.storage["stats"]["commandUseSessions"].length + 1;
-	            if (plugin$2.storage["stats"]["commandUseSessions"].length === 0) {
-	              plugin$2.storage["stats"]["commandUseSessions"] = [
-	                0
-	              ];
-	              usedInSession.position = 0;
-	            }
+	      this.command(execute);
+	      async function execute(rawArgs, ctx) {
+	        UserStore ??= metro.findByStoreName("UserStore");
+	        if (!usedInSession.status) {
+	          usedInSession.status = true;
+	          usedInSession.position = plugin$2.storage["stats"]["commandUseSessions"].length + 1;
+	          if (plugin$2.storage["stats"]["commandUseSessions"].length === 0) {
+	            plugin$2.storage["stats"]["commandUseSessions"] = [
+	              0
+	            ];
+	            usedInSession.position = 0;
 	          }
-	          const currentUser = UserStore.getCurrentUser();
-	          const messageMods = {
-	            ...authorMods,
-	            interaction: {
-	              name: "/" + this.displayName,
-	              user: currentUser
-	            }
-	          };
-	          const interaction = {
-	            messageMods,
-	            ...ctx,
-	            user: currentUser,
-	            args: new Map(rawArgs.map(function(o) {
-	              return [
-	                o.name,
-	                o
-	              ];
-	            })),
-	            rawArgs,
-	            plugin
-	          };
-	          try {
-	            const { channel, args } = interaction;
-	            const code = args.get("code")?.value;
-	            if (typeof code !== "string")
-	              throw new Error("No code argument passed");
-	            const settings = plugin$2.storage["settings"];
-	            const defaults = settings["defaults"];
-	            const aweight = args.get("await")?.value ?? defaults["await"];
-	            const silent = args.get("silent")?.value ?? defaults["silent"];
-	            const global = args.get("global")?.value ?? defaults["global"];
-	            const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
-	              interaction
-	            });
-	            const { runs, commandUseSessions } = plugin$2.storage["stats"], history = settings["history"];
-	            let thisEvaluation;
-	            if (history.enabled) {
-	              const sessionPosition = usedInSession.position;
-	              thisEvaluation = {
-	                session: sessionPosition,
-	                position: commandUseSessions[sessionPosition],
-	                start,
-	                end,
-	                elapsed,
-	                code,
-	                errored
-	              };
-	              if (!interaction.dontSaveResult) {
-	                thisEvaluation.result = cloneWithout(result, [
+	        }
+	        const currentUser = UserStore.getCurrentUser();
+	        const messageMods = {
+	          ...authorMods,
+	          interaction: {
+	            name: "/" + this.displayName,
+	            user: currentUser
+	          }
+	        };
+	        const interaction = {
+	          messageMods,
+	          ...ctx,
+	          user: currentUser,
+	          args: new Map(rawArgs.map(function(o) {
+	            return [
+	              o.name,
+	              o
+	            ];
+	          })),
+	          rawArgs,
+	          plugin
+	        };
+	        try {
+	          const { channel, args } = interaction;
+	          const code = args.get("code")?.value;
+	          if (typeof code !== "string")
+	            throw new Error("No code argument passed");
+	          const settings2 = plugin$2.storage["settings"];
+	          const defaults = settings2["defaults"];
+	          const aweight = args.get("await")?.value ?? defaults["await"];
+	          const silent = args.get("silent")?.value ?? defaults["silent"];
+	          const global = args.get("global")?.value ?? defaults["global"];
+	          const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
+	            interaction
+	          });
+	          const { runs, commandUseSessions } = plugin$2.storage["stats"], history = settings2["history"];
+	          let thisEvaluation;
+	          if (history.enabled) {
+	            const sessionPosition = usedInSession.position;
+	            thisEvaluation = {
+	              session: sessionPosition,
+	              position: commandUseSessions[sessionPosition],
+	              start,
+	              end,
+	              elapsed,
+	              code,
+	              errored
+	            };
+	            if (!interaction.dontSaveResult) {
+	              thisEvaluation.result = cloneWithout(result, [
+	                runs["history"],
+	                runs["sessionHistory"],
+	                vendetta.plugin.storage
+	              ], "not saved");
+	              if (history.saveContext)
+	                thisEvaluation.context = cloneWithout(interaction, [
 	                  runs["history"],
 	                  runs["sessionHistory"],
 	                  vendetta.plugin.storage
 	                ], "not saved");
-	                if (history.saveContext)
-	                  thisEvaluation.context = cloneWithout(interaction, [
-	                    runs["history"],
-	                    runs["sessionHistory"],
-	                    vendetta.plugin.storage
-	                  ], "not saved");
-	              }
-	              (function() {
-	                if (!history.saveOnError && errored)
-	                  return runs["failed"]++;
-	                runs["succeeded"]++;
-	                runs["history"].push(thisEvaluation);
-	                runs["sessionHistory"].push(thisEvaluation);
-	                commandUseSessions[thisEvaluation.session]++;
-	              })();
 	            }
-	            if (!silent) {
-	              const outputSettings = settings["output"];
-	              let outputStringified = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
-	              if (errored) {
-	                const errorSettings = outputSettings["errors"];
-	                if (errorSettings["stack"])
-	                  outputStringified = result.stack;
-	                if (errorSettings["trim"])
-	                  outputStringified = outputStringified.split("    at ?anon_0_?anon_0_evaluate")[0];
-	              }
-	              if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < outputStringified.length)
-	                outputStringified = outputStringified.slice(0, outputSettings["trim"]);
-	              if (outputSettings["codeblock"].enabled) {
-	                if (outputSettings["codeblock"].escape)
-	                  outputStringified = outputStringified.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
-	                outputStringified = "```" + outputSettings["codeblock"].language + outputStringified + "```";
-	              }
-	              let infoString;
-	              if (outputSettings["info"].enabled) {
-	                let type = outputSettings["info"].prettyTypeof ? prettyTypeof(result) : "type: " + typeof result;
-	                if (errored)
-	                  type = `Error (${type})`;
-	                const hint = outputSettings["info"]["hints"] ? result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "" : "";
-	                infoString = `${type}
-${hint}took: ${elapsed}ms`;
-	              }
-	              let sourceFooterString = `length: ${code.length}`;
-	              let newlineCount = code.split("").filter(function($) {
-	                return $ === "\n";
-	              }).length;
-	              if (newlineCount < 0)
-	                sourceFooterString += `
-newlines: ${newlineCount}`;
-	              if (errored) {
-	                sendMessage({
-	                  channelId: channel.id,
-	                  content: !outputSettings["location"] ? outputStringified : void 0,
-	                  embeds: [
-	                    {
-	                      type: "rich",
-	                      color: EMBED_COLOR("exploded"),
-	                      title: "Error returned",
-	                      description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : void 0,
-	                      footer: outputSettings["info"].enabled ? outputSettings["location"] ? {
-	                        infoString
-	                      } : void 0 : void 0
-	                    },
-	                    !outputSettings["sourceEmbed"] ? void 0 : {
-	                      type: "rich",
-	                      color: EMBED_COLOR("source"),
-	                      title: "Code",
-	                      description: code,
-	                      footer: {
-	                        text: sourceFooterString
-	                      }
-	                    }
-	                  ].filter(function($) {
-	                    return $ !== void 0;
-	                  })
-	                }, messageMods);
-	              }
-	              if (!errored)
-	                sendMessage({
-	                  channelId: channel.id,
-	                  content: !outputSettings["location"] ? outputStringified : void 0,
-	                  embeds: [
-	                    {
-	                      type: "rich",
-	                      color: EMBED_COLOR("satisfactory"),
-	                      description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : void 0,
-	                      footer: outputSettings["info"].enabled ? outputSettings["location"] ? {
-	                        infoString
-	                      } : void 0 : void 0
-	                    },
-	                    !outputSettings["sourceEmbed"] ? void 0 : {
-	                      type: "rich",
-	                      color: EMBED_COLOR("source"),
-	                      title: "Code",
-	                      description: code,
-	                      footer: {
-	                        text: sourceFooterString
-	                      }
-	                    }
-	                  ].filter(function($) {
-	                    return $ !== void 0;
-	                  })
-	                }, messageMods);
-	            }
-	            if (!errored && args.get("return")?.value)
-	              return result;
-	          } catch (e) {
-	            console.error(e);
-	            console.log(e.stack);
-	            alert("An uncatched error was thrown while running /eval\n" + e.stack);
+	            (function() {
+	              if (!history.saveOnError && errored)
+	                return runs["failed"]++;
+	              runs["succeeded"]++;
+	              runs["history"].push(thisEvaluation);
+	              runs["sessionHistory"].push(thisEvaluation);
+	              commandUseSessions[thisEvaluation.session]++;
+	            })();
 	          }
+	          if (!silent) {
+	            const outputSettings = settings2["output"];
+	            let outputStringified = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
+	            if (errored) {
+	              const errorSettings = outputSettings["errors"];
+	              if (errorSettings["stack"])
+	                outputStringified = result.stack;
+	              if (errorSettings["trim"])
+	                outputStringified = outputStringified.split("    at ?anon_0_?anon_0_evaluate")[0];
+	            }
+	            if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < outputStringified.length)
+	              outputStringified = outputStringified.slice(0, outputSettings["trim"]);
+	            if (outputSettings["codeblock"].enabled) {
+	              if (outputSettings["codeblock"].escape)
+	                outputStringified = outputStringified.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
+	              outputStringified = "```" + outputSettings["codeblock"].language + outputStringified + "```";
+	            }
+	            let infoString;
+	            if (outputSettings["info"].enabled) {
+	              let type = outputSettings["info"].prettyTypeof ? prettyTypeof(result) : "type: " + typeof result;
+	              if (errored)
+	                type = `Error (${type})`;
+	              const hint = outputSettings["info"]["hints"] ? result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "" : "";
+	              infoString = `${type}
+${hint}took: ${elapsed}ms`;
+	            }
+	            let sourceFooterString = `length: ${code.length}`;
+	            let newlineCount = code.split("").filter(function($) {
+	              return $ === "\n";
+	            }).length;
+	            if (newlineCount < 0)
+	              sourceFooterString += `
+newlines: ${newlineCount}`;
+	            if (errored) {
+	              sendMessage({
+	                channelId: channel.id,
+	                content: !outputSettings["location"] ? outputStringified : void 0,
+	                embeds: [
+	                  {
+	                    type: "rich",
+	                    color: EMBED_COLOR("exploded"),
+	                    title: "Error returned",
+	                    description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : void 0,
+	                    footer: outputSettings["info"].enabled ? outputSettings["location"] ? {
+	                      infoString
+	                    } : void 0 : void 0
+	                  },
+	                  !outputSettings["sourceEmbed"] ? void 0 : {
+	                    type: "rich",
+	                    color: EMBED_COLOR("source"),
+	                    title: "Code",
+	                    description: code,
+	                    footer: {
+	                      text: sourceFooterString
+	                    }
+	                  }
+	                ].filter(function($) {
+	                  return $ !== void 0;
+	                })
+	              }, messageMods);
+	            }
+	            if (!errored)
+	              sendMessage({
+	                channelId: channel.id,
+	                content: !outputSettings["location"] ? outputStringified : void 0,
+	                embeds: [
+	                  {
+	                    type: "rich",
+	                    color: EMBED_COLOR("satisfactory"),
+	                    description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : void 0,
+	                    footer: outputSettings["info"].enabled ? outputSettings["location"] ? {
+	                      infoString
+	                    } : void 0 : void 0
+	                  },
+	                  !outputSettings["sourceEmbed"] ? void 0 : {
+	                    type: "rich",
+	                    color: EMBED_COLOR("source"),
+	                    title: "Code",
+	                    description: code,
+	                    footer: {
+	                      text: sourceFooterString
+	                    }
+	                  }
+	                ].filter(function($) {
+	                  return $ !== void 0;
+	                })
+	              }, messageMods);
+	          }
+	          if (!errored && args.get("return")?.value)
+	            return result;
+	        } catch (e) {
+	          console.error(e);
+	          console.log(e.stack);
+	          alert("An uncatched error was thrown while running /eval\n" + e.stack);
 	        }
-	      }));
+	      }
 	    } catch (e) {
 	      console.error(e);
 	      console.log(e.stack);
@@ -447,42 +531,54 @@ newlines: ${newlineCount}`;
 ${e.stack}`);
 	    }
 	  },
-	  command: cmdDisplays({
-	    type: 1,
-	    inputType: 1,
-	    applicationId: "-1",
-	    name: "!eval",
-	    displayName: "!eval",
-	    description: "Evaluates code",
-	    options: [
-	      {
-	        required: true,
-	        type: 3,
-	        name: "code",
-	        description: "Code to evaluate"
+	  command(execute) {
+	    var _this = this;
+	    if (this.commandPatch) {
+	      this.patches.splice(this.patches.findIndex(function($) {
+	        return $ === _this.commandPatch;
+	      }), 1)?.();
+	    }
+	    this.commandPatch = commands.registerCommand(cmdDisplays({
+	      execute,
+	      predicate: plugin$2.storage["settings"]["command"].predicate ?? function() {
+	        return true;
 	      },
-	      {
-	        type: 5,
-	        name: "return",
-	        description: "Return the returned value? (so it works as a real command)"
-	      },
-	      {
-	        type: 5,
-	        name: "global",
-	        description: "Evaluate the code in the global scope?"
-	      },
-	      {
-	        type: 5,
-	        name: "silent",
-	        description: "Show the output of the evaluation? (default: false)"
-	      },
-	      {
-	        type: 5,
-	        name: "await",
-	        description: "await the evaluation?"
-	      }
-	    ]
-	  })
+	      type: 1,
+	      inputType: 1,
+	      applicationId: "-1",
+	      name: plugin$2.storage["settings"]["command"].name ?? "!eval",
+	      description: "Evaluates code",
+	      options: [
+	        {
+	          required: true,
+	          type: 3,
+	          name: "code",
+	          description: "Code to evaluate"
+	        },
+	        {
+	          type: 5,
+	          name: "silent",
+	          description: `Show the output of the evaluation? (default: ${plugin$2.storage["settings"]["defaults"]["silent"] ?? true})`
+	        },
+	        {
+	          type: 5,
+	          name: "return",
+	          description: `Return the returned value? (so it works as a real command, default: ${plugin$2.storage["settings"]["defaults"]["return"]})`
+	        },
+	        {
+	          type: 5,
+	          name: "global",
+	          description: `Evaluate the code in the global scope? (default: ${plugin$2.storage["settings"]["defaults"]["global"] ?? false})`
+	        },
+	        {
+	          type: 5,
+	          name: "await",
+	          description: `await the evaluation? (default: ${plugin$2.storage["settings"]["defaults"]["await"] ?? true})`
+	        }
+	      ]
+	    }));
+	    this.patches.push(this.commandPatch);
+	  }
 	};
 	var plugin$1 = plugin;
 
@@ -493,4 +589,4 @@ ${e.stack}`);
 
 	return exports;
 
-})({}, vendetta.commands, vendetta.metro, vendetta.plugin, vendetta.ui);
+})({}, vendetta.commands, vendetta.metro, vendetta.plugin, vendetta.ui, vendetta.metro.common, vendetta.storage, vendetta.ui.components, vendetta.ui.components.General, vendetta.metro.common.stylesheet);
