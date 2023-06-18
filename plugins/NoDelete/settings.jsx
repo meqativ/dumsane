@@ -9,10 +9,10 @@ import ItemWithRemove from "../../helpers/ui/ItemWithRemove.jsx";
 import { findByStoreName, findByProps } from "@vendetta/metro";
 let UserStore, UncachedUserManager, Profiles;
 export default (props) => {
+	UserStore ??= findByStoreName("UserStore");
+	UncachedUserManager ??= findByProps("fetchProfile", "getUser", "setFlag");
+	Profiles ??= findByProps("showUserProfile");
 	async function openProfile(userId) {
-		UserStore ??= findByStoreName("UserStore");
-		UncachedUserManager ??= findByProps("fetchProfile", "getUser", "setFlag");
-		Profiles ??= findByProps("showUserProfile");
 		const show = Profiles.showUserProfile;
 
 		UserStore.getUser(userId) ? show({ userId }) : UncachedUserManager.getUser(userId).then(({ id }) => show({ id }));
