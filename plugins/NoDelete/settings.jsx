@@ -8,15 +8,14 @@ import { getTranslation } from "./translations.js";
 import ItemWithRemove from "../../helpers/ui/ItemWithRemove.jsx";
 import { findByStoreName, findByProps } from "@vendetta/metro";
 let UserStore, UncachedUserManager;
-async function openProfile(userId) {
-	if (!UserStore || !UncachedUserManager) return false;
-	const show = Profiles.showUserProfile;
-
-	Users.getUser(userId) ? show({ userId }) : UncachedUserManager.getUser(userId).then(({ id }) => show({ id }));
-}
 export default (props) => {
 	UserStore ??= findByStoreName("UserStore");
 	UncachedUserManager ??= findByProps("fetchProfile", "getUser", "setFlag");
+async function openProfile(userId) {
+	const show = Profiles.showUserProfile;
+
+	UserStore.getUser(userId) ? show({ userId }) : UncachedUserManager.getUser(userId).then(({ id }) => show({ id }));
+}
 
 	useProxy(storage);
 	const [users, setUsers] = React.useState(storage["ignore"]["users"]);
@@ -63,9 +62,9 @@ export default (props) => {
 						let pfp = User?.getAvatarURL?.()?.replace?.(/\.(gif|webp)/, ".png");
 						if (!pfp) {
 							pfp = "https://cdn.discordapp.com/embed/avatars/1.png";
-							User.username = `Uncached (${id})`;
+							User.username = `${id} Uncached, `;
 							User.discriminator = "0";
-							if (uncached === 0) User.username += " Press the avatar to open their profile";
+							if (uncached === 0) User.username += "press the avatar";
 							uncached++;
 						}
 
