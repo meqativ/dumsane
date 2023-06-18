@@ -60,9 +60,9 @@ export default (props) => {
 				<ReactNative.ScrollView style={{ flex: 1, marginLeft: 15 }}>
 					{users.map((id) => {
 						const User = UserStore.getUser(id) ?? {};
-						let pfp = User?.getAvatarURL?.()?.replace?.(/\.(gif|webp)/, ".png");
+						let pfp = User?.getAvatarURL?.(null,26)?.replace?.(/\.(gif|webp)/, ".png");
 						if (!pfp) {
-							pfp = "https://cdn.discordapp.com/embed/avatars/1.png";
+							pfp = "https://cdn.discordapp.com/embed/avatars/1.png?size=48";
 							User.username = `${id} Uncached`;
 							User.discriminator = "0";
 							if (uncached === 0) User.username += ", press the avatar";
