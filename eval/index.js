@@ -29,6 +29,17 @@
 	  }
 	  return obj;
 	}
+	function generateStr(chars) {
+	  let length = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 27;
+	  if (typeof chars !== "string")
+	    throw new Error("Passed chars isn't a string");
+	  if (chars?.length <= 0)
+	    throw new Error("Invalid chars length");
+	  let result = "";
+	  for (let i = 0; i < length; i++)
+	    result += chars[Math.floor(Math.random() * chars.length)];
+	  return result;
+	}
 	function areArraysEqual(arr1, arr2) {
 	  if (arr1.length !== arr2.length)
 	    return false;
@@ -135,9 +146,37 @@
 	    }
 	  }
 	}
+	const EMOJIS = {
+	  loadingDiscordSpinner: "a:loading:1105495814073229393",
+	  aol: "a:aol:1108834296359301161",
+	  linuth: ":linuth:1110531631409811547",
+	  fuckyoy: ":fuckyoy:1108360628302782564",
+	  getLoading() {
+	    return Math.random() < 0.01 ? this?.aol : this.loadingDiscordSpinner;
+	  },
+	  getFailure() {
+	    return Math.random() < 0.01 ? this?.fuckyoy : this.linuth;
+	  },
+	  getSuccess() {
+	    return "";
+	  }
+	};
 	const AVATARS = {
 	  command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
 	};
+
+	var hlp = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		AVATARS: AVATARS,
+		EMOJIS: EMOJIS,
+		areArraysEqual: areArraysEqual,
+		cloneWithout: cloneWithout,
+		cmdDisplays: cmdDisplays,
+		generateStr: generateStr,
+		mSendMessage: mSendMessage,
+		makeDefaults: makeDefaults,
+		prettyTypeof: prettyTypeof
+	});
 
 	const { inspect } = metro.findByProps("inspect"), authorMods = {
 	  author: {
@@ -313,7 +352,13 @@
 	          const silent = args.get("silent")?.value ?? defaults["silent"];
 	          const global = args.get("global")?.value ?? defaults["global"];
 	          const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
-	            interaction
+	            interaction,
+	            util: {
+	              sendMessage,
+	              hlp,
+	              VARIATION_SELECTOR_69,
+	              evaluate
+	            }
 	          });
 	          const { runs, commandUseSessions } = plugin$2.storage["stats"], history = settings["history"];
 	          let thisEvaluation;
