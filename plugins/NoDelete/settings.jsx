@@ -39,7 +39,7 @@ export default (props) => {
 					trailing={<Forms.FormRow.Icon source={getAssetIDByName("ic_trash_24px")} />}
 					onPress={() => {
 						if (users.length !== 0)
-							showConfirmaionAlert({
+							showConfirmationAlert({
 								title: getTranslation("settings.confirmClear.title"),
 								content: getTranslation("settings.confirmClear.description", true)?.make?.(users.length),
 								confirmText: getTranslation("settings.confirmClear.yes"),
