@@ -1,0 +1,7 @@
+{
+	"name": "BlockWebhooks",
+	"description": "Provides the ability to block webhooks.\nRight now use /!eval code: window.blockedWebhooks.push({name: \"\", id: \"0\", avatarURL: \"https://github.com/ghost.png\"}) to add users to the blocked webhooks list.",
+	"authors": [{ "name": "meqativ :3", "id": "744276454946242723" }],
+	"main": "./index.js",
+	"vendetta": { "icon": "ic_webhook_24px" }
+}
