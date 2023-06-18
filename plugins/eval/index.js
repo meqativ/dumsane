@@ -168,7 +168,7 @@ plugin = {
 					const silent = args.get("silent")?.value ?? defaults["silent"];
 					const global = args.get("global")?.value ?? defaults["global"];
 
-					const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, { interaction });
+					const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, { interaction, util: { sendMessage, hlp, VARIATION_SELECTOR_69, evaluate } });
 
 					const { runs, commandUseSessions } = storage["stats"],
 						history = settings["history"];
