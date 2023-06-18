@@ -1,4 +1,4 @@
-(function (exports, commands, metro, plugin$2, ui, common, storage, components, General, stylesheet$1) {
+(function (exports, commands, metro, plugin$2, ui) {
 	'use strict';
 
 	function cmdDisplays(obj, translations, locale) {
@@ -139,83 +139,6 @@
 	  command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
 	};
 
-	const stylesheet = stylesheet$1.createThemedStyleSheet({
-	  container: {
-	    flexDirection: "row",
-	    alignItems: "center"
-	  },
-	  image: {
-	    width: 25,
-	    height: 25,
-	    borderRadius: 100
-	  },
-	  label: {
-	    color: ui.semanticColors.HEADER_PRIMARY
-	  },
-	  labelRemove: {
-	    color: ui.semanticColors.TEXT_WARNING
-	  }
-	});
-	function ItemWithRemove(param) {
-	  let { imageSource, onImagePress, label, labelRemove = "REMOVE", onRemove } = param;
-	  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(General.View, {
-	    style: stylesheet.container
-	  }, /* @__PURE__ */ React.createElement(General.TouchableOpacity, {
-	    onPress: onRemove
-	  }, /* @__PURE__ */ React.createElement(General.Text, {
-	    style: stylesheet.labelRemove
-	  }, labelRemove)), /* @__PURE__ */ React.createElement(General.TouchableOpacity, {
-	    onPress: onImagePress
-	  }, /* @__PURE__ */ React.createElement(General.Image, {
-	    style: [
-	      stylesheet.image
-	    ],
-	    source: imageSource
-	  })), /* @__PURE__ */ React.createElement(General.Text, {
-	    style: stylesheet.label
-	  }, label)));
-	}
-
-	const Real = Array.from({
-	  length: 50
-	}, function(arr, i) {
-	  return {
-	    pfp: "https://github.com/meqativ.png",
-	    username: "meqativ",
-	    id: i
-	  };
-	});
-	function settings(props) {
-	  storage.useProxy(plugin$2.storage);
-	  const [users, setUsers] = common.React.useState(Real);
-	  const handleRemoveUser = function(userId) {
-	    setUsers(users.filter(function(u) {
-	      return u.id !== userId;
-	    }));
-	  };
-	  return /* @__PURE__ */ common.React.createElement(common.ReactNative.ScrollView, {
-	    style: {
-	      flex: 1
-	    }
-	  }, /* @__PURE__ */ common.React.createElement(components.Forms.FormSection, {
-	    title: "List",
-	    titleStyleType: "no_border"
-	  }, users.map(function(u) {
-	    return /* @__PURE__ */ common.React.createElement(ItemWithRemove, {
-	      imageSource: {
-	        uri: u.pfp
-	      },
-	      onImagePress: function() {
-	        return console.log(`${u.id} onImagePress`);
-	      },
-	      onRemove: function() {
-	        return handleRemoveUser(u.id);
-	      },
-	      label: u.username
-	    });
-	  })));
-	}
-
 	const { inspect } = metro.findByProps("inspect"), authorMods = {
 	  author: {
 	    username: "eval",
@@ -333,7 +256,6 @@
 	  };
 	}
 	plugin = {
-	  settings,
 	  meta: vendetta.plugin,
 	  patches: [],
 	  onUnload() {
@@ -385,15 +307,15 @@
 	          const code = args.get("code")?.value;
 	          if (typeof code !== "string")
 	            throw new Error("No code argument passed");
-	          const settings2 = plugin$2.storage["settings"];
-	          const defaults = settings2["defaults"];
+	          const settings = plugin$2.storage["settings"];
+	          const defaults = settings["defaults"];
 	          const aweight = args.get("await")?.value ?? defaults["await"];
 	          const silent = args.get("silent")?.value ?? defaults["silent"];
 	          const global = args.get("global")?.value ?? defaults["global"];
 	          const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
 	            interaction
 	          });
-	          const { runs, commandUseSessions } = plugin$2.storage["stats"], history = settings2["history"];
+	          const { runs, commandUseSessions } = plugin$2.storage["stats"], history = settings["history"];
 	          let thisEvaluation;
 	          if (history.enabled) {
 	            const sessionPosition = usedInSession.position;
@@ -429,7 +351,7 @@
 	            })();
 	          }
 	          if (!silent) {
-	            const outputSettings = settings2["output"];
+	            const outputSettings = settings["output"];
 	            let outputStringified = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
 	            if (errored) {
 	              const errorSettings = outputSettings["errors"];
@@ -589,4 +511,4 @@ ${e.stack}`);
 
 	return exports;
 
-})({}, vendetta.commands, vendetta.metro, vendetta.plugin, vendetta.ui, vendetta.metro.common, vendetta.storage, vendetta.ui.components, vendetta.ui.components.General, vendetta.metro.common.stylesheet);
+})({}, vendetta.commands, vendetta.metro, vendetta.plugin, vendetta.ui);
