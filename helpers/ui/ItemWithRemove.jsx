@@ -1,14 +1,15 @@
 import { TouchableOpacity, Text, Image, View } from "@vendetta/ui/components/General";
-import { createThemedStylesheet } from "@vendetta/metro/common/stylesheet";
+import { createThemedStyleSheet } from "@vendetta/metro/common/stylesheet";
 import { semanticColors } from "@vendetta/ui";
 
-const stylesheet = createThemedStylesheet({
+const stylesheet = createThemedStyleSheet({
 	container: {
 		flexDirection: "row",
+		alignItems: "center",
 	},
 	image: {
-		width: 100,
-		height: 100,
+		width: 25,
+		height: 25,
 		borderRadius: 100,
 	},
 	label: {

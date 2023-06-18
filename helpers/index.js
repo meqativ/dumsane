@@ -35,7 +35,6 @@ export function generateStr(chars, length = 27) {
 }
 export function areArraysEqual(arr1, arr2) {
 	if (arr1.length !== arr2.length) return false;
-
 	for (let i = 0; i < arr1.length; i++) {
 		const item1 = arr1[i];
 		const item2 = arr2[i];
@@ -53,9 +52,11 @@ export function areArraysEqual(arr1, arr2) {
 }
 export function cloneWithout(value, without, replace) {
 	if (typeof value !== "object") return value;
-	if (without.some(($) => (Array.isArray($) ? areArraysEqual($, value) : $ === value))) return replace;
+	if (without.some(($) => (Array.isArray($) ? (Array.isArray(value) ? areArraysEqual($, value) : false) : $ === value))) return replace;
+
 	const newObj = Array.isArray(value) ? [] : {};
 	for (const key in value) {
+		if (value[key] === null) console.log(value, key);
 		if (Array.isArray(value[key])) {
 			newObj[key] = cloneWithout(value[key], without, replace);
 		} else if (without.includes(value[key])) {
