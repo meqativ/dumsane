@@ -13,10 +13,8 @@ const { inspect } = findByProps("inspect"),
 	},
 	AsyncFunction = (async () => {}).constructor,
 	VARIATION_SELECTOR_69 = "󠄴";
-console.log("eval", vendetta.plugin.storage);
 hlp.makeDefaults(vendetta.plugin.storage, {
 	stats: {
-		commandUseSessions: [],
 		runs: {
 			history: [],
 			failed: 0,
@@ -86,7 +84,7 @@ export const EMBED_COLOR = (color) => {
  */
 let madeSendMessage,
 	plugin,
-	usedInSession = { status: false, position: -1 };
+	usedInSession = false;
 function sendMessage() {
 	if (window.sendMessage) return window.sendMessage?.(...arguments);
 	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
@@ -132,17 +130,10 @@ plugin = {
 			async function execute(rawArgs, ctx) {
 				UserStore ??= findByStoreName("UserStore");
 
-				if (!usedInSession.status) {
-					usedInSession.status = true;
-					usedInSession.position = storage["stats"]["commandUseSessions"].length - 1;
-					if (storage["stats"]["commandUseSessions"].length === 0) {
-						storage["stats"]["commandUseSessions"] = [0];
-						usedInSession.position = 0;
-					}
-					if (storage["stats"]["commandUseSessions"].some((t) => typeof t !== "number")) {
-						storage["stats"]["commandUseSessions"] = [0];
-					}
+				if (!usedInSession) {
+					usedInSession = true;
 					storage["stats"]["runs"]["plugin"]++;
+					storage["stats"]["runs"]["sessionHistory"] = [];
 				}
 				const currentUser = UserStore.getCurrentUser();
 				const messageMods = {
@@ -173,14 +164,12 @@ plugin = {
 
 					const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, { interaction, util: { sendMessage, hlp, VARIATION_SELECTOR_69, evaluate } });
 
-					const { runs, commandUseSessions } = storage["stats"],
+					const { runs } = storage["stats"],
 						history = settings["history"];
 					let thisEvaluation;
 					if (history.enabled) {
-						const sessionPosition = usedInSession.position;
 						thisEvaluation = {
-							session: sessionPosition,
-							position: commandUseSessions[sessionPosition],
+							session: runs["plugin"],
 							start,
 							end,
 							elapsed,
@@ -199,7 +188,6 @@ plugin = {
 							//if (history.checkLatestDupes && runs["sessionHistory"].at(-1)?.code === thisEvaluation.code) return;
 							runs["history"].push(thisEvaluation);
 							runs["sessionHistory"].push(thisEvaluation);
-							commandUseSessions[thisEvaluation.session]++;
 						})();
 					}
 
