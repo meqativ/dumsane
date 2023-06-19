@@ -16,7 +16,7 @@ const minifyBlacklist = [
   /*"Vibrate", "selfexplode", "Uwuify"*/
 ];
 const stfuWarningCodes = ["MISSING_NAME_OPTION_FOR_IIFE_EXPORT"];
-const onlyBuild = process.argv.slice(2, process.argv.length);
+const onlyBuild = ["eval"]; // process.argv.slice(2, process.argv.length);
 /** @type import("rollup").InputPluginOption */
 const plugins = [
   nodeResolve(),
