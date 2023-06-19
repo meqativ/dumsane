@@ -186,10 +186,8 @@
 	  }
 	}, AsyncFunction = async function() {
 	}.constructor, VARIATION_SELECTOR_69 = "\u{E0134}";
-	console.log("eval", vendetta.plugin.storage);
 	makeDefaults(vendetta.plugin.storage, {
 	  stats: {
-	    commandUseSessions: [],
 	    runs: {
 	      history: [],
 	      failed: 0,
@@ -251,10 +249,7 @@
 	const EMBED_COLOR = function(color) {
 	  return parseInt(resolveSemanticColor(ThemeStore.theme, ui.semanticColors.BACKGROUND_SECONDARY).slice(1), 16);
 	};
-	let madeSendMessage, plugin, usedInSession = {
-	  status: false,
-	  position: -1
-	};
+	let madeSendMessage, plugin, usedInSession = false;
 	function sendMessage() {
 	  if (window.sendMessage)
 	    return window.sendMessage?.(...arguments);
@@ -309,23 +304,10 @@
 	      this.command(execute);
 	      async function execute(rawArgs, ctx) {
 	        UserStore ??= metro.findByStoreName("UserStore");
-	        if (!usedInSession.status) {
-	          usedInSession.status = true;
-	          usedInSession.position = plugin$2.storage["stats"]["commandUseSessions"].length - 1;
-	          if (plugin$2.storage["stats"]["commandUseSessions"].length === 0) {
-	            plugin$2.storage["stats"]["commandUseSessions"] = [
-	              0
-	            ];
-	            usedInSession.position = 0;
-	          }
-	          if (plugin$2.storage["stats"]["commandUseSessions"].some(function(t) {
-	            return typeof t !== "number";
-	          })) {
-	            plugin$2.storage["stats"]["commandUseSessions"] = [
-	              0
-	            ];
-	          }
+	        if (!usedInSession) {
+	          usedInSession = true;
 	          plugin$2.storage["stats"]["runs"]["plugin"]++;
+	          plugin$2.storage["stats"]["runs"]["sessionHistory"] = [];
 	        }
 	        const currentUser = UserStore.getCurrentUser();
 	        const messageMods = {
@@ -367,13 +349,11 @@
 	              evaluate
 	            }
 	          });
-	          const { runs, commandUseSessions } = plugin$2.storage["stats"], history = settings["history"];
+	          const { runs } = plugin$2.storage["stats"], history = settings["history"];
 	          let thisEvaluation;
 	          if (history.enabled) {
-	            const sessionPosition = usedInSession.position;
 	            thisEvaluation = {
-	              session: sessionPosition,
-	              position: commandUseSessions[sessionPosition],
+	              session: runs["plugin"],
 	              start,
 	              end,
 	              elapsed,
@@ -399,7 +379,6 @@
 	              runs["succeeded"]++;
 	              runs["history"].push(thisEvaluation);
 	              runs["sessionHistory"].push(thisEvaluation);
-	              commandUseSessions[thisEvaluation.session]++;
 	            })();
 	          }
 	          if (!silent) {
