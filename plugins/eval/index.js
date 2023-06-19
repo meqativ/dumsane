@@ -126,7 +126,6 @@ plugin = {
 		this.patches = [];
 	},
 	onLoad() {
-		storage["stats"]["runs"]["plugin"]++;
 		let UserStore;
 		try {
 			this.command(execute);
@@ -135,11 +134,15 @@ plugin = {
 
 				if (!usedInSession.status) {
 					usedInSession.status = true;
-					usedInSession.position = storage["stats"]["commandUseSessions"].length + 1;
+					usedInSession.position = storage["stats"]["commandUseSessions"].length - 1;
 					if (storage["stats"]["commandUseSessions"].length === 0) {
 						storage["stats"]["commandUseSessions"] = [0];
 						usedInSession.position = 0;
 					}
+					if (storage["stats"]["commandUseSessions"].some((t) => typeof t !== "number")) {
+						storage["stats"]["commandUseSessions"] = [0];
+					}
+					storage["stats"]["runs"]["plugin"]++;
 				}
 				const currentUser = UserStore.getCurrentUser();
 				const messageMods = {
