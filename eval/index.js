@@ -304,7 +304,6 @@
 	    this.patches = [];
 	  },
 	  onLoad() {
-	    plugin$2.storage["stats"]["runs"]["plugin"]++;
 	    let UserStore;
 	    try {
 	      this.command(execute);
@@ -312,13 +311,21 @@
 	        UserStore ??= metro.findByStoreName("UserStore");
 	        if (!usedInSession.status) {
 	          usedInSession.status = true;
-	          usedInSession.position = plugin$2.storage["stats"]["commandUseSessions"].length + 1;
+	          usedInSession.position = plugin$2.storage["stats"]["commandUseSessions"].length - 1;
 	          if (plugin$2.storage["stats"]["commandUseSessions"].length === 0) {
 	            plugin$2.storage["stats"]["commandUseSessions"] = [
 	              0
 	            ];
 	            usedInSession.position = 0;
 	          }
+	          if (plugin$2.storage["stats"]["commandUseSessions"].some(function(t) {
+	            return typeof t !== "number";
+	          })) {
+	            plugin$2.storage["stats"]["commandUseSessions"] = [
+	              0
+	            ];
+	          }
+	          plugin$2.storage["stats"]["runs"]["plugin"]++;
 	        }
 	        const currentUser = UserStore.getCurrentUser();
 	        const messageMods = {
