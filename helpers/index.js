@@ -124,6 +124,7 @@ export function makeDefaults(object, defaults) {
 			object[key] ??= defaults[key];
 		}
 	}
+	return object
 }
 
 export const EMOJIS = {
