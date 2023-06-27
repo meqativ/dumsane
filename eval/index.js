@@ -2,7 +2,7 @@
 	'use strict';
 
 	function cmdDisplays(obj, translations, locale) {
-	  if (!obj.name || !obj?.description)
+	  if (!obj?.name || !obj?.description)
 	    throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command (command name: ${obj?.name})`);
 	  obj.displayName ??= translations?.names?.[locale] ?? obj.name;
 	  obj.displayDescription ??= translations?.names?.[locale] ?? obj.description;
@@ -67,8 +67,6 @@
 	    return replace;
 	  const newObj = Array.isArray(value) ? [] : {};
 	  for (const key in value) {
-	    if (value[key] === null)
-	      console.log(value, key);
 	    if (Array.isArray(value[key])) {
 	      newObj[key] = cloneWithout(value[key], without, replace);
 	    } else if (without.includes(value[key])) {
@@ -104,13 +102,12 @@
 	    return msg;
 	  };
 	}
-	function prettyTypeof(value, raw) {
+	function prettyTypeof(value) {
 	  const name = [
 	    value?.constructor?.name
 	  ];
 	  name[0] ??= "Undefined";
 	  if (name[0] !== "Undefined" && value?.prototype?.constructor === value && typeof value === "function") {
-	    console.log("h");
 	    name[0] = "Class";
 	    name[1] = `(${value.name})`;
 	  } else if (value === null) {
@@ -126,7 +123,7 @@
 	    name[1] = value.length;
 	  } else if (typeof value === "number" && value !== 0) {
 	    const expo = value.toExponential();
-	    if (!expo.endsWith("e+1"))
+	    if (!expo.endsWith("e+1") && !expo.endsWith("e+0"))
 	      name[1] = expo;
 	  }
 	  return name.join(" ");
@@ -136,7 +133,7 @@
 	    throw new Error("No object passed to make defaults for");
 	  if (defaults === void 0)
 	    throw new Error("No defaults object passed to make defaults off of");
-	  for (const key of Object.keys(defaults)) {
+	  for (const key in defaults) {
 	    if (typeof defaults[key] === "object" && !Array.isArray(defaults[key])) {
 	      if (typeof object[key] !== "object")
 	        object[key] = {};
@@ -145,6 +142,7 @@
 	      object[key] ??= defaults[key];
 	    }
 	  }
+	  return object;
 	}
 	const EMOJIS = {
 	  loadingDiscordSpinner: "a:loading:1105495814073229393",
