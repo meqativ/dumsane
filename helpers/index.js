@@ -1,5 +1,25 @@
+/* Assigns the displayName property (translation) eveywhere it's needed
+ * @param {object} obj The command object to assign the properties on (mutates)
+ * @param {object|undefined} translations The translations to use. Must be in the same position, has to have an "s" at the end of the name and has to be an object with locale:string k,v
+ * @param {string|undefined} locale The locale to use
+ *
+ * @returns {object} the object that was passed in the first argument
+ *
+ * @example
+ * cmdDisplays({
+ *   name: "meow",
+ *   description: "mrrrp",
+ * }, {
+ *   names: {
+ *     ru: "мяу"
+ *   },
+ *   description: {
+ *     ru: "муррр"
+ *   }
+ * }, "ru")
+ */
 export function cmdDisplays(obj, translations, locale) {
-	if (!obj.name || !obj?.description) throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command (command name: ${obj?.name})`);
+	if (!obj?.name || !obj?.description) throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command (command name: ${obj?.name})`);
 
 	obj.displayName ??= translations?.names?.[locale] ?? obj.name;
 	obj.displayDescription ??= translations?.names?.[locale] ?? obj.description;
@@ -56,7 +76,6 @@ export function cloneWithout(value, without, replace) {
 
 	const newObj = Array.isArray(value) ? [] : {};
 	for (const key in value) {
-		if (value[key] === null) console.log(value, key);
 		if (Array.isArray(value[key])) {
 			newObj[key] = cloneWithout(value[key], without, replace);
 		} else if (without.includes(value[key])) {
@@ -88,12 +107,18 @@ export function mSendMessage(vendetta) {
 		return msg;
 	};
 }
-
-export function prettyTypeof(value, raw) {
+/*
+ * Makes a pretty typeof-like string from a value
+ * @param {any} value
+ * @returns {string}
+ *
+ * @example
+ * prettyTypeof(69_999)
+ */
+export function prettyTypeof(value) {
 	const name = [value?.constructor?.name];
 	name[0] ??= "Undefined";
 	if (name[0] !== "Undefined" && value?.prototype?.constructor === value && typeof value === "function") {
-		console.log("h");
 		name[0] = "Class";
 		name[1] = `(${value.name})`;
 	} else if (value === null) {
@@ -106,17 +131,31 @@ export function prettyTypeof(value, raw) {
 		name[1] = value.length;
 	} else if (typeof value === "number" && value !== 0) {
 		const expo = value.toExponential();
-		if (!expo.endsWith("e+1")) name[1] = expo;
+		if (!expo.endsWith("e+1") && !expo.endsWith("e+0")) name[1] = expo;
 	}
 
 	return name.join(" ");
 }
-
+/* Makes sure that the properties from "defaults" exist on "object" (objects recursively)
+ * @param {object} object Any object to apply the changes to (mutates)
+ * @param {object} defaults Defaults object to apply the changes from
+ *
+ * @returns {object} the object that was passed in the first argument
+ *
+ * @example
+ * const object = {};
+ * makeDefaults(object, {
+ *   example: 6,
+ *   exampleTwo: {
+ *     example: 1
+ *   }
+ * });
+ */
 export function makeDefaults(object, defaults) {
 	if (object === undefined) throw new Error("No object passed to make defaults for");
 	if (defaults === undefined) throw new Error("No defaults object passed to make defaults off of");
 
-	for (const key of Object.keys(defaults)) {
+	for (const key in defaults) {
 		if (typeof defaults[key] === "object" && !Array.isArray(defaults[key])) {
 			if (typeof object[key] !== "object") object[key] = {};
 			makeDefaults(object[key], defaults[key]);
@@ -124,7 +163,7 @@ export function makeDefaults(object, defaults) {
 			object[key] ??= defaults[key];
 		}
 	}
-	return object
+	return object;
 }
 
 export const EMOJIS = {
