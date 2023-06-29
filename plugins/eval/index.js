@@ -12,8 +12,60 @@ const { inspect } = findByProps("inspect"),
 		},
 	},
 	AsyncFunction = (async () => {}).constructor,
-	VARIATION_SELECTOR_69 = "󠄴";
+	VARIATION_SELECTOR_69 = "󠄴",
+	BUILTIN_AUTORUN_TYPES = [
+		"autorun_before",
+		"autorun_after",
+		"plugin_after_defaults",
+		"plugin_after_exports",
+		"plugin_onUnload",
+		"plugin_onLoad",
+		"command_before",
+		"command_after_interaction_def",
+		"command_before_return",
+		"command_after",
+		"command_autocomplete_before",
+		"command_autocomplete_after",
+		"evaluate_before",
+		"evaluate_after",
+	],
+	triggerAutorun = (type, fn) => {
+		if (["autorun_before", "autorun_after"].includes(type)) return;
+		triggerAutorun("autorun_before", (code) => eval(code));
+		const optimizations = storage["settings"]["autoruns"]["optimizations"];
+		let autoruns = storage["autoruns"];
+		if (optimizations) autoruns = autoruns.filter(($) => $.type === type);
+		autoruns = autoruns.filter(($) => $.enabled);
+		let index = 0;
+		for (const autorun of autoruns) {
+			try {
+				if (!optimizations && autorun.type !== type) {
+					index++;
+					continue;
+				}
+				fn(autorun.code);
+				storage["stats"]["autoruns"][autorun.type] = (storage["stats"]["autoruns"][autorun.type] ?? 0) + 1;
+				autorun.runs ??= 0;
+				autorun.runs++;
+			} catch (e) {
+				e.message = `Failed to execute autorun ${autorun.name ?? "No Name"} (${index}${optimizations ? ", optimized" : ""}). ` + e.message;
+				console.error(e);
+				console.log(e.stack);
+			}
+			index++;
+		}
+		triggerAutorun("autorun_after", (code) => eval(code));
+	};
 hlp.makeDefaults(vendetta.plugin.storage, {
+	autoruns: [
+		{
+			enabled: false,
+			type: "plugin_onLoad",
+			name: "example autorun (plugin_onLoad)",
+			description: "Example autorun, for more autorun types >> return utils.BUILTIN_AUTORUN_TYPES",
+			code: `/* eval()s this code when the plugin starts up */` + `alert("plugin_onLoad")`,
+		},
+	],
 	stats: {
 		runs: {
 			history: [],
@@ -22,6 +74,7 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 			plugin: 0,
 			sessionHistory: [],
 		},
+		autoruns: {},
 	},
 	settings: {
 		history: {
@@ -30,10 +83,21 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 			saveOnError: false,
 			checkLatestDupes: true, // not functional
 		},
+		autoruns: {
+			enabled: true,
+			optimization: false,
+		},
 		output: {
 			location: 0, // 0: content, 1: embed
 			trim: 15000, // Number: enabled, specifies end; Undefined: disabled
-			sourceEmbed: true,
+			sourceEmbed: {
+				enabled: true,
+				codeblock: {
+					enabled: true,
+					escape: true,
+					language: "js\n",
+				},
+			},
 			info: {
 				enabled: true,
 				prettyTypeof: true,
@@ -69,6 +133,8 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 		},
 	},
 });
+triggerAutorun("plugin_after_defaults", (code) => eval(code));
+
 const {
 	meta: { resolveSemanticColor },
 } = findByProps("colors", "meta");
@@ -90,7 +156,15 @@ function sendMessage() {
 	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
+
+/* Evaluates code
+ * @param {string} code Code to evaluate
+ * @param {boolean} aweight Whether to await the evaluation
+ * @param {boolean} global Whether to assign the next argument as the "this" for the evaluation
+ * @param {any} that
+ */
 async function evaluate(code, aweight, global, that = {}) {
+	triggerAutorun("evaluate_before", (code) => eval(code));
 	let result,
 		errored = false,
 		start = +new Date();
@@ -114,20 +188,26 @@ async function evaluate(code, aweight, global, that = {}) {
 		errored = true;
 	}
 	let end = +new Date();
-	return { result, errored, start, end, elapsed: end - start };
+
+	const res = { result, errored, start, end, elapsed: end - start };
+	triggerAutorun("evaluate_after", (code) => eval(code));
+	return res;
 }
 plugin = {
 	meta: vendetta.plugin,
 	patches: [],
 	onUnload() {
+		triggerAutorun("plugin_onUnload", (code) => eval(code));
 		this.patches.forEach((up) => up()); // unpatch every patch
 		this.patches = [];
 	},
 	onLoad() {
+		triggerAutorun("plugin_onLoad", (code) => eval(code));
 		let UserStore;
 		try {
 			this.command(execute);
 			async function execute(rawArgs, ctx) {
+				triggerAutorun("command_before", (code) => eval(code));
 				UserStore ??= findByStoreName("UserStore");
 
 				if (!usedInSession) {
@@ -151,6 +231,13 @@ plugin = {
 					rawArgs,
 					plugin,
 				};
+				triggerAutorun("command_after_interaction_def", (code) => eval(code));
+				if (interaction.autocomplete) {
+					return; // TODO: figure out what in the world do i need to return here
+
+					triggerAutorun("command_autocomplete_before", (code) => eval(code));
+					triggerAutorun("command_autocomplete_after", (code) => eval(code));
+				}
 				try {
 					const { channel, args } = interaction;
 					const code = args.get("code")?.value;
@@ -162,7 +249,10 @@ plugin = {
 					const silent = args.get("silent")?.value ?? defaults["silent"];
 					const global = args.get("global")?.value ?? defaults["global"];
 
-					const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, { interaction, util: { sendMessage, hlp, VARIATION_SELECTOR_69, evaluate } });
+					const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
+						interaction,
+						util: { sendMessage, hlp, VARIATION_SELECTOR_69, evaluate, BUILTIN_AUTORUN_TYPES, triggerAutorun },
+					});
 
 					const { runs } = storage["stats"],
 						history = settings["history"];
@@ -231,13 +321,20 @@ plugin = {
 											footer: outputSettings["info"].enabled ? (outputSettings["location"] ? { infoString } : undefined) : undefined,
 										},
 
-										!outputSettings["sourceEmbed"]
+										!outputSettings["sourceEmbed"]?.enabled
 											? undefined
 											: {
 													type: "rich",
 													color: EMBED_COLOR("source"),
 													title: "Code",
-													description: code,
+													description: ((code) => {
+														const { enabled, escape, language } = outputSettings["sourceEmbed"].codeblock;
+														if (enabled) {
+															if (escape) code = code.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
+															code = "```" + language + code + "```";
+														}
+														return code;
+													})(code),
 													footer: {
 														text: sourceFooterString,
 													},
@@ -259,13 +356,20 @@ plugin = {
 											description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : undefined,
 											footer: outputSettings["info"].enabled ? (outputSettings["location"] ? { infoString } : undefined) : undefined,
 										},
-										!outputSettings["sourceEmbed"]
+										!outputSettings["sourceEmbed"]?.enabled
 											? undefined
 											: {
 													type: "rich",
 													color: EMBED_COLOR("source"),
 													title: "Code",
-													description: code,
+													description: ((code) => {
+														const { enabled, escape, language } = outputSettings["sourceEmbed"].codeblock;
+														if (enabled) {
+															if (escape) code = code.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
+															code = "```" + language + code + "```";
+														}
+														return code;
+													})(code),
 													footer: {
 														text: sourceFooterString,
 													},
@@ -275,12 +379,17 @@ plugin = {
 								messageMods
 							);
 					}
-					if (!errored && args.get("return")?.value) return result;
+
+					if (!errored && args.get("return")?.value) {
+						triggerAutorun("command_before_return", (code) => eval(code));
+						return result;
+					}
 				} catch (e) {
 					console.error(e);
 					console.log(e.stack);
 					alert("An uncatched error was thrown while running /eval\n" + e.stack);
 				}
+				triggerAutorun("command_after", (code) => eval(code));
 			}
 		} catch (e) {
 			console.error(e);
@@ -338,3 +447,4 @@ plugin = {
 	},
 };
 export default plugin;
+triggerAutorun("plugin_after_exports", (code) => eval(code));

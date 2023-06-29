@@ -86,27 +86,96 @@ export function cloneWithout(value, without, replace) {
 	}
 	return newObj;
 }
-
 export function mSendMessage(vendetta) {
-	const { metro } = vendetta;
-	const { receiveMessage } = metro.findByProps("sendMessage", "receiveMessage");
-	const { createBotMessage } = metro.findByProps("createBotMessage");
-	const Avatars = metro.findByProps("BOT_AVATARS");
+	const {
+		metro: {
+			findByProps,
+			findByStoreName,
+			common: {
+				lodash: { merge },
+			},
+		},
+	} = vendetta;
+	const { sendMessage, receiveMessage } = findByProps("sendMessage", "receiveMessage");
+	const { createBotMessage } = findByProps("createBotMessage");
+	const Avatars = findByProps("BOT_AVATARS");
+	const { getChannelId: getFocusedChannelId } = findByStoreName("SelectedChannelStore");
+
 	return function (message, mod) {
-		message.channelId ??= metro.findByStoreName("SelectedChannelStore").getChannelId();
+		message.channelId ??= getFocusedChannelId();
 		if ([null, undefined].includes(message.channelId)) throw new Error("No channel id to receive the message into (channelId)");
-		if (mod !== undefined && "author" in mod) {
-			if ("avatar" in mod.author && "avatarURL" in mod.author) {
-				Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
-				delete mod.author.avatarURL;
-			}
+		let msg = message;
+		if (message.reallySend) {
+			if (typeof mod === "object") msg = merge(msg, mod);
+
+			return sendMessage(message.channelId, msg);
 		}
-		let msg = mod === true ? message : createBotMessage(message);
-		if (typeof mod === "object") msg = vendetta.metro.findByProps("merge").merge(msg, mod);
-		receiveMessage(message.channelId, msg);
+
+		if (mod !== true) msg = createBotMessage(msg);
+		if (typeof mod === "object") {
+			msg = merge(msg, mod);
+			if ("author" in mod)
+				(function processAvatarURL() {
+					const author = mod.author;
+					if (["avatar", "avatarURL"].every((prop) => prop in author)) {
+						Avatars.BOT_AVATARS[author.avatar] = author.avatarURL;
+						delete author.avatarURL;
+					}
+				})();
+		}
+		receiveMessage(msg.channel_id, msg);
 		return msg;
 	};
 }
+
+/* Calls and awaits a promise function, and returns a [result, error] array
+ * @param {function} promise A function that returns a promise
+ * @param {...any} [args] Arguments to pass to the function
+ *
+ * @returns {Array}
+ *
+ * @example
+ * async function log(...messages) {
+ *	if (messages[0] === "error")) throw new Error() // reject(new Error)
+ *
+ *	console.log("[log]", ...messages)
+ *	return messages // resolve(messages)
+ * }
+ * await awaitPromise(log, "meow") // [ ["meow"], null ]
+ *
+ * await awaitPromise(log, "error") // [ null, Error ]
+ */
+export async function awaitPromise(promiseFn, ...args) {
+	let output = [null, null];
+	try {
+		output[0] = await promiseFn(...args);
+	} catch (error) {
+		output[1] = error;
+	}
+	return output;
+}
+
+const SANE_PROPERTY_NAMES = ["_deferredState", "_state", "_value", "_deferreds"];
+/* Returns an object with the properties of a Promise but with the proper key names (hermes polyfill specific)
+ * Basically UNDOes https://github.com/then/promise/blob/master/src/core.js#L16
+ * @param {Promise} insanePromise A promise object with insane key names
+ * @param {boolean} [mutate] Whether to add the proper keys on the passed object itself instead of creating a new one
+ * @param {boolean=false} removeOldKeys Whether to remove the old keys from the insanePromise
+ *
+ * @returns {(Promise|object)}
+ */
+export function fixPromiseProps(insanePromise, mutate, removeOldKeys) {
+	function promiseProperKeyNames(insanePomise, changeOldKeys) {
+		const sanePromise = {};
+		const insanePromiseKeys = Object.keys(insanePromise);
+		if (insanePromiseKeys.length < 3 || insanePromiseKeys.every((name, index) => sanePromiseKeys[i] !== name)) throw new Error("The passed promise is already sane");
+		for (let i = 0; i < 3; i++) {
+			const newKey = SANE_PROPERTY_NAMES[i];
+			if (mutate) sanePromise[newKey] = propIndex++;
+		}
+	}
+}
+
 /*
  * Makes a pretty typeof-like string from a value
  * @param {any} value
