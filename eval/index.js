@@ -36,16 +36,16 @@
 	  if (chars?.length <= 0)
 	    throw new Error("Invalid chars length");
 	  let result = "";
-	  for (let i = 0; i < length; i++)
+	  for (let i1 = 0; i1 < length; i1++)
 	    result += chars[Math.floor(Math.random() * chars.length)];
 	  return result;
 	}
 	function areArraysEqual(arr1, arr2) {
 	  if (arr1.length !== arr2.length)
 	    return false;
-	  for (let i = 0; i < arr1.length; i++) {
-	    const item1 = arr1[i];
-	    const item2 = arr2[i];
+	  for (let i1 = 0; i1 < arr1.length; i1++) {
+	    const item1 = arr1[i1];
+	    const item2 = arr2[i1];
 	    if (Array.isArray(item1) && Array.isArray(item2)) {
 	      if (!areArraysEqual(item1, item2))
 	        return false;
@@ -78,29 +78,62 @@
 	  return newObj;
 	}
 	function mSendMessage(vendetta) {
-	  const { metro } = vendetta;
-	  const { receiveMessage } = metro.findByProps("sendMessage", "receiveMessage");
-	  const { createBotMessage } = metro.findByProps("createBotMessage");
-	  const Avatars = metro.findByProps("BOT_AVATARS");
+	  const { metro: { findByProps, findByStoreName, common: { lodash: { merge } } } } = vendetta;
+	  const { sendMessage, receiveMessage } = findByProps("sendMessage", "receiveMessage");
+	  const { createBotMessage } = findByProps("createBotMessage");
+	  const Avatars = findByProps("BOT_AVATARS");
+	  const { getChannelId: getFocusedChannelId } = findByStoreName("SelectedChannelStore");
 	  return function(message, mod) {
-	    message.channelId ??= metro.findByStoreName("SelectedChannelStore").getChannelId();
+	    message.channelId ??= getFocusedChannelId();
 	    if ([
 	      null,
 	      void 0
 	    ].includes(message.channelId))
 	      throw new Error("No channel id to receive the message into (channelId)");
-	    if (mod !== void 0 && "author" in mod) {
-	      if ("avatar" in mod.author && "avatarURL" in mod.author) {
-	        Avatars.BOT_AVATARS[mod.author.avatar] = mod.author.avatarURL;
-	        delete mod.author.avatarURL;
-	      }
+	    let msg = message;
+	    if (message.reallySend) {
+	      if (typeof mod === "object")
+	        msg = merge(msg, mod);
+	      return sendMessage(message.channelId, msg);
 	    }
-	    let msg = mod === true ? message : createBotMessage(message);
-	    if (typeof mod === "object")
-	      msg = vendetta.metro.findByProps("merge").merge(msg, mod);
-	    receiveMessage(message.channelId, msg);
+	    if (mod !== true)
+	      msg = createBotMessage(msg);
+	    if (typeof mod === "object") {
+	      msg = merge(msg, mod);
+	      if ("author" in mod)
+	        (function processAvatarURL() {
+	          const author = mod.author;
+	          if ([
+	            "avatar",
+	            "avatarURL"
+	          ].every(function(prop) {
+	            return prop in author;
+	          })) {
+	            Avatars.BOT_AVATARS[author.avatar] = author.avatarURL;
+	            delete author.avatarURL;
+	          }
+	        })();
+	    }
+	    receiveMessage(msg.channel_id, msg);
 	    return msg;
 	  };
+	}
+	async function awaitPromise(promiseFn) {
+	  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	    args[_key - 1] = arguments[_key];
+	  }
+	  let output = [
+	    null,
+	    null
+	  ];
+	  try {
+	    output[0] = await promiseFn(...args);
+	  } catch (error) {
+	    output[1] = error;
+	  }
+	  return output;
+	}
+	function fixPromiseProps(insanePromise, mutate, removeOldKeys) {
 	}
 	function prettyTypeof(value) {
 	  const name = [
@@ -168,8 +201,10 @@
 		AVATARS: AVATARS,
 		EMOJIS: EMOJIS,
 		areArraysEqual: areArraysEqual,
+		awaitPromise: awaitPromise,
 		cloneWithout: cloneWithout,
 		cmdDisplays: cmdDisplays,
+		fixPromiseProps: fixPromiseProps,
 		generateStr: generateStr,
 		mSendMessage: mSendMessage,
 		makeDefaults: makeDefaults,
@@ -183,8 +218,71 @@
 	    avatarURL: AVATARS.command
 	  }
 	}, AsyncFunction = async function() {
-	}.constructor, VARIATION_SELECTOR_69 = "\u{E0134}";
+	}.constructor, VARIATION_SELECTOR_69 = "\u{E0134}", BUILTIN_AUTORUN_TYPES = [
+	  "autorun_before",
+	  "autorun_after",
+	  "plugin_after_defaults",
+	  "plugin_after_exports",
+	  "plugin_onUnload",
+	  "plugin_onLoad",
+	  "command_before",
+	  "command_after_interaction_def",
+	  "command_before_return",
+	  "command_after",
+	  "command_autocomplete_before",
+	  "command_autocomplete_after",
+	  "evaluate_before",
+	  "evaluate_after"
+	], triggerAutorun = function(type, fn) {
+	  if ([
+	    "autorun_before",
+	    "autorun_after"
+	  ].includes(type))
+	    return;
+	  triggerAutorun("autorun_before", function(code) {
+	    return eval(code);
+	  });
+	  const optimizations = plugin$2.storage["settings"]["autoruns"]["optimizations"];
+	  let autoruns = plugin$2.storage["autoruns"];
+	  if (optimizations)
+	    autoruns = autoruns.filter(function($) {
+	      return $.type === type;
+	    });
+	  autoruns = autoruns.filter(function($) {
+	    return $.enabled;
+	  });
+	  let index = 0;
+	  for (const autorun of autoruns) {
+	    try {
+	      if (!optimizations && autorun.type !== type) {
+	        index++;
+	        continue;
+	      }
+	      fn(autorun.code);
+	      plugin$2.storage["stats"]["autoruns"][autorun.type] = (plugin$2.storage["stats"]["autoruns"][autorun.type] ?? 0) + 1;
+	      autorun.runs ??= 0;
+	      autorun.runs++;
+	    } catch (e) {
+	      e.message = `Failed to execute autorun ${autorun.name ?? "No Name"} (${index}${optimizations ? ", optimized" : ""}). ` + e.message;
+	      console.error(e);
+	      console.log(e.stack);
+	    }
+	    index++;
+	  }
+	  triggerAutorun("autorun_after", function(code) {
+	    return eval(code);
+	  });
+	};
 	makeDefaults(vendetta.plugin.storage, {
+	  autoruns: [
+	    {
+	      enabled: false,
+	      type: "plugin_onLoad",
+	      name: "example autorun (plugin_onLoad)",
+	      description: "Example autorun, for more autorun types >> return utils.BUILTIN_AUTORUN_TYPES",
+	      code: `/* eval()s this code when the plugin starts up */alert("plugin_onLoad")`
+	    }
+	  ],
 	  stats: {
 	    runs: {
 	      history: [],
@@ -192,7 +290,8 @@
 	      succeeded: 0,
 	      plugin: 0,
 	      sessionHistory: []
-	    }
+	    },
+	    autoruns: {}
 	  },
 	  settings: {
 	    history: {
@@ -201,10 +300,21 @@
 	      saveOnError: false,
 	      checkLatestDupes: true
 	    },
+	    autoruns: {
+	      enabled: true,
+	      optimization: false
+	    },
 	    output: {
 	      location: 0,
 	      trim: 15e3,
-	      sourceEmbed: true,
+	      sourceEmbed: {
+	        enabled: true,
+	        codeblock: {
+	          enabled: true,
+	          escape: true,
+	          language: "js\n"
+	        }
+	      },
 	      info: {
 	        enabled: true,
 	        prettyTypeof: true,
@@ -242,6 +352,9 @@
 	    }
 	  }
 	});
+	triggerAutorun("plugin_after_defaults", function(code) {
+	  return eval(code);
+	});
 	const { meta: { resolveSemanticColor } } = metro.findByProps("colors", "meta");
 	const ThemeStore = metro.findByStoreName("ThemeStore");
 	const EMBED_COLOR = function(color) {
@@ -257,50 +370,66 @@
 	}
 	async function evaluate(code, aweight, global) {
 	  let that = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : {};
+	  triggerAutorun("evaluate_before", function(code) {
+	    return eval(code);
+	  });
 	  let result, errored = false, start = +new Date();
 	  try {
-	    const args = [];
+	    const args2 = [];
 	    if (!global)
-	      args.push(...Object.keys(that));
-	    args.push(code);
-	    let evalFunction = new AsyncFunction(...args);
+	      args2.push(...Object.keys(that));
+	    args2.push(code);
+	    let evalFunction = new AsyncFunction(...args2);
 	    let i = 0;
 	    for (var key of Object.keys(that)) {
-	      args[i] = that[key];
+	      args2[i] = that[key];
 	      i++;
 	    }
 	    if (aweight) {
-	      result = await evalFunction(...args);
+	      result = await evalFunction(...args2);
 	    } else {
-	      result = evalFunction(...args);
+	      result = evalFunction(...args2);
 	    }
 	  } catch (e) {
 	    result = e;
 	    errored = true;
 	  }
 	  let end = +new Date();
-	  return {
+	  const res = {
 	    result,
 	    errored,
 	    start,
 	    end,
 	    elapsed: end - start
 	  };
+	  triggerAutorun("evaluate_after", function(code) {
+	    return eval(code);
+	  });
+	  return res;
 	}
 	plugin = {
 	  meta: vendetta.plugin,
 	  patches: [],
 	  onUnload() {
+	    triggerAutorun("plugin_onUnload", function(code) {
+	      return eval(code);
+	    });
 	    this.patches.forEach(function(up) {
 	      return up();
 	    });
 	    this.patches = [];
 	  },
 	  onLoad() {
+	    triggerAutorun("plugin_onLoad", function(code) {
+	      return eval(code);
+	    });
 	    let UserStore;
 	    try {
 	      this.command(execute);
 	      async function execute(rawArgs, ctx) {
+	        triggerAutorun("command_before", function(code) {
+	          return eval(code);
+	        });
 	        UserStore ??= metro.findByStoreName("UserStore");
 	        if (!usedInSession) {
 	          usedInSession = true;
@@ -328,6 +457,18 @@
 	          rawArgs,
 	          plugin
 	        };
+	        triggerAutorun("command_after_interaction_def", function(code) {
+	          return eval(code);
+	        });
+	        if (interaction.autocomplete) {
+	          return;
+	          triggerAutorun("command_autocomplete_before", function(code) {
+	            return eval(code);
+	          });
+	          triggerAutorun("command_autocomplete_after", function(code) {
+	            return eval(code);
+	          });
+	        }
 	        try {
 	          const { channel, args } = interaction;
 	          const code = args.get("code")?.value;
@@ -344,7 +485,9 @@
 	              sendMessage,
 	              hlp,
 	              VARIATION_SELECTOR_69,
-	              evaluate
+	              evaluate,
+	              BUILTIN_AUTORUN_TYPES,
+	              triggerAutorun
 	            }
 	          });
 	          const { runs } = plugin$2.storage["stats"], history = settings["history"];
@@ -398,11 +541,11 @@
 	            }
 	            let infoString;
 	            if (outputSettings["info"].enabled) {
-	              let type = outputSettings["info"].prettyTypeof ? prettyTypeof(result) : "type: " + typeof result;
+	              let type2 = outputSettings["info"].prettyTypeof ? prettyTypeof(result) : "type: " + typeof result;
 	              if (errored)
-	                type = `Error (${type})`;
+	                type2 = `Error (${type2})`;
 	              const hint = outputSettings["info"]["hints"] ? result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "" : "";
-	              infoString = `${type}
+	              infoString = `${type2}
 ${hint}took: ${elapsed}ms`;
 	            }
 	            let sourceFooterString = `length: ${code.length}`;
@@ -426,11 +569,19 @@ newlines: ${newlineCount}`;
 	                      infoString
 	                    } : void 0 : void 0
 	                  },
-	                  !outputSettings["sourceEmbed"] ? void 0 : {
+	                  !outputSettings["sourceEmbed"]?.enabled ? void 0 : {
 	                    type: "rich",
 	                    color: EMBED_COLOR("source"),
 	                    title: "Code",
-	                    description: code,
+	                    description: function(code2) {
+	                      const { enabled, escape, language } = outputSettings["sourceEmbed"].codeblock;
+	                      if (enabled) {
+	                        if (escape)
+	                          code2 = code2.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
+	                        code2 = "```" + language + code2 + "```";
+	                      }
+	                      return code2;
+	                    }(code),
 	                    footer: {
 	                      text: sourceFooterString
 	                    }
@@ -453,11 +604,19 @@ newlines: ${newlineCount}`;
 	                      infoString
 	                    } : void 0 : void 0
 	                  },
-	                  !outputSettings["sourceEmbed"] ? void 0 : {
+	                  !outputSettings["sourceEmbed"]?.enabled ? void 0 : {
 	                    type: "rich",
 	                    color: EMBED_COLOR("source"),
 	                    title: "Code",
-	                    description: code,
+	                    description: function(code2) {
+	                      const { enabled, escape, language } = outputSettings["sourceEmbed"].codeblock;
+	                      if (enabled) {
+	                        if (escape)
+	                          code2 = code2.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
+	                        code2 = "```" + language + code2 + "```";
+	                      }
+	                      return code2;
+	                    }(code),
 	                    footer: {
 	                      text: sourceFooterString
 	                    }
@@ -467,13 +626,20 @@ newlines: ${newlineCount}`;
 	                })
 	              }, messageMods);
 	          }
-	          if (!errored && args.get("return")?.value)
+	          if (!errored && args.get("return")?.value) {
+	            triggerAutorun("command_before_return", function(code) {
+	              return eval(code);
+	            });
 	            return result;
+	          }
 	        } catch (e) {
 	          console.error(e);
 	          console.log(e.stack);
 	          alert("An uncatched error was thrown while running /eval\n" + e.stack);
 	        }
+	        triggerAutorun("command_after", function(code) {
+	          return eval(code);
+	        });
 	      }
 	    } catch (e) {
 	      console.error(e);
@@ -482,7 +648,7 @@ newlines: ${newlineCount}`;
 ${e.stack}`);
 	    }
 	  },
-	  command(execute) {
+	  command(execute2) {
 	    var _this = this;
 	    if (this.commandPatch) {
 	      this.patches.splice(this.patches.findIndex(function($) {
@@ -490,7 +656,7 @@ ${e.stack}`);
 	      }), 1)?.();
 	    }
 	    this.commandPatch = commands.registerCommand(cmdDisplays({
-	      execute,
+	      execute: execute2,
 	      predicate: plugin$2.storage["settings"]["command"].predicate ?? function() {
 	        return true;
 	      },
@@ -532,6 +698,9 @@ ${e.stack}`);
 	  }
 	};
 	var plugin$1 = plugin;
+	triggerAutorun("plugin_after_exports", function(code) {
+	  return eval(code);
+	});
 
 	exports.EMBED_COLOR = EMBED_COLOR;
 	exports.default = plugin$1;
