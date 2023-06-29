@@ -259,7 +259,8 @@
 	        continue;
 	      }
 	      fn(autorun.code);
-	      plugin$2.storage["stats"]["autoruns"][autorun.type] = (plugin$2.storage["stats"]["autoruns"][autorun.type] ?? 0) + 1;
+	      plugin$2.storage["stats"]["autoruns"][autorun.type] ??= 0;
+	      plugin$2.storage["stats"]["autoruns"][autorun.type]++;
 	      autorun.runs ??= 0;
 	      autorun.runs++;
 	    } catch (e) {
@@ -279,7 +280,7 @@
 	      enabled: false,
 	      type: "plugin_onLoad",
 	      name: "example autorun (plugin_onLoad)",
-	      description: "Example autorun, for more autorun types >> return utils.BUILTIN_AUTORUN_TYPES",
+	      description: "Example autorun, for more autorun types >> return util.BUILTIN_AUTORUN_TYPES",
 	      code: `/* eval()s this code when the plugin starts up */alert("plugin_onLoad")`
 	    }
 	  ],
