@@ -97,7 +97,7 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 				codeblock: {
 					enabled: true,
 					escape: true,
-					language: "js",
+					lang: "js",
 				},
 			},
 			info: {
@@ -117,7 +117,7 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 			codeblock: {
 				enabled: true,
 				escape: true,
-				language: "js",
+				lang: "js",
 			},
 			errors: {
 				trim: true,
@@ -135,12 +135,6 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 		},
 	},
 });
-if (storage.settings.output.sourceEmbed.codeblock.language.endsWith("\n"))
-	storage.settings.output.sourceEmbed.codeblock.language = storage.settings.output.sourceEmbed.codeblock.language.split(0, storage.settings.output.sourceEmbed.codeblock.language.length - 1);
-if (storage.settings.output.codeblock.language.endsWith("\n"))
-	storage.settings.output.codeblock.language = storage.settings.output.codeblock.language.split(0, storage.settings.output.codeblock.language.length - 1);
-// some of the lines of code ever
-
 triggerAutorun("plugin_after_defaults", (code) => eval(code));
 
 const {
@@ -300,9 +294,9 @@ plugin = {
 						if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < outputStringified.length) outputStringified = outputStringified.slice(0, outputSettings["trim"]);
 
 						if (outputSettings["codeblock"].enabled) {
-							const { escape, language } = outputSettings["codeblock"];
+							const { escape, lang } = outputSettings["codeblock"];
 							if (escape) outputStringified = outputStringified.replaceAll("```", "`" + ZWD + "``");
-							outputStringified = "```" + language + "\n" + outputStringified + "```";
+							outputStringified = "```" + lang + "\n" + outputStringified + "```";
 						}
 
 						let infoString;
@@ -334,10 +328,10 @@ plugin = {
 													color: EMBED_COLOR("source"),
 													provider: { name: "Code" },
 													description: ((code) => {
-														const { enabled, escape, language } = outputSettings["sourceEmbed"].codeblock;
+														const { enabled, escape, lang } = outputSettings["sourceEmbed"].codeblock;
 														if (enabled) {
 															if (escape) code = code.replaceAll("```", "`" + ZWD + "``");
-															code = "```" + language + "\n" + code + "```";
+															code = "```" + lang + "\n" + code + "```";
 														}
 														return code;
 													})(code),
@@ -369,10 +363,10 @@ plugin = {
 													color: EMBED_COLOR("source"),
 													title: "Code",
 													description: ((code) => {
-														const { enabled, escape, language } = outputSettings["sourceEmbed"].codeblock;
+														const { enabled, escape, lang } = outputSettings["sourceEmbed"].codeblock;
 														if (enabled) {
 															if (escape) code = code.replaceAll("```", "`" + ZWD + "``");
-															code = "```" + language + "\n" + code + "```";
+															code = "```" + lang + "\n" + code + "```";
 														}
 														return code;
 													})(code),
