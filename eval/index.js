@@ -36,16 +36,16 @@
 	  if (chars?.length <= 0)
 	    throw new Error("Invalid chars length");
 	  let result = "";
-	  for (let i1 = 0; i1 < length; i1++)
+	  for (let i = 0; i < length; i++)
 	    result += chars[Math.floor(Math.random() * chars.length)];
 	  return result;
 	}
 	function areArraysEqual(arr1, arr2) {
 	  if (arr1.length !== arr2.length)
 	    return false;
-	  for (let i1 = 0; i1 < arr1.length; i1++) {
-	    const item1 = arr1[i1];
-	    const item2 = arr2[i1];
+	  for (let i = 0; i < arr1.length; i++) {
+	    const item1 = arr1[i];
+	    const item2 = arr2[i];
 	    if (Array.isArray(item1) && Array.isArray(item2)) {
 	      if (!areArraysEqual(item1, item2))
 	        return false;
@@ -133,14 +133,47 @@
 	  }
 	  return output;
 	}
-	function fixPromiseProps(insanePromise, mutate, removeOldKeys) {
+	const SANE_PROPERTY_NAMES = [
+	  "_deferredState",
+	  "_state",
+	  "_value",
+	  "_deferreds"
+	];
+	function fixPromiseProps(insanePromise) {
+	  let mutate = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false, removeOldKeys = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false;
+	  const insanePromiseKeys = Object.getOwnPropertyNames(insanePromise);
+	  if (insanePromiseKeys.length !== 4 || insanePromiseKeys.every(function(name, i) {
+	    return SANE_PROPERTY_NAMES[i] === name;
+	  }))
+	    throw new Error("The passed promise is already proper or isn't a promise");
+	  let sanePromise = {};
+	  if (mutate)
+	    sanePromise = insanePromise;
+	  SANE_PROPERTY_NAMES.forEach(function(name, i) {
+	    sanePromise[name] = insanePromise[insanePromiseKeys[i]];
+	    if (mutate && removeOldKeys)
+	      delete sanePromise[insanePromiseKeys[i]];
+	  });
+	  Object.setPrototypeOf(sanePromise, insanePromise.__proto__);
+	  return sanePromise;
 	}
+	const PROMISE_STATE_NAMES = {
+	  0: "pending",
+	  1: "fulfilled",
+	  2: "rejected",
+	  3: "adopted"
+	};
 	function prettyTypeof(value) {
 	  const name = [
 	    value?.constructor?.name
 	  ];
 	  name[0] ??= "Undefined";
-	  if (name[0] !== "Undefined" && value?.prototype?.constructor === value && typeof value === "function") {
+	  if (name[0] === "Promise" && Object.getOwnPropertyNames(value).length === 4) {
+	    const state = value["_state"] ?? value[Object.getOwnPropertyNames(value)[1]];
+	    const stateName = PROMISE_STATE_NAMES[state];
+	    if (stateName)
+	      name[1] = `(${stateName})`;
+	  } else if (name[0] !== "Undefined" && value?.prototype?.constructor === value && typeof value === "function") {
 	    name[0] = "Class";
 	    name[1] = `(${value.name})`;
 	  } else if (value === null) {
@@ -308,6 +341,7 @@
 	    output: {
 	      location: 0,
 	      trim: 15e3,
+	      fixPromiseProps: true,
 	      sourceEmbed: {
 	        enabled: true,
 	        codeblock: {
@@ -480,7 +514,7 @@
 	          const aweight = args.get("await")?.value ?? defaults["await"];
 	          const silent = args.get("silent")?.value ?? defaults["silent"];
 	          const global = args.get("global")?.value ?? defaults["global"];
-	          const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
+	          let { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
 	            interaction,
 	            util: {
 	              sendMessage,
@@ -525,6 +559,8 @@
 	          }
 	          if (!silent) {
 	            const outputSettings = settings["output"];
+	            if (outputSettings.fixPromiseProps && result?.constructor?.name === "Promise")
+	              result = fixPromiseProps(result);
 	            let outputStringified = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
 	            if (errored) {
 	              const errorSettings = outputSettings["errors"];
