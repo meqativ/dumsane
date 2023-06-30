@@ -91,6 +91,7 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 		output: {
 			location: 0, // 0: content, 1: embed
 			trim: 15000, // Number: enabled, specifies end; Undefined: disabled
+			fixPromiseProps: true,
 			sourceEmbed: {
 				enabled: true,
 				codeblock: {
@@ -250,7 +251,7 @@ plugin = {
 					const silent = args.get("silent")?.value ?? defaults["silent"];
 					const global = args.get("global")?.value ?? defaults["global"];
 
-					const { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
+					let { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
 						interaction,
 						util: { sendMessage, hlp, VARIATION_SELECTOR_69, evaluate, BUILTIN_AUTORUN_TYPES, triggerAutorun },
 					});
@@ -284,6 +285,7 @@ plugin = {
 
 					if (!silent) {
 						const outputSettings = settings["output"];
+						if (outputSettings.fixPromiseProps && result?.constructor?.name === "Promise") result = hlp.fixPromiseProps(result)
 						let outputStringified = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
 
 						if (errored) {

@@ -27,7 +27,7 @@ export function cmdDisplays(obj, translations, locale) {
 		if (!Array.isArray(obj.options)) throw new Error(`Options is not an array (received: ${typeof obj.options})`);
 		for (var optionIndex = 0; optionIndex < obj.options.length; optionIndex++) {
 			const option = obj.options[optionIndex];
-			// TODO: Handle subcommands (type 1, 2 probably i forgor)
+			// TODO: Handle subcommands (type 1 or 2 probably i forgor)
 			if (!option?.name || !option?.description) throw new Error(`No name(${option?.name}) or description(${option?.description} in the option with index ${optionIndex}`);
 			option.displayName ??= translations?.options?.[optionIndex]?.names?.[locale] ?? option.name;
 			option.displayDescription ??= translations?.options?.[optionIndex]?.descriptions?.[locale] ?? option.description;
@@ -158,24 +158,32 @@ export async function awaitPromise(promiseFn, ...args) {
 const SANE_PROPERTY_NAMES = ["_deferredState", "_state", "_value", "_deferreds"];
 /* Returns an object with the properties of a Promise but with the proper key names (hermes polyfill specific)
  * Basically UNDOes https://github.com/then/promise/blob/master/src/core.js#L16
- * @param {Promise} insanePromise A promise object with insane key names
- * @param {boolean} [mutate] Whether to add the proper keys on the passed object itself instead of creating a new one
- * @param {boolean=false} removeOldKeys Whether to remove the old keys from the insanePromise
+ * @param {Promise} promise A promise object with improper key names
+ * @param {boolean=false} mutate Whether to add the proper keys on the passed object itself instead of creating a new one
+ * @param {boolean=false} removeOldKeys Whether to remove the old keys from the promise
  *
  * @returns {(Promise|object)}
  */
-export function fixPromiseProps(insanePromise, mutate, removeOldKeys) {
-	function promiseProperKeyNames(insanePomise, changeOldKeys) {
-		const sanePromise = {};
-		const insanePromiseKeys = Object.keys(insanePromise);
-		if (insanePromiseKeys.length < 3 || insanePromiseKeys.every((name, index) => sanePromiseKeys[i] !== name)) throw new Error("The passed promise is already sane");
-		for (let i = 0; i < 3; i++) {
-			const newKey = SANE_PROPERTY_NAMES[i];
-			if (mutate) sanePromise[newKey] = propIndex++;
-		}
-	}
-}
+export function fixPromiseProps(insanePromise, mutate = false, removeOldKeys = false) {
+	const insanePromiseKeys = Object.getOwnPropertyNames(insanePromise);
+	if (insanePromiseKeys.length !== 4 || insanePromiseKeys.every((name, i) => SANE_PROPERTY_NAMES[i] === name)) throw new Error("The passed promise is already proper or isn't a promise");
 
+	let sanePromise = {};
+	if (mutate) sanePromise = insanePromise;
+
+	SANE_PROPERTY_NAMES.forEach((name, i) => {
+		sanePromise[name] = insanePromise[insanePromiseKeys[i]];
+		if (mutate && removeOldKeys) delete sanePromise[insanePromiseKeys[i]];
+	});
+	Object.setPrototypeOf(sanePromise, insanePromise.__proto__);
+	return sanePromise;
+}
+const PROMISE_STATE_NAMES = {
+	0: "pending",
+	1: "fulfilled",
+	2: "rejected",
+	3: "adopted",
+};
 /*
  * Makes a pretty typeof-like string from a value
  * @param {any} value
@@ -187,7 +195,11 @@ export function fixPromiseProps(insanePromise, mutate, removeOldKeys) {
 export function prettyTypeof(value) {
 	const name = [value?.constructor?.name];
 	name[0] ??= "Undefined";
-	if (name[0] !== "Undefined" && value?.prototype?.constructor === value && typeof value === "function") {
+	if (name[0] === "Promise" && Object.getOwnPropertyNames(value).length === 4) {
+		const state = value["_state"] ?? value[Object.getOwnPropertyNames(value)[1]];
+		const stateName = PROMISE_STATE_NAMES[state];
+		if (stateName) name[1] = `(${stateName})`;
+	} else if (name[0] !== "Undefined" && value?.prototype?.constructor === value && typeof value === "function") {
 		name[0] = "Class";
 		name[1] = `(${value.name})`;
 	} else if (value === null) {
