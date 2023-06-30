@@ -251,7 +251,7 @@
 	    avatarURL: AVATARS.command
 	  }
 	}, AsyncFunction = async function() {
-	}.constructor, VARIATION_SELECTOR_69 = "\u{E0134}", BUILTIN_AUTORUN_TYPES = [
+	}.constructor, ZWD = "\u200D", BUILTIN_AUTORUN_TYPES = [
 	  "autorun_before",
 	  "autorun_after",
 	  "plugin_after_defaults",
@@ -347,7 +347,7 @@
 	        codeblock: {
 	          enabled: true,
 	          escape: true,
-	          language: "js\n"
+	          lang: "js"
 	        }
 	      },
 	      info: {
@@ -367,7 +367,7 @@
 	      codeblock: {
 	        enabled: true,
 	        escape: true,
-	        language: "js\n"
+	        lang: "js"
 	      },
 	      errors: {
 	        trim: true,
@@ -415,11 +415,9 @@
 	      args2.push(...Object.keys(that));
 	    args2.push(code);
 	    let evalFunction = new AsyncFunction(...args2);
-	    let i = 0;
-	    for (var key of Object.keys(that)) {
-	      args2[i] = that[key];
-	      i++;
-	    }
+	    Object.keys(that).forEach(function(name, index2) {
+	      args2[index2] = that[name];
+	    });
 	    if (aweight) {
 	      result = await evalFunction(...args2);
 	    } else {
@@ -519,7 +517,7 @@
 	            util: {
 	              sendMessage,
 	              hlp,
-	              VARIATION_SELECTOR_69,
+	              ZWD,
 	              evaluate,
 	              BUILTIN_AUTORUN_TYPES,
 	              triggerAutorun
@@ -572,15 +570,14 @@
 	            if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < outputStringified.length)
 	              outputStringified = outputStringified.slice(0, outputSettings["trim"]);
 	            if (outputSettings["codeblock"].enabled) {
-	              if (outputSettings["codeblock"].escape)
-	                outputStringified = outputStringified.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
-	              outputStringified = "```" + outputSettings["codeblock"].language + outputStringified + "```";
+	              const { escape, lang } = outputSettings["codeblock"];
+	              if (escape)
+	                outputStringified = outputStringified.replaceAll("```", "`" + ZWD + "``");
+	              outputStringified = "```" + lang + "\n" + outputStringified + "```";
 	            }
 	            let infoString;
 	            if (outputSettings["info"].enabled) {
 	              let type2 = outputSettings["info"].prettyTypeof ? prettyTypeof(result) : "type: " + typeof result;
-	              if (errored)
-	                type2 = `Error (${type2})`;
 	              const hint = outputSettings["info"]["hints"] ? result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "" : "";
 	              infoString = `${type2}
 ${hint}took: ${elapsed}ms`;
@@ -600,22 +597,23 @@ newlines: ${newlineCount}`;
 	                  {
 	                    type: "rich",
 	                    color: EMBED_COLOR("exploded"),
-	                    title: "Error returned",
 	                    description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : void 0,
 	                    footer: outputSettings["info"].enabled ? outputSettings["location"] ? {
-	                      infoString
+	                      text: infoString
 	                    } : void 0 : void 0
 	                  },
 	                  !outputSettings["sourceEmbed"]?.enabled ? void 0 : {
 	                    type: "rich",
 	                    color: EMBED_COLOR("source"),
-	                    title: "Code",
+	                    provider: {
+	                      name: "Code"
+	                    },
 	                    description: function(code2) {
-	                      const { enabled, escape, language } = outputSettings["sourceEmbed"].codeblock;
+	                      const { enabled, escape, lang } = outputSettings["sourceEmbed"].codeblock;
 	                      if (enabled) {
 	                        if (escape)
-	                          code2 = code2.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
-	                        code2 = "```" + language + code2 + "```";
+	                          code2 = code2.replaceAll("```", "`" + ZWD + "``");
+	                        code2 = "```" + lang + "\n" + code2 + "```";
 	                      }
 	                      return code2;
 	                    }(code),
@@ -638,7 +636,7 @@ newlines: ${newlineCount}`;
 	                    color: EMBED_COLOR("satisfactory"),
 	                    description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : void 0,
 	                    footer: outputSettings["info"].enabled ? outputSettings["location"] ? {
-	                      infoString
+	                      text: infoString
 	                    } : void 0 : void 0
 	                  },
 	                  !outputSettings["sourceEmbed"]?.enabled ? void 0 : {
@@ -646,11 +644,11 @@ newlines: ${newlineCount}`;
 	                    color: EMBED_COLOR("source"),
 	                    title: "Code",
 	                    description: function(code2) {
-	                      const { enabled, escape, language } = outputSettings["sourceEmbed"].codeblock;
+	                      const { enabled, escape, lang } = outputSettings["sourceEmbed"].codeblock;
 	                      if (enabled) {
 	                        if (escape)
-	                          code2 = code2.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
-	                        code2 = "```" + language + code2 + "```";
+	                          code2 = code2.replaceAll("```", "`" + ZWD + "``");
+	                        code2 = "```" + lang + "\n" + code2 + "```";
 	                      }
 	                      return code2;
 	                    }(code),
