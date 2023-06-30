@@ -130,10 +130,6 @@ export function mSendMessage(vendetta) {
 
 /* Calls and awaits a promise function, and returns a [result, error] array
  * @param {function} promise A function that returns a promise
- * @param {...any} [args] Arguments to pass to the function
- *
- * @returns {Array}
- *
  * @example
  * async function log(...messages) {
  *	if (messages[0] === "error")) throw new Error() // reject(new Error)

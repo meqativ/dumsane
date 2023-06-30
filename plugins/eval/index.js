@@ -12,7 +12,7 @@ const { inspect } = findByProps("inspect"),
 		},
 	},
 	AsyncFunction = (async () => {}).constructor,
-	VARIATION_SELECTOR_69 = "󠄴",
+	ZWD = "\u200d",
 	BUILTIN_AUTORUN_TYPES = [
 		"autorun_before",
 		"autorun_after",
@@ -97,7 +97,7 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 				codeblock: {
 					enabled: true,
 					escape: true,
-					language: "js\n",
+					language: "js",
 				},
 			},
 			info: {
@@ -117,7 +117,7 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 			codeblock: {
 				enabled: true,
 				escape: true,
-				language: "js\n",
+				language: "js",
 			},
 			errors: {
 				trim: true,
@@ -135,6 +135,12 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 		},
 	},
 });
+if (storage.settings.output.sourceEmbed.codeblock.language.endsWith("\n"))
+	storage.settings.output.sourceEmbed.codeblock.language = storage.settings.output.sourceEmbed.codeblock.language.split(0, storage.settings.output.sourceEmbed.codeblock.language.length - 1);
+if (storage.settings.output.codeblock.language.endsWith("\n"))
+	storage.settings.output.codeblock.language = storage.settings.output.codeblock.language.split(0, storage.settings.output.codeblock.language.length - 1);
+// some of the lines of code ever
+
 triggerAutorun("plugin_after_defaults", (code) => eval(code));
 
 const {
@@ -163,7 +169,7 @@ function sendMessage() {
  * @param {string} code Code to evaluate
  * @param {boolean} aweight Whether to await the evaluation
  * @param {boolean} global Whether to assign the next argument as the "this" for the evaluation
- * @param {any} that
+ * @param {any} [that]
  */
 async function evaluate(code, aweight, global, that = {}) {
 	triggerAutorun("evaluate_before", (code) => eval(code));
@@ -175,11 +181,9 @@ async function evaluate(code, aweight, global, that = {}) {
 		if (!global) args.push(...Object.keys(that));
 		args.push(code);
 		let evalFunction = new AsyncFunction(...args);
-		let i = 0;
-		for (var key of Object.keys(that)) {
-			args[i] = that[key];
-			i++;
-		}
+		Object.keys(that).forEach((name, index) => {
+			args[index] = that[name];
+		});
 		if (aweight) {
 			result = await evalFunction(...args);
 		} else {
@@ -253,7 +257,7 @@ plugin = {
 
 					let { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
 						interaction,
-						util: { sendMessage, hlp, VARIATION_SELECTOR_69, evaluate, BUILTIN_AUTORUN_TYPES, triggerAutorun },
+						util: { sendMessage, hlp, ZWD, evaluate, BUILTIN_AUTORUN_TYPES, triggerAutorun },
 					});
 
 					const { runs } = storage["stats"],
@@ -285,7 +289,7 @@ plugin = {
 
 					if (!silent) {
 						const outputSettings = settings["output"];
-						if (outputSettings.fixPromiseProps && result?.constructor?.name === "Promise") result = hlp.fixPromiseProps(result)
+						if (outputSettings.fixPromiseProps && result?.constructor?.name === "Promise") result = hlp.fixPromiseProps(result);
 						let outputStringified = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
 
 						if (errored) {
@@ -296,14 +300,14 @@ plugin = {
 						if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < outputStringified.length) outputStringified = outputStringified.slice(0, outputSettings["trim"]);
 
 						if (outputSettings["codeblock"].enabled) {
-							if (outputSettings["codeblock"].escape) outputStringified = outputStringified.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
-							outputStringified = "```" + outputSettings["codeblock"].language + outputStringified + "```";
+							const { escape, language } = outputSettings["codeblock"];
+							if (escape) outputStringified = outputStringified.replaceAll("```", "`" + ZWD + "``");
+							outputStringified = "```" + language + "\n" + outputStringified + "```";
 						}
 
 						let infoString;
 						if (outputSettings["info"].enabled) {
 							let type = outputSettings["info"].prettyTypeof ? hlp.prettyTypeof(result) : "type: " + typeof result;
-							if (errored) type = `Error (${type})`;
 							const hint = outputSettings["info"]["hints"] ? (result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "") : "";
 							infoString = `${type}\n${hint}took: ${elapsed}ms`;
 						}
@@ -319,9 +323,8 @@ plugin = {
 										{
 											type: "rich",
 											color: EMBED_COLOR("exploded"),
-											title: "Error returned",
 											description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : undefined,
-											footer: outputSettings["info"].enabled ? (outputSettings["location"] ? { infoString } : undefined) : undefined,
+											footer: outputSettings["info"].enabled ? (outputSettings["location"] ? { text: infoString } : undefined) : undefined,
 										},
 
 										!outputSettings["sourceEmbed"]?.enabled
@@ -329,12 +332,12 @@ plugin = {
 											: {
 													type: "rich",
 													color: EMBED_COLOR("source"),
-													title: "Code",
+													provider: { name: "Code" },
 													description: ((code) => {
 														const { enabled, escape, language } = outputSettings["sourceEmbed"].codeblock;
 														if (enabled) {
-															if (escape) code = code.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
-															code = "```" + language + code + "```";
+															if (escape) code = code.replaceAll("```", "`" + ZWD + "``");
+															code = "```" + language + "\n" + code + "```";
 														}
 														return code;
 													})(code),
@@ -357,7 +360,7 @@ plugin = {
 											type: "rich",
 											color: EMBED_COLOR("satisfactory"),
 											description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : undefined,
-											footer: outputSettings["info"].enabled ? (outputSettings["location"] ? { infoString } : undefined) : undefined,
+											footer: outputSettings["info"].enabled ? (outputSettings["location"] ? { text: infoString } : undefined) : undefined,
 										},
 										!outputSettings["sourceEmbed"]?.enabled
 											? undefined
@@ -368,8 +371,8 @@ plugin = {
 													description: ((code) => {
 														const { enabled, escape, language } = outputSettings["sourceEmbed"].codeblock;
 														if (enabled) {
-															if (escape) code = code.replace("```", "`" + VARIATION_SELECTOR_69 + "``");
-															code = "```" + language + code + "```";
+															if (escape) code = code.replaceAll("```", "`" + ZWD + "``");
+															code = "```" + language + "\n" + code + "```";
 														}
 														return code;
 													})(code),
