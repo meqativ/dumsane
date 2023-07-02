@@ -1,10 +1,10 @@
-import * as hlp from "../../helpers/index.js";
+import * as common from "../../common";
 import { registerCommand } from "@vendetta/commands";
 import { findByStoreName, findByProps } from "@vendetta/metro";
 let madeSendMessage;
 function sendMessage() {
 	if (window.sendMessage) return window.sendMessage?.(...arguments);
-	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
+	if (!madeSendMessage) madeSendMessage = common.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
 function putAProxy(obj) {
@@ -25,7 +25,7 @@ export default {
 	onLoad() {
 		try {
 			[
-				hlp.cmdDisplays({
+				common.cmdDisplays({
 					execute: async (args, ctx) => {
 						if (ctx.autocomplete) {
 							const c = [{ name: "meow", displayName: "meow", value: "mrrp" }];
