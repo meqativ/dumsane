@@ -1,4 +1,5 @@
-import * as hlp from "../../helpers/index.js";
+import * as common from "../../common";
+import evaluate from "../../common/evaluate.js";
 import { registerCommand } from "@vendetta/commands";
 import { findByProps, findByStoreName } from "@vendetta/metro";
 import { storage } from "@vendetta/plugin";
@@ -8,11 +9,9 @@ const { inspect } = findByProps("inspect"),
 		author: {
 			username: "eval",
 			avatar: "command",
-			avatarURL: hlp.AVATARS.command,
+			avatarURL: common.AVATARS.command,
 		},
 	},
-	AsyncFunction = (async () => {}).constructor,
-	ZWD = "\u200d",
 	BUILTIN_AUTORUN_TYPES = [
 		"autorun_before",
 		"autorun_after",
@@ -28,36 +27,36 @@ const { inspect } = findByProps("inspect"),
 		"command_autocomplete_after",
 		"evaluate_before",
 		"evaluate_after",
-	],
-	triggerAutorun = (type, fn) => {
-		if (["autorun_before", "autorun_after"].includes(type)) return;
-		triggerAutorun("autorun_before", (code) => eval(code));
-		const optimizations = storage["settings"]["autoruns"]["optimizations"];
-		let autoruns = storage["autoruns"];
-		if (optimizations) autoruns = autoruns.filter(($) => $.type === type);
-		autoruns = autoruns.filter(($) => $.enabled);
-		let index = 0;
-		for (const autorun of autoruns) {
-			try {
-				if (!optimizations && autorun.type !== type) {
-					index++;
-					continue;
-				}
-				fn(autorun.code);
-				storage["stats"]["autoruns"][autorun.type] ??= 0;
-				storage["stats"]["autoruns"][autorun.type]++;
-				autorun.runs ??= 0;
-				autorun.runs++;
-			} catch (e) {
-				e.message = `Failed to execute autorun ${autorun.name ?? "No Name"} (${index}${optimizations ? ", optimized" : ""}). ` + e.message;
-				console.error(e);
-				console.log(e.stack);
+	];
+export function triggerAutorun(type, fn) {
+	if (["autorun_before", "autorun_after"].includes(type)) return;
+	triggerAutorun("autorun_before", (code) => eval(code));
+	const optimizations = storage["settings"]["autoruns"]["optimizations"];
+	let autoruns = storage["autoruns"];
+	if (optimizations) autoruns = autoruns.filter(($) => $.type === type);
+	autoruns = autoruns.filter(($) => $.enabled);
+	let index = 0;
+	for (const autorun of autoruns) {
+		try {
+			if (!optimizations && autorun.type !== type) {
+				index++;
+				continue;
 			}
-			index++;
+			fn(autorun.code);
+			storage["stats"]["autoruns"][autorun.type] ??= 0;
+			storage["stats"]["autoruns"][autorun.type]++;
+			autorun.runs ??= 0;
+			autorun.runs++;
+		} catch (e) {
+			e.message = `Failed to execute autorun ${autorun.name ?? "No Name"} (${index}${optimizations ? ", optimized" : ""}). ` + e.message;
+			console.error(e);
+			console.log(e.stack);
 		}
-		triggerAutorun("autorun_after", (code) => eval(code));
-	};
-hlp.makeDefaults(vendetta.plugin.storage, {
+		index++;
+	}
+	triggerAutorun("autorun_after", (code) => eval(code));
+}
+common.makeDefaults(vendetta.plugin.storage, {
 	autoruns: [
 		{
 			enabled: false,
@@ -90,9 +89,11 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 		},
 		output: {
 			location: 0, // 0: content, 1: embed
-			trim: 15000, // Number: enabled, specifies end; Undefined: disabled
+			trim: 15000, // Number: enabled, specifies end; false: disabled
 			fixPromiseProps: true,
+			hideSensitive: true,
 			sourceEmbed: {
+				name: "Code",
 				enabled: true,
 				codeblock: {
 					enabled: true,
@@ -127,11 +128,11 @@ hlp.makeDefaults(vendetta.plugin.storage, {
 		defaults: {
 			await: true,
 			global: false,
+			return: false,
 			silent: false,
 		},
 		command: {
 			name: "!eval",
-			predicate: () => true,
 		},
 	},
 });
@@ -147,54 +148,197 @@ export const EMBED_COLOR = (color) => {
 };
 /* thanks acquite#0001 (<@581573474296791211>) */
 
-/* Hey
- * @param {meow}
- */
 let madeSendMessage,
+	UserStore,
 	plugin,
 	usedInSession = false;
 function sendMessage() {
 	if (window.sendMessage) return window.sendMessage?.(...arguments);
-	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
+	if (!madeSendMessage) madeSendMessage = common.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
-
-/* Evaluates code
- * @param {string} code Code to evaluate
- * @param {boolean} aweight Whether to await the evaluation
- * @param {boolean} global Whether to assign the next argument as the "this" for the evaluation
- * @param {any} [that]
- */
-async function evaluate(code, aweight, global, that = {}) {
-	triggerAutorun("evaluate_before", (code) => eval(code));
-	let result,
-		errored = false,
-		start = +new Date();
+async function execute(rawArgs, ctx) {
 	try {
-		const args = [];
-		if (!global) args.push(...Object.keys(that));
-		args.push(code);
-		let evalFunction = new AsyncFunction(...args);
-		Object.keys(that).forEach((name, index) => {
-			args[index] = that[name];
+		const { settings, stats } = storage;
+		const {
+			history,
+			defaults,
+			output: outputSettings,
+		} = settings;
+		const { runs } = stats;
+
+		triggerAutorun("command_before", (code) => eval(code));
+		UserStore ??= findByStoreName("UserStore");
+
+		if (!usedInSession) {
+			usedInSession = true;
+			runs["plugin"]++;
+			runs["sessionHistory"] = [];
+		}
+		let currentUser = UserStore.getCurrentUser();
+		if (outputSettings["hideSensitive"]) {
+			currentUser = {...currentUser};
+			evaluate.SENSITIVE_PROPS.USER.forEach((prop) => {
+				Object.defineProperty(currentUser, prop, {
+					enumerable: false,
+				});
+			});
+		}
+		const messageMods = {
+			...authorMods,
+			interaction: {
+				name: "/" + this.displayName,
+				user: currentUser,
+			},
+		};
+		const interaction = {
+			messageMods,
+			...ctx,
+			user: currentUser,
+			args: new Map(rawArgs.map((o) => [o.name, o])),
+		};
+		Object.defineProperty(interaction, "_args", {
+			value: rawArgs,
+			enunerable: false,
 		});
-		if (aweight) {
-			result = await evalFunction(...args);
-		} else {
-			result = evalFunction(...args);
+		triggerAutorun("command_after_interaction_def", (code) => eval(code));
+		if (interaction.autocomplete) {
+			return; // TODO: figure out what in the world do i need to return here (make history here too)
+
+			triggerAutorun("command_autocomplete_before", (code) => eval(code));
+			triggerAutorun("command_autocomplete_after", (code) => eval(code));
+		}
+
+		const { channel, args } = interaction,
+			code = args.get("code")?.value,
+			aweight = args.get("await")?.value ?? defaults["await"],
+			silent = args.get("silent")?.value ?? defaults["silent"],
+			global = args.get("global")?.value ?? defaults["global"];
+		if (typeof code !== "string") throw new Error("No code argument passed");
+
+		triggerAutorun("evaluate_before", (code) => eval(code));
+		let { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
+			interaction,
+			plugin,
+			util: { sendMessage, common, evaluate, BUILTIN_AUTORUN_TYPES, triggerAutorun },
+		});
+		triggerAutorun("evaluate_after", (code) => eval(code));
+
+		let thisEvaluation;
+		if (history.enabled) {
+			thisEvaluation = {
+				session: runs["plugin"],
+				start,
+				end,
+				elapsed,
+				code,
+				errored,
+			};
+			if (!interaction.dontSaveResult) {
+				thisEvaluation.result = common.cloneWithout(result, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
+
+				if (history.saveContext) thisEvaluation.context = common.cloneWithout(interaction, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
+			}
+			(() => {
+				if (!history.saveOnError && errored) return runs["failed"]++;
+				runs["succeeded"]++;
+
+				//if (history.checkLatestDupes && runs["sessionHistory"].at(-1)?.code === thisEvaluation.code) return;
+				runs["history"].push(thisEvaluation);
+				runs["sessionHistory"].push(thisEvaluation);
+			})();
+		}
+
+		if (!silent) {
+			const message = {
+				channelId: channel.id,
+				content: "",
+				embeds: [],
+			};
+			const outputEmbed = {
+				type: "rich",
+				color: EMBED_COLOR(errored ? "dissatisfactory" : "satisfactory"),
+			};
+			message.embeds.push(outputEmbed);
+
+			if (outputSettings["fixPromiseProps"] && result?.constructor?.name === "Promise") result = common.fixPromiseProps(result);
+
+			let processedResult = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
+
+			if (errored) {
+				const { stack, trim } = outputSettings["errors"];
+				if (stack) processedResult = result.stack;
+				if (trim) processedResult = processedResult.split("    at ?anon_0_?anon_0_evaluate")[0];
+			}
+
+			if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < processedResult.length) processedResult = processedResult.slice(0, outputSettings["trim"]);
+
+			if (outputSettings["codeblock"].enabled) {
+				const { lang, escape } = outputSettings["codeblock"];
+				processedResult = common.codeblock(processedResult, lang, escape);
+			}
+			if (outputSettings["location"] === 0) {
+				message.content = processedResult;
+			} else {
+				outputEmbed.description = processedResult;
+			}
+
+			if (outputSettings["info"].enabled) {
+				const { hints, prettyTypeof } = outputSettings.info;
+				let info = [prettyTypeof ? common.prettyTypeof(result) : typeof result];
+				if (hints) {
+					let hint;
+					if (result === undefined && !code.includes("return")) hint = "use 'return'";
+
+					if (hint) info.push(`hint: ${hint}`);
+				}
+				info.push(`took: ${elapsed}ms`);
+
+				if (outputSettings["location"] === 0) {
+					outputEmbed.description = info.join("\n");
+				} else {
+					outputEmbed.footer = { text: info.join("\n") };
+				}
+			}
+
+			if (outputSettings["sourceEmbed"].enabled) {
+				const {
+					codeblock: { codeblockEnabled, language, escape },
+					name,
+				} = outputSettings["sourceEmbed"];
+
+				const embed = {
+					type: "rich",
+					color: EMBED_COLOR("source"),
+					description: code,
+					footer: { text: `length: ${code.length}` },
+				};
+				message.embeds.push(embed);
+				if (name) embed.provider = { name };
+				if (codeblockEnabled) embed.description = hlp.codeblock(embed.description, language, escape);
+				let newlineCount = code.split("").filter(($) => $ === "\n").length;
+				if (newlineCount < 0) embed.footer.text += `\nnewlines: ${newlineCount}`;
+			}
+			sendMessage(message, messageMods);
+		}
+		if (!errored && args.get("return")?.value) {
+			triggerAutorun("command_before_return", (code) => eval(code));
+			return result;
+		}
+		if (errored && silent) {
+			console.error(result)
+			console.log(result.stack)
+			alert("An error ocurred while running your silent & returned eval\n" + result.stack)
 		}
 	} catch (e) {
-		result = e;
-		errored = true;
+		console.error(e);
+		console.log(e.stack);
+		alert("An uncatched error was thrown while running /eval\n" + e.stack);
 	}
-	let end = +new Date();
-
-	const res = { result, errored, start, end, elapsed: end - start };
-	triggerAutorun("evaluate_after", (code) => eval(code));
-	return res;
+	triggerAutorun("command_after", (code) => eval(code));
 }
 plugin = {
-	meta: vendetta.plugin,
+	...vendetta.plugin,
 	patches: [],
 	onUnload() {
 		triggerAutorun("plugin_onUnload", (code) => eval(code));
@@ -202,199 +346,13 @@ plugin = {
 		this.patches = [];
 	},
 	onLoad() {
-		triggerAutorun("plugin_onLoad", (code) => eval(code));
-		let UserStore;
 		try {
+			triggerAutorun("plugin_onLoad", (code) => eval(code));
 			this.command(execute);
-			async function execute(rawArgs, ctx) {
-				triggerAutorun("command_before", (code) => eval(code));
-				UserStore ??= findByStoreName("UserStore");
-
-				if (!usedInSession) {
-					usedInSession = true;
-					storage["stats"]["runs"]["plugin"]++;
-					storage["stats"]["runs"]["sessionHistory"] = [];
-				}
-				const currentUser = UserStore.getCurrentUser();
-				const messageMods = {
-					...authorMods,
-					interaction: {
-						name: "/" + this.displayName,
-						user: currentUser,
-					},
-				};
-				const interaction = {
-					messageMods,
-					...ctx,
-					user: currentUser,
-					args: new Map(rawArgs.map((o) => [o.name, o])),
-					rawArgs,
-					plugin,
-				};
-				triggerAutorun("command_after_interaction_def", (code) => eval(code));
-				if (interaction.autocomplete) {
-					return; // TODO: figure out what in the world do i need to return here
-
-					triggerAutorun("command_autocomplete_before", (code) => eval(code));
-					triggerAutorun("command_autocomplete_after", (code) => eval(code));
-				}
-				try {
-					const { channel, args } = interaction;
-					const code = args.get("code")?.value;
-					if (typeof code !== "string") throw new Error("No code argument passed");
-					const settings = storage["settings"];
-
-					const defaults = settings["defaults"];
-					const aweight = args.get("await")?.value ?? defaults["await"];
-					const silent = args.get("silent")?.value ?? defaults["silent"];
-					const global = args.get("global")?.value ?? defaults["global"];
-
-					let { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
-						interaction,
-						util: { sendMessage, hlp, ZWD, evaluate, BUILTIN_AUTORUN_TYPES, triggerAutorun },
-					});
-
-					const { runs } = storage["stats"],
-						history = settings["history"];
-					let thisEvaluation;
-					if (history.enabled) {
-						thisEvaluation = {
-							session: runs["plugin"],
-							start,
-							end,
-							elapsed,
-							code,
-							errored,
-						};
-						if (!interaction.dontSaveResult) {
-							thisEvaluation.result = hlp.cloneWithout(result, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
-
-							if (history.saveContext) thisEvaluation.context = hlp.cloneWithout(interaction, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
-						}
-						(() => {
-							if (!history.saveOnError && errored) return runs["failed"]++;
-							runs["succeeded"]++;
-
-							//if (history.checkLatestDupes && runs["sessionHistory"].at(-1)?.code === thisEvaluation.code) return;
-							runs["history"].push(thisEvaluation);
-							runs["sessionHistory"].push(thisEvaluation);
-						})();
-					}
-
-					if (!silent) {
-						const outputSettings = settings["output"];
-						if (outputSettings.fixPromiseProps && result?.constructor?.name === "Promise") result = hlp.fixPromiseProps(result);
-						let outputStringified = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
-
-						if (errored) {
-							const errorSettings = outputSettings["errors"];
-							if (errorSettings["stack"]) outputStringified = result.stack;
-							if (errorSettings["trim"]) outputStringified = outputStringified.split("    at ?anon_0_?anon_0_evaluate")[0];
-						}
-						if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < outputStringified.length) outputStringified = outputStringified.slice(0, outputSettings["trim"]);
-
-						if (outputSettings["codeblock"].enabled) {
-							const { escape, lang } = outputSettings["codeblock"];
-							if (escape) outputStringified = outputStringified.replaceAll("```", "`" + ZWD + "``");
-							outputStringified = "```" + lang + "\n" + outputStringified + "```";
-						}
-
-						let infoString;
-						if (outputSettings["info"].enabled) {
-							let type = outputSettings["info"].prettyTypeof ? hlp.prettyTypeof(result) : "type: " + typeof result;
-							const hint = outputSettings["info"]["hints"] ? (result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "") : "";
-							infoString = `${type}\n${hint}took: ${elapsed}ms`;
-						}
-						let sourceFooterString = `length: ${code.length}`;
-						let newlineCount = code.split("").filter(($) => $ === "\n").length;
-						if (newlineCount < 0) sourceFooterString += `\nnewlines: ${newlineCount}`;
-						if (errored) {
-							sendMessage(
-								{
-									channelId: channel.id,
-									content: !outputSettings["location"] ? outputStringified : undefined,
-									embeds: [
-										{
-											type: "rich",
-											color: EMBED_COLOR("exploded"),
-											description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : undefined,
-											footer: outputSettings["info"].enabled ? (outputSettings["location"] ? { text: infoString } : undefined) : undefined,
-										},
-
-										!outputSettings["sourceEmbed"]?.enabled
-											? undefined
-											: {
-													type: "rich",
-													color: EMBED_COLOR("source"),
-													provider: { name: "Code" },
-													description: ((code) => {
-														const { enabled, escape, lang } = outputSettings["sourceEmbed"].codeblock;
-														if (enabled) {
-															if (escape) code = code.replaceAll("```", "`" + ZWD + "``");
-															code = "```" + lang + "\n" + code + "```";
-														}
-														return code;
-													})(code),
-													footer: {
-														text: sourceFooterString,
-													},
-											  },
-									].filter(($) => $ !== void 0),
-								},
-								messageMods
-							);
-						}
-						if (!errored)
-							sendMessage(
-								{
-									channelId: channel.id,
-									content: !outputSettings["location"] ? outputStringified : undefined,
-									embeds: [
-										{
-											type: "rich",
-											color: EMBED_COLOR("satisfactory"),
-											description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : undefined,
-											footer: outputSettings["info"].enabled ? (outputSettings["location"] ? { text: infoString } : undefined) : undefined,
-										},
-										!outputSettings["sourceEmbed"]?.enabled
-											? undefined
-											: {
-													type: "rich",
-													color: EMBED_COLOR("source"),
-													title: "Code",
-													description: ((code) => {
-														const { enabled, escape, lang } = outputSettings["sourceEmbed"].codeblock;
-														if (enabled) {
-															if (escape) code = code.replaceAll("```", "`" + ZWD + "``");
-															code = "```" + lang + "\n" + code + "```";
-														}
-														return code;
-													})(code),
-													footer: {
-														text: sourceFooterString,
-													},
-											  },
-									].filter(($) => $ !== void 0),
-								},
-								messageMods
-							);
-					}
-
-					if (!errored && args.get("return")?.value) {
-						triggerAutorun("command_before_return", (code) => eval(code));
-						return result;
-					}
-				} catch (e) {
-					console.error(e);
-					console.log(e.stack);
-					alert("An uncatched error was thrown while running /eval\n" + e.stack);
-				}
-				triggerAutorun("command_after", (code) => eval(code));
-			}
 		} catch (e) {
 			console.error(e);
 			console.log(e.stack);
-			alert(`There was an error while loading the plugin "${plugin.meta.name}"\n${e.stack}`);
+			alert(`There was an error while loading the plugin "${plugin.name}"\n${e.stack}`);
 		}
 	},
 	command(execute) {
@@ -404,41 +362,43 @@ plugin = {
 				1
 			)?.();
 		}
+		const { defaults, command } = storage.settings;
+		console.log("meow");
 		this.commandPatch = registerCommand(
-			hlp.cmdDisplays({
+			common.cmdDisplays({
 				execute,
-				predicate: storage["settings"]["command"].predicate ?? (() => true),
 				type: 1,
 				inputType: 1,
 				applicationId: "-1",
-				name: storage["settings"]["command"].name ?? "!eval",
+				name: command["name"] ?? "!eval",
 				description: "Evaluates code",
 				options: [
 					{
 						required: true,
 						type: 3,
+						// autocomplete: true,
 						name: "code",
 						description: "Code to evaluate",
 					},
 					{
 						type: 5,
 						name: "silent",
-						description: `Show the output of the evaluation? (default: ${storage["settings"]["defaults"]["silent"] ?? true})`,
+						description: `Show the output of the evaluation? (default: ${defaults["silent"]})`,
 					},
 					{
 						type: 5,
 						name: "return",
-						description: `Return the returned value? (so it works as a real command, default: ${storage["settings"]["defaults"]["return"]})`,
+						description: `Return the returned value? (so it works as a real command, default: ${defaults["return"]})`,
 					},
 					{
 						type: 5,
 						name: "global",
-						description: `Evaluate the code in the global scope? (default: ${storage["settings"]["defaults"]["global"] ?? false})`,
+						description: `Evaluate the code in the global scope? (default: ${defaults["global"]})`,
 					},
 					{
 						type: 5,
 						name: "await",
-						description: `await the evaluation? (default: ${storage["settings"]["defaults"]["await"] ?? true})`,
+						description: `await the evaluation? (default: ${defaults["await"]})`,
 					},
 				],
 			})
