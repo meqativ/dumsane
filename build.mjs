@@ -24,7 +24,7 @@ let onlyBuild = process.argv.slice(2, process.argv.length);
 if (onlyBuild[0] === "all") {
 	onlyBuild = [];
 } else if (onlyBuild.length === 0) {
-	onlyBuild = ["eval", "PluginRepo", "FakeIt", "BlockWebhooks"];
+	onlyBuild = []// ["eval", "PluginRepo", "FakeIt", "BlockWebhooks"];
 }
 /** @type import("rollup").InputPluginOption */
 const plugins = [
