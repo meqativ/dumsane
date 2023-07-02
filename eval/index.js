@@ -1,6 +1,27 @@
 (function (exports, commands, metro, plugin$2, ui) {
 	'use strict';
 
+	const ZWD = "\u200D", Promise_UNMINIFIED_PROPERTY_NAMES = [
+	  "_deferredState",
+	  "_state",
+	  "_value",
+	  "_deferreds"
+	], PROMISE_STATE_NAMES = {
+	  0: "pending",
+	  1: "fulfilled",
+	  2: "rejected",
+	  3: "adopted"
+	};
+	function codeblock(text) {
+	  let language = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "", escape = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false;
+	  if (!text)
+	    throw new Error("No text to wrap in a codeblock provided");
+	  if (escape)
+	    text = text.replaceAll("```", `\`${ZWD}\`\``);
+	  return `\`\`\`${language}
+${text}
+\`\`\``;
+	}
 	function cmdDisplays(obj, translations, locale) {
 	  if (!obj?.name || !obj?.description)
 	    throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command (command name: ${obj?.name})`);
@@ -29,7 +50,7 @@
 	  }
 	  return obj;
 	}
-	function generateStr(chars) {
+	function generateRandomStr(chars) {
 	  let length = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 27;
 	  if (typeof chars !== "string")
 	    throw new Error("Passed chars isn't a string");
@@ -91,7 +112,7 @@
 	    ].includes(message.channelId))
 	      throw new Error("No channel id to receive the message into (channelId)");
 	    let msg = message;
-	    if (message.reallySend) {
+	    if (message.really) {
 	      if (typeof mod === "object")
 	        msg = merge(msg, mod);
 	      return sendMessage(message.channelId, msg);
@@ -133,36 +154,24 @@
 	  }
 	  return output;
 	}
-	const SANE_PROPERTY_NAMES = [
-	  "_deferredState",
-	  "_state",
-	  "_value",
-	  "_deferreds"
-	];
-	function fixPromiseProps(insanePromise) {
+	function fixPromiseProps(improperPromise) {
 	  let mutate = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false, removeOldKeys = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false;
-	  const insanePromiseKeys = Object.getOwnPropertyNames(insanePromise);
-	  if (insanePromiseKeys.length !== 4 || insanePromiseKeys.every(function(name, i) {
-	    return SANE_PROPERTY_NAMES[i] === name;
+	  const originalKeys = Object.getOwnPropertyNames(improperPromise);
+	  if (originalKeys.length !== 4 || originalKeys.every(function(name, i) {
+	    return Promise_UNMINIFIED_PROPERTY_NAMES[i] === name;
 	  }))
 	    throw new Error("The passed promise is already proper or isn't a promise");
-	  let sanePromise = {};
+	  let properPromise = {};
 	  if (mutate)
-	    sanePromise = insanePromise;
-	  SANE_PROPERTY_NAMES.forEach(function(name, i) {
-	    sanePromise[name] = insanePromise[insanePromiseKeys[i]];
+	    properPromise = improperPromise;
+	  Promise_UNMINIFIED_PROPERTY_NAMES.forEach(function(name, i) {
+	    properPromise[name] = improperPromise[originalKeys[i]];
 	    if (mutate && removeOldKeys)
-	      delete sanePromise[insanePromiseKeys[i]];
+	      delete properPromise[originalKeys[i]];
 	  });
-	  Object.setPrototypeOf(sanePromise, insanePromise.__proto__);
-	  return sanePromise;
+	  Object.setPrototypeOf(properPromise, improperPromise.__proto__);
+	  return properPromise;
 	}
-	const PROMISE_STATE_NAMES = {
-	  0: "pending",
-	  1: "fulfilled",
-	  2: "rejected",
-	  3: "adopted"
-	};
 	function prettyTypeof(value) {
 	  const name = [
 	    value?.constructor?.name
@@ -184,7 +193,7 @@
 	  ].includes(typeof value) && value?.name) {
 	    name[1] = `(${value.name})`;
 	  } else if (typeof value === "boolean") {
-	    name[1] = `${value}`;
+	    name[1] = value;
 	  } else if (typeof value === "string") {
 	    name[1] = value.length;
 	  } else if (typeof value === "number" && value !== 0) {
@@ -211,38 +220,86 @@
 	  return object;
 	}
 	const EMOJIS = {
-	  loadingDiscordSpinner: "a:loading:1105495814073229393",
-	  aol: "a:aol:1108834296359301161",
-	  linuth: ":linuth:1110531631409811547",
-	  fuckyoy: ":fuckyoy:1108360628302782564",
 	  getLoading() {
-	    return Math.random() < 0.01 ? this?.aol : this.loadingDiscordSpinner;
+	    return Math.random() < 0.01 ? this.aol : this.loadingDiscordSpinner;
 	  },
 	  getFailure() {
-	    return Math.random() < 0.01 ? this?.fuckyoy : this.linuth;
+	    return Math.random() < 0.01 ? this.fuckyoy : this.linuth;
 	  },
 	  getSuccess() {
 	    return "";
-	  }
+	  },
+	  loadingDiscordSpinner: "a:loading:1105495814073229393",
+	  aol: "a:aol:1108834296359301161",
+	  linuth: ":linuth:1110531631409811547",
+	  fuckyoy: ":fuckyoy:1108360628302782564"
 	};
 	const AVATARS = {
 	  command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
 	};
 
-	var hlp = /*#__PURE__*/Object.freeze({
+	var common = /*#__PURE__*/Object.freeze({
 		__proto__: null,
 		AVATARS: AVATARS,
 		EMOJIS: EMOJIS,
+		PROMISE_STATE_NAMES: PROMISE_STATE_NAMES,
+		Promise_UNMINIFIED_PROPERTY_NAMES: Promise_UNMINIFIED_PROPERTY_NAMES,
+		ZWD: ZWD,
 		areArraysEqual: areArraysEqual,
 		awaitPromise: awaitPromise,
 		cloneWithout: cloneWithout,
 		cmdDisplays: cmdDisplays,
+		codeblock: codeblock,
 		fixPromiseProps: fixPromiseProps,
-		generateStr: generateStr,
+		generateRandomStr: generateRandomStr,
 		mSendMessage: mSendMessage,
 		makeDefaults: makeDefaults,
 		prettyTypeof: prettyTypeof
 	});
+
+	const AsyncFunction = async function() {
+	}.constructor;
+	async function evaluate(code) {
+	  let aweight = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true, global = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false, that = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : {};
+	  if (!code)
+	    throw new Error("No code to evaluate");
+	  let result, errored = false, start = +new Date();
+	  try {
+	    const args = [];
+	    if (!global)
+	      args.push(...Object.keys(that));
+	    args.push(code);
+	    let evalFunction = new AsyncFunction(...args);
+	    Object.keys(that).forEach(function(name, index) {
+	      args[index] = that[name];
+	    });
+	    if (aweight) {
+	      result = await evalFunction(...args);
+	    } else {
+	      result = evalFunction(...args);
+	    }
+	  } catch (e) {
+	    result = e;
+	    errored = true;
+	  }
+	  let end = +new Date();
+	  const res = {
+	    result,
+	    errored,
+	    start,
+	    end,
+	    elapsed: end - start
+	  };
+	  return res;
+	}
+	evaluate.SENSITIVE_PROPS = {
+	  USER: [
+	    "email",
+	    "phone",
+	    "mfaEnabled",
+	    "hasBouncedEmail"
+	  ]
+	};
 
 	const { inspect } = metro.findByProps("inspect"), authorMods = {
 	  author: {
@@ -250,8 +307,7 @@
 	    avatar: "command",
 	    avatarURL: AVATARS.command
 	  }
-	}, AsyncFunction = async function() {
-	}.constructor, ZWD = "\u200D", BUILTIN_AUTORUN_TYPES = [
+	}, BUILTIN_AUTORUN_TYPES = [
 	  "autorun_before",
 	  "autorun_after",
 	  "plugin_after_defaults",
@@ -266,7 +322,8 @@
 	  "command_autocomplete_after",
 	  "evaluate_before",
 	  "evaluate_after"
-	], triggerAutorun = function(type, fn) {
+	];
+	function triggerAutorun(type, fn) {
 	  if ([
 	    "autorun_before",
 	    "autorun_after"
@@ -306,7 +363,7 @@
 	  triggerAutorun("autorun_after", function(code) {
 	    return eval(code);
 	  });
-	};
+	}
 	makeDefaults(vendetta.plugin.storage, {
 	  autoruns: [
 	    {
@@ -342,7 +399,9 @@
 	      location: 0,
 	      trim: 15e3,
 	      fixPromiseProps: true,
+	      hideSensitive: true,
 	      sourceEmbed: {
+	        name: "Code",
 	        enabled: true,
 	        codeblock: {
 	          enabled: true,
@@ -377,13 +436,11 @@
 	    defaults: {
 	      await: true,
 	      global: false,
+	      return: false,
 	      silent: false
 	    },
 	    command: {
-	      name: "!eval",
-	      predicate: function() {
-	        return true;
-	      }
+	      name: "!eval"
 	    }
 	  }
 	});
@@ -395,7 +452,7 @@
 	const EMBED_COLOR = function(color) {
 	  return parseInt(resolveSemanticColor(ThemeStore.theme, ui.semanticColors.BACKGROUND_SECONDARY).slice(1), 16);
 	};
-	let madeSendMessage, plugin, usedInSession = false;
+	let madeSendMessage, UserStore, plugin, usedInSession = false;
 	function sendMessage() {
 	  if (window.sendMessage)
 	    return window.sendMessage?.(...arguments);
@@ -403,45 +460,217 @@
 	    madeSendMessage = mSendMessage(vendetta);
 	  return madeSendMessage(...arguments);
 	}
-	async function evaluate(code, aweight, global) {
-	  let that = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : {};
-	  triggerAutorun("evaluate_before", function(code) {
-	    return eval(code);
-	  });
-	  let result, errored = false, start = +new Date();
+	async function execute(rawArgs, ctx) {
 	  try {
-	    const args2 = [];
-	    if (!global)
-	      args2.push(...Object.keys(that));
-	    args2.push(code);
-	    let evalFunction = new AsyncFunction(...args2);
-	    Object.keys(that).forEach(function(name, index2) {
-	      args2[index2] = that[name];
+	    const { settings, stats } = plugin$2.storage;
+	    const { history, defaults, output: outputSettings } = settings;
+	    const { runs } = stats;
+	    triggerAutorun("command_before", function(code) {
+	      return eval(code);
 	    });
-	    if (aweight) {
-	      result = await evalFunction(...args2);
-	    } else {
-	      result = evalFunction(...args2);
+	    UserStore ??= metro.findByStoreName("UserStore");
+	    if (!usedInSession) {
+	      usedInSession = true;
+	      runs["plugin"]++;
+	      runs["sessionHistory"] = [];
+	    }
+	    let currentUser = UserStore.getCurrentUser();
+	    if (outputSettings["hideSensitive"]) {
+	      currentUser = {
+	        ...currentUser
+	      };
+	      evaluate.SENSITIVE_PROPS.USER.forEach(function(prop) {
+	        Object.defineProperty(currentUser, prop, {
+	          enumerable: false
+	        });
+	      });
+	    }
+	    const messageMods = {
+	      ...authorMods,
+	      interaction: {
+	        name: "/" + this.displayName,
+	        user: currentUser
+	      }
+	    };
+	    const interaction = {
+	      messageMods,
+	      ...ctx,
+	      user: currentUser,
+	      args: new Map(rawArgs.map(function(o) {
+	        return [
+	          o.name,
+	          o
+	        ];
+	      }))
+	    };
+	    Object.defineProperty(interaction, "_args", {
+	      value: rawArgs,
+	      enunerable: false
+	    });
+	    triggerAutorun("command_after_interaction_def", function(code) {
+	      return eval(code);
+	    });
+	    if (interaction.autocomplete) {
+	      return;
+	      triggerAutorun("command_autocomplete_before", function(code) {
+	        return eval(code);
+	      });
+	      triggerAutorun("command_autocomplete_after", function(code) {
+	        return eval(code);
+	      });
+	    }
+	    const { channel, args } = interaction, code = args.get("code")?.value, aweight = args.get("await")?.value ?? defaults["await"], silent = args.get("silent")?.value ?? defaults["silent"], global = args.get("global")?.value ?? defaults["global"];
+	    if (typeof code !== "string")
+	      throw new Error("No code argument passed");
+	    triggerAutorun("evaluate_before", function(code) {
+	      return eval(code);
+	    });
+	    let { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
+	      interaction,
+	      plugin,
+	      util: {
+	        sendMessage,
+	        common,
+	        evaluate,
+	        BUILTIN_AUTORUN_TYPES,
+	        triggerAutorun
+	      }
+	    });
+	    triggerAutorun("evaluate_after", function(code) {
+	      return eval(code);
+	    });
+	    let thisEvaluation;
+	    if (history.enabled) {
+	      thisEvaluation = {
+	        session: runs["plugin"],
+	        start,
+	        end,
+	        elapsed,
+	        code,
+	        errored
+	      };
+	      if (!interaction.dontSaveResult) {
+	        thisEvaluation.result = cloneWithout(result, [
+	          runs["history"],
+	          runs["sessionHistory"],
+	          vendetta.plugin.storage
+	        ], "not saved");
+	        if (history.saveContext)
+	          thisEvaluation.context = cloneWithout(interaction, [
+	            runs["history"],
+	            runs["sessionHistory"],
+	            vendetta.plugin.storage
+	          ], "not saved");
+	      }
+	      (function() {
+	        if (!history.saveOnError && errored)
+	          return runs["failed"]++;
+	        runs["succeeded"]++;
+	        runs["history"].push(thisEvaluation);
+	        runs["sessionHistory"].push(thisEvaluation);
+	      })();
+	    }
+	    if (!silent) {
+	      const message = {
+	        channelId: channel.id,
+	        content: "",
+	        embeds: []
+	      };
+	      const outputEmbed = {
+	        type: "rich",
+	        color: EMBED_COLOR(errored ? "dissatisfactory" : "satisfactory")
+	      };
+	      message.embeds.push(outputEmbed);
+	      if (outputSettings["fixPromiseProps"] && result?.constructor?.name === "Promise")
+	        result = fixPromiseProps(result);
+	      let processedResult = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
+	      if (errored) {
+	        const { stack, trim } = outputSettings["errors"];
+	        if (stack)
+	          processedResult = result.stack;
+	        if (trim)
+	          processedResult = processedResult.split("    at ?anon_0_?anon_0_evaluate")[0];
+	      }
+	      if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < processedResult.length)
+	        processedResult = processedResult.slice(0, outputSettings["trim"]);
+	      if (outputSettings["codeblock"].enabled) {
+	        const { lang, escape } = outputSettings["codeblock"];
+	        processedResult = codeblock(processedResult, lang, escape);
+	      }
+	      if (outputSettings["location"] === 0) {
+	        message.content = processedResult;
+	      } else {
+	        outputEmbed.description = processedResult;
+	      }
+	      if (outputSettings["info"].enabled) {
+	        const { hints, prettyTypeof: prettyTypeof$1 } = outputSettings.info;
+	        let info = [
+	          prettyTypeof$1 ? prettyTypeof(result) : typeof result
+	        ];
+	        if (hints) {
+	          let hint;
+	          if (result === void 0 && !code.includes("return"))
+	            hint = "use 'return'";
+	          if (hint)
+	            info.push(`hint: ${hint}`);
+	        }
+	        info.push(`took: ${elapsed}ms`);
+	        if (outputSettings["location"] === 0) {
+	          outputEmbed.description = info.join("\n");
+	        } else {
+	          outputEmbed.footer = {
+	            text: info.join("\n")
+	          };
+	        }
+	      }
+	      if (outputSettings["sourceEmbed"].enabled) {
+	        const { codeblock: { codeblockEnabled, language, escape }, name } = outputSettings["sourceEmbed"];
+	        const embed = {
+	          type: "rich",
+	          color: EMBED_COLOR("source"),
+	          description: code,
+	          footer: {
+	            text: `length: ${code.length}`
+	          }
+	        };
+	        message.embeds.push(embed);
+	        if (name)
+	          embed.provider = {
+	            name
+	          };
+	        if (codeblockEnabled)
+	          embed.description = hlp.codeblock(embed.description, language, escape);
+	        let newlineCount = code.split("").filter(function($) {
+	          return $ === "\n";
+	        }).length;
+	        if (newlineCount < 0)
+	          embed.footer.text += `
+newlines: ${newlineCount}`;
+	      }
+	      sendMessage(message, messageMods);
+	    }
+	    if (!errored && args.get("return")?.value) {
+	      triggerAutorun("command_before_return", function(code) {
+	        return eval(code);
+	      });
+	      return result;
+	    }
+	    if (errored && silent) {
+	      console.error(result);
+	      console.log(result.stack);
+	      alert("An error ocurred while running your silent & returned eval\n" + result.stack);
 	    }
 	  } catch (e) {
-	    result = e;
-	    errored = true;
+	    console.error(e);
+	    console.log(e.stack);
+	    alert("An uncatched error was thrown while running /eval\n" + e.stack);
 	  }
-	  let end = +new Date();
-	  const res = {
-	    result,
-	    errored,
-	    start,
-	    end,
-	    elapsed: end - start
-	  };
-	  triggerAutorun("evaluate_after", function(code) {
+	  triggerAutorun("command_after", function(code) {
 	    return eval(code);
 	  });
-	  return res;
 	}
 	plugin = {
-	  meta: vendetta.plugin,
+	  ...vendetta.plugin,
 	  patches: [],
 	  onUnload() {
 	    triggerAutorun("plugin_onUnload", function(code) {
@@ -453,233 +682,15 @@
 	    this.patches = [];
 	  },
 	  onLoad() {
-	    triggerAutorun("plugin_onLoad", function(code) {
-	      return eval(code);
-	    });
-	    let UserStore;
 	    try {
+	      triggerAutorun("plugin_onLoad", function(code) {
+	        return eval(code);
+	      });
 	      this.command(execute);
-	      async function execute(rawArgs, ctx) {
-	        triggerAutorun("command_before", function(code) {
-	          return eval(code);
-	        });
-	        UserStore ??= metro.findByStoreName("UserStore");
-	        if (!usedInSession) {
-	          usedInSession = true;
-	          plugin$2.storage["stats"]["runs"]["plugin"]++;
-	          plugin$2.storage["stats"]["runs"]["sessionHistory"] = [];
-	        }
-	        const currentUser = UserStore.getCurrentUser();
-	        const messageMods = {
-	          ...authorMods,
-	          interaction: {
-	            name: "/" + this.displayName,
-	            user: currentUser
-	          }
-	        };
-	        const interaction = {
-	          messageMods,
-	          ...ctx,
-	          user: currentUser,
-	          args: new Map(rawArgs.map(function(o) {
-	            return [
-	              o.name,
-	              o
-	            ];
-	          })),
-	          rawArgs,
-	          plugin
-	        };
-	        triggerAutorun("command_after_interaction_def", function(code) {
-	          return eval(code);
-	        });
-	        if (interaction.autocomplete) {
-	          return;
-	          triggerAutorun("command_autocomplete_before", function(code) {
-	            return eval(code);
-	          });
-	          triggerAutorun("command_autocomplete_after", function(code) {
-	            return eval(code);
-	          });
-	        }
-	        try {
-	          const { channel, args } = interaction;
-	          const code = args.get("code")?.value;
-	          if (typeof code !== "string")
-	            throw new Error("No code argument passed");
-	          const settings = plugin$2.storage["settings"];
-	          const defaults = settings["defaults"];
-	          const aweight = args.get("await")?.value ?? defaults["await"];
-	          const silent = args.get("silent")?.value ?? defaults["silent"];
-	          const global = args.get("global")?.value ?? defaults["global"];
-	          let { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
-	            interaction,
-	            util: {
-	              sendMessage,
-	              hlp,
-	              ZWD,
-	              evaluate,
-	              BUILTIN_AUTORUN_TYPES,
-	              triggerAutorun
-	            }
-	          });
-	          const { runs } = plugin$2.storage["stats"], history = settings["history"];
-	          let thisEvaluation;
-	          if (history.enabled) {
-	            thisEvaluation = {
-	              session: runs["plugin"],
-	              start,
-	              end,
-	              elapsed,
-	              code,
-	              errored
-	            };
-	            if (!interaction.dontSaveResult) {
-	              thisEvaluation.result = cloneWithout(result, [
-	                runs["history"],
-	                runs["sessionHistory"],
-	                vendetta.plugin.storage
-	              ], "not saved");
-	              if (history.saveContext)
-	                thisEvaluation.context = cloneWithout(interaction, [
-	                  runs["history"],
-	                  runs["sessionHistory"],
-	                  vendetta.plugin.storage
-	                ], "not saved");
-	            }
-	            (function() {
-	              if (!history.saveOnError && errored)
-	                return runs["failed"]++;
-	              runs["succeeded"]++;
-	              runs["history"].push(thisEvaluation);
-	              runs["sessionHistory"].push(thisEvaluation);
-	            })();
-	          }
-	          if (!silent) {
-	            const outputSettings = settings["output"];
-	            if (outputSettings.fixPromiseProps && result?.constructor?.name === "Promise")
-	              result = fixPromiseProps(result);
-	            let outputStringified = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
-	            if (errored) {
-	              const errorSettings = outputSettings["errors"];
-	              if (errorSettings["stack"])
-	                outputStringified = result.stack;
-	              if (errorSettings["trim"])
-	                outputStringified = outputStringified.split("    at ?anon_0_?anon_0_evaluate")[0];
-	            }
-	            if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < outputStringified.length)
-	              outputStringified = outputStringified.slice(0, outputSettings["trim"]);
-	            if (outputSettings["codeblock"].enabled) {
-	              const { escape, lang } = outputSettings["codeblock"];
-	              if (escape)
-	                outputStringified = outputStringified.replaceAll("```", "`" + ZWD + "``");
-	              outputStringified = "```" + lang + "\n" + outputStringified + "```";
-	            }
-	            let infoString;
-	            if (outputSettings["info"].enabled) {
-	              let type2 = outputSettings["info"].prettyTypeof ? prettyTypeof(result) : "type: " + typeof result;
-	              const hint = outputSettings["info"]["hints"] ? result === "undefined" && !code.includes("return") ? "hint: use the return keyword\n" : "" : "";
-	              infoString = `${type2}
-${hint}took: ${elapsed}ms`;
-	            }
-	            let sourceFooterString = `length: ${code.length}`;
-	            let newlineCount = code.split("").filter(function($) {
-	              return $ === "\n";
-	            }).length;
-	            if (newlineCount < 0)
-	              sourceFooterString += `
-newlines: ${newlineCount}`;
-	            if (errored) {
-	              sendMessage({
-	                channelId: channel.id,
-	                content: !outputSettings["location"] ? outputStringified : void 0,
-	                embeds: [
-	                  {
-	                    type: "rich",
-	                    color: EMBED_COLOR("exploded"),
-	                    description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : void 0,
-	                    footer: outputSettings["info"].enabled ? outputSettings["location"] ? {
-	                      text: infoString
-	                    } : void 0 : void 0
-	                  },
-	                  !outputSettings["sourceEmbed"]?.enabled ? void 0 : {
-	                    type: "rich",
-	                    color: EMBED_COLOR("source"),
-	                    provider: {
-	                      name: "Code"
-	                    },
-	                    description: function(code2) {
-	                      const { enabled, escape, lang } = outputSettings["sourceEmbed"].codeblock;
-	                      if (enabled) {
-	                        if (escape)
-	                          code2 = code2.replaceAll("```", "`" + ZWD + "``");
-	                        code2 = "```" + lang + "\n" + code2 + "```";
-	                      }
-	                      return code2;
-	                    }(code),
-	                    footer: {
-	                      text: sourceFooterString
-	                    }
-	                  }
-	                ].filter(function($) {
-	                  return $ !== void 0;
-	                })
-	              }, messageMods);
-	            }
-	            if (!errored)
-	              sendMessage({
-	                channelId: channel.id,
-	                content: !outputSettings["location"] ? outputStringified : void 0,
-	                embeds: [
-	                  {
-	                    type: "rich",
-	                    color: EMBED_COLOR("satisfactory"),
-	                    description: outputSettings["location"] ? outputStringified : outputSettings["info"].enabled ? infoString : void 0,
-	                    footer: outputSettings["info"].enabled ? outputSettings["location"] ? {
-	                      text: infoString
-	                    } : void 0 : void 0
-	                  },
-	                  !outputSettings["sourceEmbed"]?.enabled ? void 0 : {
-	                    type: "rich",
-	                    color: EMBED_COLOR("source"),
-	                    title: "Code",
-	                    description: function(code2) {
-	                      const { enabled, escape, lang } = outputSettings["sourceEmbed"].codeblock;
-	                      if (enabled) {
-	                        if (escape)
-	                          code2 = code2.replaceAll("```", "`" + ZWD + "``");
-	                        code2 = "```" + lang + "\n" + code2 + "```";
-	                      }
-	                      return code2;
-	                    }(code),
-	                    footer: {
-	                      text: sourceFooterString
-	                    }
-	                  }
-	                ].filter(function($) {
-	                  return $ !== void 0;
-	                })
-	              }, messageMods);
-	          }
-	          if (!errored && args.get("return")?.value) {
-	            triggerAutorun("command_before_return", function(code) {
-	              return eval(code);
-	            });
-	            return result;
-	          }
-	        } catch (e) {
-	          console.error(e);
-	          console.log(e.stack);
-	          alert("An uncatched error was thrown while running /eval\n" + e.stack);
-	        }
-	        triggerAutorun("command_after", function(code) {
-	          return eval(code);
-	        });
-	      }
 	    } catch (e) {
 	      console.error(e);
 	      console.log(e.stack);
-	      alert(`There was an error while loading the plugin "${plugin.meta.name}"
+	      alert(`There was an error while loading the plugin "${plugin.name}"
 ${e.stack}`);
 	    }
 	  },
@@ -690,42 +701,42 @@ ${e.stack}`);
 	        return $ === _this.commandPatch;
 	      }), 1)?.();
 	    }
+	    const { defaults: defaults2, command } = plugin$2.storage.settings;
+	    console.log("meow");
 	    this.commandPatch = commands.registerCommand(cmdDisplays({
 	      execute: execute2,
-	      predicate: plugin$2.storage["settings"]["command"].predicate ?? function() {
-	        return true;
-	      },
 	      type: 1,
 	      inputType: 1,
 	      applicationId: "-1",
-	      name: plugin$2.storage["settings"]["command"].name ?? "!eval",
+	      name: command["name"] ?? "!eval",
 	      description: "Evaluates code",
 	      options: [
 	        {
 	          required: true,
 	          type: 3,
+	          // autocomplete: true,
 	          name: "code",
 	          description: "Code to evaluate"
 	        },
 	        {
 	          type: 5,
 	          name: "silent",
-	          description: `Show the output of the evaluation? (default: ${plugin$2.storage["settings"]["defaults"]["silent"] ?? true})`
+	          description: `Show the output of the evaluation? (default: ${defaults2["silent"]})`
 	        },
 	        {
 	          type: 5,
 	          name: "return",
-	          description: `Return the returned value? (so it works as a real command, default: ${plugin$2.storage["settings"]["defaults"]["return"]})`
+	          description: `Return the returned value? (so it works as a real command, default: ${defaults2["return"]})`
 	        },
 	        {
 	          type: 5,
 	          name: "global",
-	          description: `Evaluate the code in the global scope? (default: ${plugin$2.storage["settings"]["defaults"]["global"] ?? false})`
+	          description: `Evaluate the code in the global scope? (default: ${defaults2["global"]})`
 	        },
 	        {
 	          type: 5,
 	          name: "await",
-	          description: `await the evaluation? (default: ${plugin$2.storage["settings"]["defaults"]["await"] ?? true})`
+	          description: `await the evaluation? (default: ${defaults2["await"]})`
 	        }
 	      ]
 	    }));
@@ -739,6 +750,7 @@ ${e.stack}`);
 
 	exports.EMBED_COLOR = EMBED_COLOR;
 	exports.default = plugin$1;
+	exports.triggerAutorun = triggerAutorun;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
