@@ -1,5 +1,5 @@
 import { generateBasicScheme, parseScheme } from "../schemeUtils.js";
-import * as hlp from "../../../helpers/index.js";
+import * as common from "../../../common";
 import { findByStoreName } from "@vendetta/metro";
 import {
 	vibrate,
@@ -36,7 +36,7 @@ export const command = {
 							{
 								color: EMBED_COLOR(),
 								type: "rich",
-								title: `<${hlp.EMOJIS.getFailure()}> Please provide a \`scheme\` or choose \`duration\`, \`repeat\` and/or \`gap\``,
+								title: `<${common.EMOJIS.getFailure()}> Please provide a \`scheme\` or choose \`duration\`, \`repeat\` and/or \`gap\``,
 							},
 						],
 					},
@@ -78,7 +78,7 @@ export const command = {
 								{
 									color: EMBED_COLOR(),
 									type: "rich",
-									title: `<${hlp.EMOJIS.getFailure()}> An error ocurred while parsing the scheme`,
+									title: `<${common.EMOJIS.getFailure()}> An error ocurred while parsing the scheme`,
 									description: `\`\`\`js\n${vibration.scheme.toString()}\`\`\``,
 								},
 							],
@@ -118,7 +118,7 @@ export const command = {
 								{
 									color: EMBED_COLOR(),
 									type: "rich",
-									title: `${hlp.EMOJIS.getFailure()} An error ocurred while playing the vibration`,
+									title: `${common.EMOJIS.getFailure()} An error ocurred while playing the vibration`,
 									description: `\`\`\`${vibration.error.message}\`\`\``,
 								},
 							],
@@ -172,7 +172,7 @@ export const command = {
 						{
 							color: EMBED_COLOR(),
 							type: "rich",
-							title: `<${hlp.EMOJIS.getFailure()}> An error ocurred while running the command`,
+							title: `<${common.EMOJIS.getFailure()}> An error ocurred while running the command`,
 							description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGIN_FORUM_POST_URL}, to hopefully get this error solved!`,
 						},
 					],

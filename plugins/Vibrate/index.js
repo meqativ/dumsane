@@ -1,4 +1,4 @@
-import * as hlp from "../../helpers/index.js";
+import * as common from "../../common";
 import { registerCommand } from "@vendetta/commands";
 import { findByProps, findByStoreName } from "@vendetta/metro";
 import { ReactNative } from "@vendetta/metro/common";
@@ -15,20 +15,19 @@ export const PLUGIN_FORUM_POST_URL = "||not proxied||",
 		author: {
 			username: "Vibrate",
 			avatar: "command",
-			avatarURL: hlp.AVATARS.command,
+			avatarURL: common.AVATARS.command,
 		},
 	};
-
-if (!("stats" in storage)) storage["stats"] = {};
+common.makeDefaults(vendetta.plugin.storage, 
 {
-	const stats = storage["stats"];
-	if (!("localRuns" in stats)) stats.localRuns = 0;
-	if (!("publicRuns" in stats)) stats.publicRuns = 0;
-	if (!("lastVibration" in stats))
-		stats.lastVibration = {
+	stats: {
+		localRuns: 0,
+		publicRuns: 0,
+		lastVibration: {
 			scheme: generateBasicScheme(150, 5),
-		};
-}
+		}
+	}
+})
 
 const {
 	meta: { resolveSemanticColor },
@@ -48,7 +47,7 @@ export const EMBED_COLOR = () =>
 let madeSendMessage;
 export function sendMessage() {
 	if (window.sendMessage) return window.sendMessage?.(...arguments);
-	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
+	if (!madeSendMessage) madeSendMessage = common.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
 
@@ -153,7 +152,7 @@ export default {
 		try {
 			const plugin = this;
 			[
-				hlp.cmdDisplays({
+				common.cmdDisplays({
 					async execute(args, ctx){
 						return await cmd2.exeCute({
 							...ctx,
@@ -176,7 +175,7 @@ export default {
 						},
 					],
 				}),
-				hlp.cmdDisplays({
+				common.cmdDisplays({
 					async execute(args, ctx){
 						return await cmd1.exeCute({
 							...ctx,

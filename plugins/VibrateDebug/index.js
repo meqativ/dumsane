@@ -1,5 +1,5 @@
 import settings from "./settings.jsx";
-import { cmdDisplays } from "../../helpers/index.js";
+import { cmdDisplays } from "../../common";
 
 const {
   logger,

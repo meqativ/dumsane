@@ -5,7 +5,7 @@ import { showConfirmationAlert } from "@vendetta/ui/alerts";
 import { Forms } from "@vendetta/ui/components";
 import { getAssetIDByName } from "@vendetta/ui/assets";
 import { getTranslation } from "./translations.js";
-import ItemWithRemove from "../../helpers/ui/ItemWithRemove.jsx";
+import ItemWithRemove from "../../common/ui/ItemWithRemove.jsx";
 import { findByStoreName, findByProps } from "@vendetta/metro";
 let UserStore, UncachedUserManager, Profiles;
 export default (props) => {

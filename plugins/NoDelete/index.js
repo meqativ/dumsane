@@ -1,5 +1,5 @@
 import settings from "./settings.jsx";
-import * as hlp from "../../helpers/index.js";
+import * as common from "../../common";
 import { FluxDispatcher, moment } from "@vendetta/metro/common";
 import { storage } from "@vendetta/plugin";
 import { before as patchBefore } from "@vendetta/patcher";
@@ -10,7 +10,7 @@ import { getTranslation, massive } from "./translations.js";
 //import { dispatcherPatch } from "./patches/dispatcher.js";
 //import { contextMenuPatch } from "./patches/contextMenu.js"
 
-hlp.makeDefaults(storage, {
+common.makeDefaults(storage, {
 	ignore: {
 		users: [],
 		channels: [],

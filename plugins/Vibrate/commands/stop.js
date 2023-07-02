@@ -1,4 +1,4 @@
-import * as hlp from "../../../helpers/index.js";
+import * as common from "../../../common";
 import {
 	vibrations,
 	vibrate,
@@ -29,7 +29,7 @@ export const command = {
 							{
 								color: EMBED_COLOR(),
 								type: "rich",
-								title: `<${hlp.EMOJIS.getFailure()}> Vibration with id \`${id}\` not found`,
+								title: `<${common.EMOJIS.getFailure()}> Vibration with id \`${id}\` not found`,
 							},
 						],
 					},
@@ -46,7 +46,7 @@ export const command = {
 						{
 							color: EMBED_COLOR(),
 							type: "rich",
-							title: `<${hlp.EMOJIS.getLoading()}> Stopping vibration…`,
+							title: `<${common.EMOJIS.getLoading()}> Stopping vibration…`,
 							footer: { text: `ID: ${vibration.id}` },
 						},
 					],
@@ -63,7 +63,7 @@ export const command = {
 					embeds: [
 						{
 							type: "rich",
-							title: `<${hlp.EMOJIS.getFailure()}> An error ocurred while running the command`,
+							title: `<${common.EMOJIS.getFailure()}> An error ocurred while running the command`,
 							description: `Send a screenshot of this error and explain how you came to it, here: ${PLUGIN_FORUM_POST_URL}, to hopefully get this error solved!`,
 						},
 					],

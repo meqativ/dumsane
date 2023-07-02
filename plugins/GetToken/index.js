@@ -1,4 +1,4 @@
-import * as hlp from "../../helpers/index.js";
+import * as common from "../../common";
 import { semanticColors } from "@vendetta/ui";
 import { registerCommand } from "@vendetta/commands";
 import { findByStoreName, findByProps } from "@vendetta/metro";
@@ -6,7 +6,7 @@ import { findInReactTree } from "@vendetta/utils";
 import { setString } from "@vendetta/metro/common/clipboard";
 import { before as patchBefore } from "@vendetta/patcher";
 import { showToast } from "@vendetta/ui/toasts";
-import { encode as encodeTok, characters2 } from "../../helpers/numberBase64.js";
+import { encode as encodeTok, characters2 } from "../../common/numberBase64";
 const {
 	meta: { resolveSemanticColor },
 } = findByProps("colors", "meta");
@@ -20,14 +20,14 @@ export const EMBED_COLOR = () =>
 		author: {
 			username: "TokenUtils",
 			avatar: "command",
-			avatarURL: hlp.AVATARS.command,
+			avatarURL: common.AVATARS.command,
 		},
 	};
 
 let madeSendMessage;
 function sendMessage() {
 	if (window.sendMessage) return window.sendMessage?.(...arguments);
-	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
+	if (!madeSendMessage) madeSendMessage = common.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
 
@@ -64,7 +64,7 @@ export default {
 								: [
 										Buffer.from(focusedUserId).toString("base64").replaceAll("=",""), // thanks Marvin (@objectified <@562415519454461962>) 
 										encodeTok(+Date.now() - 1293840000, true),
-										hlp.generateStr(characters2, 27),
+										common.generateStr(characters2, 27),
 								  ].join(".")
 						);
 						props.hideActionSheet();
@@ -145,7 +145,7 @@ export default {
 										{
 											color: EMBED_COLOR(),
 											type: "rich",
-											title: `<${hlp.EMOJIS.getLoading()}> Switching accounts…`,
+											title: `<${common.EMOJIS.getLoading()}> Switching accounts…`,
 										},
 									],
 								},
@@ -162,7 +162,7 @@ export default {
 										{
 											color: EMBED_COLOR(),
 											type: "rich",
-											title: `<${hlp.EMOJIS.getFailure()}> Failed to switch accounts`,
+											title: `<${common.EMOJIS.getFailure()}> Failed to switch accounts`,
 											description: `${e.message}`,
 										},
 									],
@@ -177,7 +177,7 @@ export default {
 				},
 			};
 			[
-				hlp.cmdDisplays({
+				common.cmdDisplays({
 					type: 1,
 					inputType: 1,
 					applicationId: "-1",
@@ -185,7 +185,7 @@ export default {
 					name: "token get",
 					description: "Shows your current user token",
 				}),
-				hlp.cmdDisplays({
+				common.cmdDisplays({
 					type: 1,
 					inputType: 1,
 					applicationId: "-1",

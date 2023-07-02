@@ -1,6 +1,6 @@
 import Uwuifier from "./uwuifier/index.js";
 import Settings from "./settings.jsx";
-import { cmdDisplays } from "../../helpers/index.js";
+import { cmdDisplays } from "../../common";
 let uwuifier = new Uwuifier();
 const pluwugin = {
   reloadUwuifier,
