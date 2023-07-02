@@ -1,4 +1,4 @@
-import * as hlp from "../../helpers/index.js";
+import * as common from "../../common";
 import { semanticColors } from "@vendetta/ui";
 import { registerCommand } from "@vendetta/commands";
 import { findByStoreName, findByProps } from "@vendetta/metro";
@@ -22,14 +22,14 @@ export const EMBED_COLOR = () =>
 		author: {
 			username: vendetta.plugin.name,
 			avatar: "command",
-			avatarURL: hlp.AVATARS.command,
+			avatarURL: common.AVATARS.command,
 		},
 	};
 
 let madeSendMessage;
 function sendMessage() {
 	if (window.sendMessage) return window.sendMessage?.(...arguments);
-	if (!madeSendMessage) madeSendMessage = hlp.mSendMessage(vendetta);
+	if (!madeSendMessage) madeSendMessage = common.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
 
@@ -61,7 +61,7 @@ export default {
 				},
 			};
 			[
-				hlp.cmdDisplays({
+				common.cmdDisplays({
 					async execute(args, ctx){
 						return await cmd2.exeCute({
 							...ctx,
