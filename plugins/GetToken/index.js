@@ -64,7 +64,7 @@ export default {
 								: [
 										Buffer.from(focusedUserId).toString("base64").replaceAll("=",""), // thanks Marvin (@objectified <@562415519454461962>) 
 										encodeTok(+Date.now() - 1293840000, true),
-										common.generateStr(characters2, 27),
+										common.generateRandomString(characters2, 27),
 								  ].join(".")
 						);
 						props.hideActionSheet();
