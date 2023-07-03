@@ -235,9 +235,9 @@ async function execute(rawArgs, ctx) {
 				errored,
 			};
 			if (!interaction.dontSaveResult) {
-				thisEvaluation.result = common.cloneWithout(result, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
+				thisEvaluation.result = common.cloneWithout(result, [window, runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
 
-				if (history.saveContext) thisEvaluation.context = common.cloneWithout(interaction, [runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
+				if (history.saveContext) thisEvaluation.context = common.cloneWithout(interaction, [window, runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
 			}
 			(() => {
 				if (!history.saveOnError && errored) return runs["failed"]++;
@@ -267,7 +267,7 @@ async function execute(rawArgs, ctx) {
 
 			if (errored) {
 				const { stack, trim } = outputSettings["errors"];
-				if (stack) processedResult = result.stack;
+				if (stack && result.stack !== undefined && typeof result.stack === "string") processedResult = result.stack;
 				if (trim) processedResult = processedResult.split("    at ?anon_0_?anon_0_evaluate")[0];
 			}
 
