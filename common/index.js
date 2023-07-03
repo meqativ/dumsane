@@ -1,3 +1,4 @@
+export { mSendMessage } from "./mSendMessage.js";
 export const ZWD = "\u200d",
  Promise_UNMINIFIED_PROPERTY_NAMES = [
 	 "_deferredState",
@@ -64,7 +65,7 @@ export function cmdDisplays(obj, translations, locale) {
 	}
 	return obj;
 }
-export function generateRandomStr(chars, length = 27) {
+export function generateRandomString(chars, length = 27) {
 	if (typeof chars !== "string") throw new Error("Passed chars isn't a string");
 	if (chars?.length <= 0) throw new Error("Invalid chars length");
 
@@ -106,47 +107,6 @@ export function cloneWithout(value, without, replace) {
 		}
 	}
 	return newObj;
-}
-export function mSendMessage(vendetta) {
-	const {
-		metro: {
-			findByProps,
-			findByStoreName,
-			common: {
-				lodash: { merge },
-			},
-		},
-	} = vendetta;
-	const { sendMessage, receiveMessage } = findByProps("sendMessage", "receiveMessage");
-	const { createBotMessage } = findByProps("createBotMessage");
-	const Avatars = findByProps("BOT_AVATARS");
-	const { getChannelId: getFocusedChannelId } = findByStoreName("SelectedChannelStore");
-
-	return function (message, mod) {
-		message.channelId ??= getFocusedChannelId();
-		if ([null, undefined].includes(message.channelId)) throw new Error("No channel id to receive the message into (channelId)");
-		let msg = message;
-		if (message.really) {
-			if (typeof mod === "object") msg = merge(msg, mod);
-
-			return sendMessage(message.channelId, msg);
-		}
-
-		if (mod !== true) msg = createBotMessage(msg);
-		if (typeof mod === "object") {
-			msg = merge(msg, mod);
-			if ("author" in mod)
-				(function processAvatarURL() {
-					const author = mod.author;
-					if (["avatar", "avatarURL"].every((prop) => prop in author)) {
-						Avatars.BOT_AVATARS[author.avatar] = author.avatarURL;
-						delete author.avatarURL;
-					}
-				})();
-		}
-		receiveMessage(msg.channel_id, msg);
-		return msg;
-	};
 }
 
 /* Calls and awaits a promise function, and returns a [result, error] array
@@ -276,3 +236,5 @@ export const EMOJIS = {
 export const AVATARS = {
 	command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png",
 };
+
+
