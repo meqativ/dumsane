@@ -1,4 +1,4 @@
-Hold on the name → Copy the link
+Hold on the name → Copy the link<btr/>
 Go to the plugins page in settings → press `+`
 
 ## [src](https://github.com/Meqativ/dumsane/edit/master/UrlImport) → [UrlImport](/dumsane/UrlImport)
@@ -8,6 +8,7 @@ Go to the plugins page in settings → press `+`
 ## [src](https://github.com/Meqativ/dumsane/edit/master/eval) → [eval](/dumsane/eval)
 ## [src](https://github.com/Meqativ/dumsane/edit/master/BlockWebhooks) → [BlockWebhooks](/dumsane/BlockWebhooks)
 > Dependency: `eval` <br/>
+
 ## [src](https://github.com/Meqativ/dumsane/edit/master/Insult) → [Insult](/dumsane/Insult)
 > in work
 ## [src](https://github.com/Meqativ/dumsane/edit/master/NoBandidthKick) → [NoBandwidthKick](/dumsane/NoBandwidthKick)
