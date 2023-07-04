@@ -6,13 +6,12 @@ const AsyncFunction = (async()=>{}).constructor;
  * @param {boolean} global Whether to assign the next argument as the "this" for the evaluation
  * @param {any} [that]
  */
-export default async function evaluate(code, aweight = true, global = false, that = {}, autoruns) {
+export default async function evaluate(code, aweight = true, global = false, that = {}) {
 	if (!code) throw new Error("No code to evaluate");
 
 	let result,
 		errored = false,
-		start = +new Date();
-	try {
+		timings = [+new Date()];
 		const args = [];
 		if (!global) args.push(...Object.keys(that));
 		args.push(code);
@@ -21,6 +20,7 @@ export default async function evaluate(code, aweight = true, global = false, tha
 		Object.keys(that).forEach((name, index) => {
 			args[index] = that[name];
 		});
+	try {
 		if (aweight) {
 			result = await evalFunction(...args);
 		} else {
@@ -30,9 +30,9 @@ export default async function evaluate(code, aweight = true, global = false, tha
 		result = e;
 		errored = true;
 	}
-	let end = +new Date();
+	timings[1] = +new Date();
 
-	const res = { result, errored, start, end, elapsed: end - start };
+	const res = { result, errored, timings };
 	return res;
 }
 

@@ -37,11 +37,12 @@ export function mSendMessage(vendetta) {
 		if (mod !== true) msg = createBotMessage(msg);
 		if (typeof mod === "object") {
 			msg = merge(msg, mod);
-			if ("author" in mod)
+			if (typeof mod.author === "object")
 				(function processAvatarURL() {
 					const author = mod.author;
-					if (["avatar", "avatarURL"].every((prop) => prop in author)) {
-						Avatars.BOT_AVATARS[author.avatar] = author.avatarURL;
+					if (typeof author.avatarURL === "string") {
+						Avatars.BOT_AVATARS[author.avatar ?? author.avatarURL] = author.avatarURL;
+						author.avatar ??= author.avatarURL
 						delete author.avatarURL;
 					}
 				})();

@@ -157,14 +157,15 @@ function sendMessage() {
 	if (!madeSendMessage) madeSendMessage = common.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
+function tini(number) {
+	if (number < 100) return `${number}ms`;
+	return `${number / 1000}s`;
+}
 async function execute(rawArgs, ctx) {
 	try {
+		const ranAt = +new Date();
 		const { settings, stats } = storage;
-		const {
-			history,
-			defaults,
-			output: outputSettings,
-		} = settings;
+		const { history, defaults, output: outputSettings } = settings;
 		const { runs } = stats;
 
 		triggerAutorun("command_before", (code) => eval(code));
@@ -177,7 +178,12 @@ async function execute(rawArgs, ctx) {
 		}
 		let currentUser = UserStore.getCurrentUser();
 		if (outputSettings["hideSensitive"]) {
-			currentUser = {...currentUser};
+			const _ = currentUser;
+			currentUser = { ...currentUser };
+			Object.defineProperty(currentUser, "_", {
+				value: _,
+				enumerable: false,
+			});
 			evaluate.SENSITIVE_PROPS.USER.forEach((prop) => {
 				Object.defineProperty(currentUser, prop, {
 					enumerable: false,
@@ -203,10 +209,15 @@ async function execute(rawArgs, ctx) {
 		});
 		triggerAutorun("command_after_interaction_def", (code) => eval(code));
 		if (interaction.autocomplete) {
-			return; // TODO: figure out what in the world do i need to return here (make history here too)
-
 			triggerAutorun("command_autocomplete_before", (code) => eval(code));
 			triggerAutorun("command_autocomplete_after", (code) => eval(code));
+			return; // TODO: figure out what in the world do i need to return here (make history work)
+			// NOTE: the chat bar shows the name instead of value, so we gotta improvise
+			// when you change the name in the chat bar it treats it as
+			// autocomplete item: {
+			//   value: code,
+			//   name: "/* [${time!== today?00.00${year!==currentYear ? `.${year}` : ""}: ""} 00:00:00] */\n"+code
+			// }
 		}
 
 		const { channel, args } = interaction,
@@ -215,29 +226,38 @@ async function execute(rawArgs, ctx) {
 			silent = args.get("silent")?.value ?? defaults["silent"],
 			global = args.get("global")?.value ?? defaults["global"];
 		if (typeof code !== "string") throw new Error("No code argument passed");
-
-		triggerAutorun("evaluate_before", (code) => eval(code));
-		let { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
+		const evalEnv = {
 			interaction,
 			plugin,
 			util: { sendMessage, common, evaluate, BUILTIN_AUTORUN_TYPES, triggerAutorun },
-		});
+		};
+
+		triggerAutorun("evaluate_before", (code) => eval(code));
+		let { result, errored, timings } = await evaluate(code, aweight, global, evalEnv);
 		triggerAutorun("evaluate_after", (code) => eval(code));
 
-		let thisEvaluation;
+		let thisEvaluation = {};
 		if (history.enabled) {
 			thisEvaluation = {
+				_v: 0,
 				session: runs["plugin"],
-				start,
-				end,
-				elapsed,
 				code,
 				errored,
 			};
+			Object.defineProperty(thisEvaluation, "_v", {
+				enumerable: false,
+			});
 			if (!interaction.dontSaveResult) {
-				thisEvaluation.result = common.cloneWithout(result, [window, runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
+				const filter = [window, runs["history"], runs["sessionHistory"], vendetta.plugin.storage];
+				try {
+				thisEvaluation.result = common.cloneWithout(result, filter, "not saved");
 
-				if (history.saveContext) thisEvaluation.context = common.cloneWithout(interaction, [window, runs["history"], runs["sessionHistory"], vendetta.plugin.storage], "not saved");
+				if (history.saveContext) thisEvaluation.context = common.cloneWithout({ interaction, plugin }, filter, "not saved");
+				} catch (error) {
+					// TODO: fix circular
+					error.message = "Not saved because of: "+error.message;
+					thisEvaluation.result = error
+				}
 			}
 			(() => {
 				if (!history.saveOnError && errored) return runs["failed"]++;
@@ -250,6 +270,7 @@ async function execute(rawArgs, ctx) {
 		}
 
 		if (!silent) {
+			thisEvaluation.timing = { command: ranAt, evaluate: timings, process: [+new Date()] };
 			const message = {
 				channelId: channel.id,
 				content: "",
@@ -264,7 +285,7 @@ async function execute(rawArgs, ctx) {
 			if (outputSettings["fixPromiseProps"] && result?.constructor?.name === "Promise") result = common.fixPromiseProps(result);
 
 			let processedResult = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
-
+			thisEvaluation.processedResult = processedResult;
 			if (errored) {
 				const { stack, trim } = outputSettings["errors"];
 				if (stack && result.stack !== undefined && typeof result.stack === "string") processedResult = result.stack;
@@ -285,50 +306,82 @@ async function execute(rawArgs, ctx) {
 
 			if (outputSettings["info"].enabled) {
 				const { hints, prettyTypeof } = outputSettings.info;
-				let info = [prettyTypeof ? common.prettyTypeof(result) : typeof result];
+				let rows = [["", prettyTypeof ? common.prettyTypeof(result) : typeof result]];
 				if (hints) {
 					let hint;
-					if (result === undefined && !code.includes("return")) hint = "use 'return'";
-
-					if (hint) info.push(`hint: ${hint}`);
+					if (result === undefined && !code.includes("return")) hint = `"return" the value to be shown here`;
+					if (["ReferenceError", "TypeError", undefined].includes(result?.constructor?.name)) {
+						if (code.includes("interaction.plugin.meta")) hint = `use the "plugin" env variable`;
+						if (code.includes("util.hlp") && !code.includes("util.common")) hint = `"util.hlp" was renamed to "util.common"`;
+					}
+					if (hint) rows.push(["hint", hint]);
 				}
-				info.push(`took: ${elapsed}ms`);
-
+				rows.push(["took", tini(timings[1] - timings[0])]);
+				outputEmbed.rawOutputInfoRows = rows;
 				if (outputSettings["location"] === 0) {
-					outputEmbed.description = info.join("\n");
+					outputEmbed.description = common.processRows(rows);
 				} else {
-					outputEmbed.footer = { text: info.join("\n") };
+					outputEmbed.footer = { text: common.processRows(rows) };
 				}
 			}
 
 			if (outputSettings["sourceEmbed"].enabled) {
 				const {
-					codeblock: { codeblockEnabled, language, escape },
+					codeblock: { enabled: wrap, language, escape },
 					name,
 				} = outputSettings["sourceEmbed"];
 
-				const embed = {
+				const sourceEmbed = {
 					type: "rich",
 					color: EMBED_COLOR("source"),
-					description: code,
-					footer: { text: `length: ${code.length}` },
 				};
-				message.embeds.push(embed);
-				if (name) embed.provider = { name };
-				if (codeblockEnabled) embed.description = hlp.codeblock(embed.description, language, escape);
-				let newlineCount = code.split("").filter(($) => $ === "\n").length;
-				if (newlineCount < 0) embed.footer.text += `\nnewlines: ${newlineCount}`;
+				message.embeds.push(sourceEmbed);
+
+				if (typeof name === "object" && "name" in name) sourceEmbed.provider = name;
+				if (typeof name === "string") sourceEmbed.title = name;
+				if (wrap) sourceEmbed.description = common.codeblock(code, language, escape);
+				if (true) {
+					// outputSettings.sourceEmbed.info
+					const rows = [["length", code.length]];
+					sourceEmbed.rawSourceInfoRows = rows;
+					let lineCount = code.split("\n").length; // here lied a peanut brain moment
+					if (lineCount < 0) rows.push(["lines", lineCount]);
+
+					sourceEmbed.footer = {
+						text: common.processRows(rows),
+					};
+				}
 			}
-			sendMessage(message, messageMods);
+			const sent = sendMessage(message, messageMods);
+			thisEvaluation.timing.process[1] = +new Date();
+
+			if (outputSettings["info"].enabled) {
+				const msgMods = {
+					...messageMods,
+					id: sent.id,
+					edited_timestamp: Date.now(),
+				};
+				const {
+					timing: { process },
+				} = thisEvaluation;
+				outputEmbed.rawOutputInfoRows.push(["processed", tini(process[1] - process[0])]);
+
+				if (outputSettings["location"] === 0) {
+					outputEmbed.description = common.processRows(outputEmbed.rawOutputInfoRows);
+				} else {
+					outputEmbed.footer.text = common.processRows(outputEmbed.rawOutputInfoRows);
+				}
+				sendMessage(message, msgMods);
+			}
 		}
 		if (!errored && args.get("return")?.value) {
 			triggerAutorun("command_before_return", (code) => eval(code));
 			return result;
 		}
 		if (errored && silent) {
-			console.error(result)
-			console.log(result.stack)
-			alert("An error ocurred while running your silent & returned eval\n" + result.stack)
+			console.error(result);
+			console.log(result.stack);
+			alert("An error ocurred while running your silent & returned eval\n" + result.stack);
 		}
 	} catch (e) {
 		console.error(e);

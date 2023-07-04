@@ -1,23 +1,17 @@
 export { mSendMessage } from "./mSendMessage.js";
 export const ZWD = "\u200d",
- Promise_UNMINIFIED_PROPERTY_NAMES = [
-	 "_deferredState",
-	 "_state",
-	 "_value",
-	 "_deferreds"
- ],
- PROMISE_STATE_NAMES = {
-	0: "pending",
-	1: "fulfilled",
-	2: "rejected",
-	3: "adopted",
-};
+	Promise_UNMINIFIED_PROPERTY_NAMES = ["_deferredState", "_state", "_value", "_deferreds"],
+	PROMISE_STATE_NAMES = {
+		0: "pending",
+		1: "fulfilled",
+		2: "rejected",
+		3: "adopted",
+	};
 
-export function codeblock(text, language="", escape=false) {
-	if (!text) throw new Error("No text to wrap in a codeblock provided")
+export function codeblock(text, language = "", escape = false) {
+	if (!text) throw new Error("No text to wrap in a codeblock provided");
 	if (escape) text = text.replaceAll("```", `\`${ZWD}\`\``);
 	return `\`\`\`${language}\n${text}\n\`\`\``;
-
 }
 
 /* Assigns the displayName property (translation) eveywhere it's needed
@@ -83,7 +77,7 @@ export function areArraysEqual(arr1, arr2) {
 
 		if (Array.isArray(item1) && Array.isArray(item2)) {
 			if (!areArraysEqual(item1, item2)) return false;
-		} else if (typeof item1 === "object" && typeof item2 === "object") {
+		} else if (item1 !== null && item2 !== null && typeof item1 === "object" && typeof item2 === "object") {
 			if (!areArraysEqual(Object.values(item1), Object.values(item2))) return false;
 		} else if (item1 !== item2) {
 			return false;
@@ -132,6 +126,15 @@ export async function awaitPromise(promiseFn, ...args) {
 	return output;
 }
 
+export function processRows(rows) {
+	if (!Array.isArray(rows) || !rows.every((row) => Array.isArray(row) && typeof row[0] === "string")) return JSON.stringify(rows);
+
+	return rows
+		.sort(([a], [b]) => a.length - b.length || a.localeCompare(b))
+		.map((row) => (row[0] === "") ? row[1] : row.join("∶ "))
+		.join("\n");
+}
+
 /* Returns an object with the properties of a Promise but with the proper key names (hermes polyfill specific)
  * Basically UNDOes https://github.com/then/promise/blob/master/src/core.js#L16
  * @param {Promise} promise A promise object with improper key names
@@ -173,16 +176,18 @@ export function prettyTypeof(value) {
 		name[0] = "Class";
 		name[1] = `(${value.name})`;
 	} else if (value === null) {
-		name[1] = "null";
+		name[1] = `(null)`;
 	} else if (["symbol", "function"].includes(typeof value) && value?.name) {
 		name[1] = `(${value.name})`;
 	} else if (typeof value === "boolean") {
-		name[1] = value;
+		name[1] = `(${value})`;
 	} else if (typeof value === "string") {
-		name[1] = value.length;
+		name[1] = `(len: ${value.length})`;
 	} else if (typeof value === "number" && value !== 0) {
 		const expo = value.toExponential();
-		if (!expo.endsWith("e+1") && !expo.endsWith("e+0")) name[1] = expo;
+		if (!expo.endsWith("e+1") && !expo.endsWith("e+0")) name[1] = `(${expo})`;
+	} else if (Array.isArray(value)) {
+		if(value.length!==0) name[1] = `(len: ${value.length})`;
 	}
 
 	return name.join(" ");
@@ -236,5 +241,3 @@ export const EMOJIS = {
 export const AVATARS = {
 	command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png",
 };
-
-
