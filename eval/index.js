@@ -43,16 +43,12 @@
 	      msg = createBotMessage(msg);
 	    if (typeof mod === "object") {
 	      msg = merge(msg, mod);
-	      if ("author" in mod)
+	      if (typeof mod.author === "object")
 	        (function processAvatarURL() {
 	          const author = mod.author;
-	          if ([
-	            "avatar",
-	            "avatarURL"
-	          ].every(function(prop) {
-	            return prop in author;
-	          })) {
-	            Avatars.BOT_AVATARS[author.avatar] = author.avatarURL;
+	          if (typeof author.avatarURL === "string") {
+	            Avatars.BOT_AVATARS[author.avatar ?? author.avatarURL] = author.avatarURL;
+	            author.avatar ??= author.avatarURL;
 	            delete author.avatarURL;
 	          }
 	        })();
@@ -131,7 +127,7 @@ ${text}
 	    if (Array.isArray(item1) && Array.isArray(item2)) {
 	      if (!areArraysEqual(item1, item2))
 	        return false;
-	    } else if (typeof item1 === "object" && typeof item2 === "object") {
+	    } else if (item1 !== null && item2 !== null && typeof item1 === "object" && typeof item2 === "object") {
 	      if (!areArraysEqual(Object.values(item1), Object.values(item2)))
 	        return false;
 	    } else if (item1 !== item2) {
@@ -174,6 +170,18 @@ ${text}
 	  }
 	  return output;
 	}
+	function processRows(rows) {
+	  if (!Array.isArray(rows) || !rows.every(function(row) {
+	    return Array.isArray(row) && typeof row[0] === "string";
+	  }))
+	    return JSON.stringify(rows);
+	  return rows.sort(function(param, param1) {
+	    let [a] = param, [b] = param1;
+	    return a.length - b.length || a.localeCompare(b);
+	  }).map(function(row) {
+	    return row[0] === "" ? row[1] : row.join("\u2236 ");
+	  }).join("\n");
+	}
 	function fixPromiseProps(improperPromise) {
 	  let mutate = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false, removeOldKeys = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false;
 	  const originalKeys = Object.getOwnPropertyNames(improperPromise);
@@ -206,20 +214,23 @@ ${text}
 	    name[0] = "Class";
 	    name[1] = `(${value.name})`;
 	  } else if (value === null) {
-	    name[1] = "null";
+	    name[1] = `(null)`;
 	  } else if ([
 	    "symbol",
 	    "function"
 	  ].includes(typeof value) && value?.name) {
 	    name[1] = `(${value.name})`;
 	  } else if (typeof value === "boolean") {
-	    name[1] = value;
+	    name[1] = `(${value})`;
 	  } else if (typeof value === "string") {
-	    name[1] = value.length;
+	    name[1] = `(len: ${value.length})`;
 	  } else if (typeof value === "number" && value !== 0) {
 	    const expo = value.toExponential();
 	    if (!expo.endsWith("e+1") && !expo.endsWith("e+0"))
-	      name[1] = expo;
+	      name[1] = `(${expo})`;
+	  } else if (Array.isArray(value)) {
+	    if (value.length !== 0)
+	      name[1] = `(len: ${value.length})`;
 	  }
 	  return name.join(" ");
 	}
@@ -274,7 +285,8 @@ ${text}
 		generateRandomString: generateRandomString,
 		mSendMessage: mSendMessage,
 		makeDefaults: makeDefaults,
-		prettyTypeof: prettyTypeof
+		prettyTypeof: prettyTypeof,
+		processRows: processRows
 	});
 
 	const AsyncFunction = async function() {
@@ -283,16 +295,18 @@ ${text}
 	  let aweight = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true, global = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false, that = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : {};
 	  if (!code)
 	    throw new Error("No code to evaluate");
-	  let result, errored = false, start = +new Date();
+	  let result, errored = false, timings = [
+	    +new Date()
+	  ];
+	  const args = [];
+	  if (!global)
+	    args.push(...Object.keys(that));
+	  args.push(code);
+	  let evalFunction = new AsyncFunction(...args);
+	  Object.keys(that).forEach(function(name, index) {
+	    args[index] = that[name];
+	  });
 	  try {
-	    const args = [];
-	    if (!global)
-	      args.push(...Object.keys(that));
-	    args.push(code);
-	    let evalFunction = new AsyncFunction(...args);
-	    Object.keys(that).forEach(function(name, index) {
-	      args[index] = that[name];
-	    });
 	    if (aweight) {
 	      result = await evalFunction(...args);
 	    } else {
@@ -302,13 +316,11 @@ ${text}
 	    result = e;
 	    errored = true;
 	  }
-	  let end = +new Date();
+	  timings[1] = +new Date();
 	  const res = {
 	    result,
 	    errored,
-	    start,
-	    end,
-	    elapsed: end - start
+	    timings
 	  };
 	  return res;
 	}
@@ -480,8 +492,14 @@ ${text}
 	    madeSendMessage = mSendMessage(vendetta);
 	  return madeSendMessage(...arguments);
 	}
+	function tini(number) {
+	  if (number < 100)
+	    return `${number}ms`;
+	  return `${number / 1e3}s`;
+	}
 	async function execute(rawArgs, ctx) {
 	  try {
+	    const ranAt = +new Date();
 	    const { settings, stats } = plugin$2.storage;
 	    const { history, defaults, output: outputSettings } = settings;
 	    const { runs } = stats;
@@ -496,9 +514,14 @@ ${text}
 	    }
 	    let currentUser = UserStore.getCurrentUser();
 	    if (outputSettings["hideSensitive"]) {
+	      const _ = currentUser;
 	      currentUser = {
 	        ...currentUser
 	      };
+	      Object.defineProperty(currentUser, "_", {
+	        value: _,
+	        enumerable: false
+	      });
 	      evaluate.SENSITIVE_PROPS.USER.forEach(function(prop) {
 	        Object.defineProperty(currentUser, prop, {
 	          enumerable: false
@@ -531,21 +554,18 @@ ${text}
 	      return eval(code);
 	    });
 	    if (interaction.autocomplete) {
-	      return;
 	      triggerAutorun("command_autocomplete_before", function(code) {
 	        return eval(code);
 	      });
 	      triggerAutorun("command_autocomplete_after", function(code) {
 	        return eval(code);
 	      });
+	      return;
 	    }
 	    const { channel, args } = interaction, code = args.get("code")?.value, aweight = args.get("await")?.value ?? defaults["await"], silent = args.get("silent")?.value ?? defaults["silent"], global = args.get("global")?.value ?? defaults["global"];
 	    if (typeof code !== "string")
 	      throw new Error("No code argument passed");
-	    triggerAutorun("evaluate_before", function(code) {
-	      return eval(code);
-	    });
-	    let { result, errored, start, end, elapsed } = await evaluate(code, aweight, global, {
+	    const evalEnv = {
 	      interaction,
 	      plugin,
 	      util: {
@@ -555,34 +575,43 @@ ${text}
 	        BUILTIN_AUTORUN_TYPES,
 	        triggerAutorun
 	      }
+	    };
+	    triggerAutorun("evaluate_before", function(code) {
+	      return eval(code);
 	    });
+	    let { result, errored, timings } = await evaluate(code, aweight, global, evalEnv);
 	    triggerAutorun("evaluate_after", function(code) {
 	      return eval(code);
 	    });
-	    let thisEvaluation;
+	    let thisEvaluation = {};
 	    if (history.enabled) {
 	      thisEvaluation = {
+	        _v: 0,
 	        session: runs["plugin"],
-	        start,
-	        end,
-	        elapsed,
 	        code,
 	        errored
 	      };
+	      Object.defineProperty(thisEvaluation, "_v", {
+	        enumerable: false
+	      });
 	      if (!interaction.dontSaveResult) {
-	        thisEvaluation.result = cloneWithout(result, [
+	        const filter = [
 	          window,
 	          runs["history"],
 	          runs["sessionHistory"],
 	          vendetta.plugin.storage
-	        ], "not saved");
-	        if (history.saveContext)
-	          thisEvaluation.context = cloneWithout(interaction, [
-	            window,
-	            runs["history"],
-	            runs["sessionHistory"],
-	            vendetta.plugin.storage
-	          ], "not saved");
+	        ];
+	        try {
+	          thisEvaluation.result = cloneWithout(result, filter, "not saved");
+	          if (history.saveContext)
+	            thisEvaluation.context = cloneWithout({
+	              interaction,
+	              plugin
+	            }, filter, "not saved");
+	        } catch (error) {
+	          error.message = "Not saved because of: " + error.message;
+	          thisEvaluation.result = error;
+	        }
 	      }
 	      (function() {
 	        if (!history.saveOnError && errored)
@@ -593,6 +622,13 @@ ${text}
 	      })();
 	    }
 	    if (!silent) {
+	      thisEvaluation.timing = {
+	        command: ranAt,
+	        evaluate: timings,
+	        process: [
+	          +new Date()
+	        ]
+	      };
 	      const message = {
 	        channelId: channel.id,
 	        content: "",
@@ -606,6 +642,7 @@ ${text}
 	      if (outputSettings["fixPromiseProps"] && result?.constructor?.name === "Promise")
 	        result = fixPromiseProps(result);
 	      let processedResult = outputSettings["useToString"] ? result.toString() : inspect(result, outputSettings["inspect"]);
+	      thisEvaluation.processedResult = processedResult;
 	      if (errored) {
 	        const { stack, trim } = outputSettings["errors"];
 	        if (stack && result.stack !== void 0 && typeof result.stack === "string")
@@ -626,50 +663,97 @@ ${text}
 	      }
 	      if (outputSettings["info"].enabled) {
 	        const { hints, prettyTypeof: prettyTypeof$1 } = outputSettings.info;
-	        let info = [
-	          prettyTypeof$1 ? prettyTypeof(result) : typeof result
+	        let rows = [
+	          [
+	            "",
+	            prettyTypeof$1 ? prettyTypeof(result) : typeof result
+	          ]
 	        ];
 	        if (hints) {
 	          let hint;
 	          if (result === void 0 && !code.includes("return"))
-	            hint = "use 'return'";
+	            hint = `"return" the value to be shown here`;
+	          if ([
+	            "ReferenceError",
+	            "TypeError",
+	            void 0
+	          ].includes(result?.constructor?.name)) {
+	            if (code.includes("interaction.plugin.meta"))
+	              hint = `use the "plugin" env variable`;
+	            if (code.includes("util.hlp") && !code.includes("util.common"))
+	              hint = `"util.hlp" was renamed to "util.common"`;
+	          }
 	          if (hint)
-	            info.push(`hint: ${hint}`);
+	            rows.push([
+	              "hint",
+	              hint
+	            ]);
 	        }
-	        info.push(`took: ${elapsed}ms`);
+	        rows.push([
+	          "took",
+	          tini(timings[1] - timings[0])
+	        ]);
+	        outputEmbed.rawOutputInfoRows = rows;
 	        if (outputSettings["location"] === 0) {
-	          outputEmbed.description = info.join("\n");
+	          outputEmbed.description = processRows(rows);
 	        } else {
 	          outputEmbed.footer = {
-	            text: info.join("\n")
+	            text: processRows(rows)
 	          };
 	        }
 	      }
 	      if (outputSettings["sourceEmbed"].enabled) {
-	        const { codeblock: { codeblockEnabled, language, escape }, name } = outputSettings["sourceEmbed"];
-	        const embed = {
+	        const { codeblock: { enabled: wrap, language, escape }, name } = outputSettings["sourceEmbed"];
+	        const sourceEmbed = {
 	          type: "rich",
-	          color: EMBED_COLOR("source"),
-	          description: code,
-	          footer: {
-	            text: `length: ${code.length}`
-	          }
+	          color: EMBED_COLOR("source")
 	        };
-	        message.embeds.push(embed);
-	        if (name)
-	          embed.provider = {
-	            name
+	        message.embeds.push(sourceEmbed);
+	        if (typeof name === "object" && "name" in name)
+	          sourceEmbed.provider = name;
+	        if (typeof name === "string")
+	          sourceEmbed.title = name;
+	        if (wrap)
+	          sourceEmbed.description = codeblock(code, language, escape);
+	        if (true) {
+	          const rows = [
+	            [
+	              "length",
+	              code.length
+	            ]
+	          ];
+	          sourceEmbed.rawSourceInfoRows = rows;
+	          let lineCount = code.split("\n").length;
+	          if (lineCount < 0)
+	            rows.push([
+	              "lines",
+	              lineCount
+	            ]);
+	          sourceEmbed.footer = {
+	            text: processRows(rows)
 	          };
-	        if (codeblockEnabled)
-	          embed.description = hlp.codeblock(embed.description, language, escape);
-	        let newlineCount = code.split("").filter(function($) {
-	          return $ === "\n";
-	        }).length;
-	        if (newlineCount < 0)
-	          embed.footer.text += `
-newlines: ${newlineCount}`;
+	        }
 	      }
-	      sendMessage(message, messageMods);
+	      const sent = sendMessage(message, messageMods);
+	      thisEvaluation.timing.process[1] = +new Date();
+	      if (outputSettings["info"].enabled) {
+	        const msgMods = {
+	          ...messageMods,
+	          id: sent.id,
+	          edited_timestamp: Date.now()
+	        };
+	        const { timing: { process } } = thisEvaluation;
+	        outputEmbed.rawOutputInfoRows.push([
+	          "processed",
+	          tini(process[1] - process[0])
+	        ]);
+	        if (outputSettings["location"] === 0) {
+	          outputEmbed.description = processRows(outputEmbed.rawOutputInfoRows);
+	        } else {
+	          outputEmbed.footer.text = processRows(outputEmbed.rawOutputInfoRows);
+	        }
+	        sendMessage(message, msgMods);
+	      }
 	    }
 	    if (!errored && args.get("return")?.value) {
 	      triggerAutorun("command_before_return", function(code) {
