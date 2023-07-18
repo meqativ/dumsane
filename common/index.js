@@ -131,7 +131,7 @@ export function processRows(rows) {
 
 	return rows
 		.sort(([a], [b]) => a.length - b.length || a.localeCompare(b))
-		.map((row) => (row[0] === "") ? row[1] : row.join("∶ "))
+		.map((row) => (row[0] === "" ? row[1] : row.join("∶ ")))
 		.join("\n");
 }
 
@@ -187,7 +187,7 @@ export function prettyTypeof(value) {
 		const expo = value.toExponential();
 		if (!expo.endsWith("e+1") && !expo.endsWith("e+0")) name[1] = `(${expo})`;
 	} else if (Array.isArray(value)) {
-		if(value.length!==0) name[1] = `(len: ${value.length})`;
+		if (value.length !== 0) name[1] = `(len: ${value.length})`;
 	}
 
 	return name.join(" ");
@@ -241,3 +241,32 @@ export const EMOJIS = {
 export const AVATARS = {
 	command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png",
 };
+/**
+ * Generates a random number within a specified range
+ * @param {number} min The minimum value of the range (inclusive)
+ * @param {number} max The maximum value of the range (inclusive)
+ * @param {number} [precision=0] The number of decimal places to round the result to
+ *
+ * @returns {number} A random number within the specified range
+ * @throws {Error} If the arguments are invalid or precision is greater than 13
+ */
+export function rng(min, max, precision = 0) {
+	if (typeof min !== "number" || isNaN(min)) {
+		throw new Error("Invalid first argument, minimum: expected a number");
+	}
+	if (typeof max !== "number" || isNaN(max)) {
+		throw new Error("Invalid second argument, maximum: expected a number");
+	}
+	if (typeof precision !== "number" || precision < 0) {
+		throw new Error("Invalid third argument, precision: expected a positive number");
+	}
+	if (precision > 13) {
+		throw new Error("Invalid third argument, precision: expected a number < 13");
+	}
+	if (precision !== 0 && precision % 1 !== 0) {
+		throw new Error("Invalid third argument, precision: expected an integer");
+	}
+	const maxPrecision = Math.max((max.toString().split(".")[1] || "").length, (min.toString().split(".")[1] || "").length);
+	const computedPrecision = typeof precision === "number" ? precision : maxPrecision;
+	return parseFloat((Math.random() * (max - min) + min).toFixed(computedPrecision));
+}

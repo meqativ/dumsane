@@ -14,9 +14,8 @@ export default async function evaluate(code, aweight = true, global = false, tha
 		timings = [+new Date()];
 		const args = [];
 		if (!global) args.push(...Object.keys(that));
-		args.push(code);
 
-		let evalFunction = new AsyncFunction(...args);
+		let evalFunction = new AsyncFunction(...args, code);
 		Object.keys(that).forEach((name, index) => {
 			args[index] = that[name];
 		});

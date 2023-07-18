@@ -28,7 +28,84 @@ const { inspect } = findByProps("inspect"),
 		"evaluate_before",
 		"evaluate_after",
 	];
+/**
+ * @typedef {Object} Autorun
+ * @property {number} createdAt Autorun creation timestamp
+ * @property {string} [name] The name of the autorun
+ * @property {string} [description] The description of the autorun
+ * @property {boolean} enabled Whether the autorun is enabled
+ * @property {!Object} customId The custom ID of the autorun (Must be an object)
+ * @property {boolean | 1} [once] Whether the autorun should only run once (1=delete on restart after running, true=just disable after running)
+ * @property {string} type The type of the autorun
+ * @property {string} code The code to evaluate when the autorun is triggered
+ * @property {boolean} [deleting] Whether the autorun is scheduled for deletion on restart
+ * @property {boolean} [builtin] Whether the autorun is built into theplugin
+ */
+
+/* Adds an autorun
+ * @param {string} type Type of the autorun
+ * @param {!Object} customId Custom id of the autorun for use in finding and deleting
+ * @param {string} code Code to eval when the autorun triggers
+ * @param {Object} options Additional options
+ *
+ * @returns {Object:Autorun} the autorun that was added
+ */
+export function addAutorun(type, customId, code, options = {}) {
+	const {
+		autoruns,
+		settings: {
+			output: {
+				error: { stack },
+			},
+		},
+	} = storage;
+
+	if (!BUILTIN_AUTORUN_TYPES.includes(type)) {
+		const e = new Error(`Type "${type}" is invalid${stack.enabled ? "" : ". Enable error stack to see valid types"}`);
+		throw ((e.valid_types = ["1", "666"]), e);
+	}
+	if (typeof customId === "object") throw new Error("customId must not be the type of object");
+	if (customId === "random") customId = common.rng(0, 1e6, 0);
+	if (autoruns.filter(($) => !$.builtin).find((a) => a.customId === customId)) throw new Error(`Custom id "${customId}" is already being used, please use a different one`);
+	if (!code || typeof code !== "string") throw new Error("Invalid code passed");
+	if (options.once !== undefined && ![true, false, 1].includes(options.once)) throw new Error("options.once must be a boolean or a 1");
+	const newAutorun = {
+		createdAt: +new Date(),
+		name: options?.name,
+		description: options?.description,
+		enabled: options?.enabled ?? false,
+		customId,
+		once: options?.once ?? false,
+		type,
+		code,
+	};
+	autoruns.push(newAutorun);
+	return newAutorun;
+}
+
+/* Deletes an autorun
+ * @param {Object:Autorun | !Object} autorun Autorun itself or it's customId
+ * @returns
+ */
+export function deleteAutorun(autorun, builtin) {
+	let aruns = storage.autoruns;
+	if (builtin) aruns = aruns.filter(($) => !$.builtin);
+	const autorunFound = aruns.find((a) => (a.customId === (typeof autorun === "object") ? autorun?.customId : autorun));
+	if (!autorunFound) {
+		const e = new Error("Autorun not found");
+		throw ((e.autorun = autorun), (e.autorunFound = autorunFound), e);
+	}
+	storage.autoruns = aruns.filter(($) => $.customId !== autorunFound.customId);
+}
+
+/* Triggers a type of autoruns
+ * @param {string} type The type of the autorun group
+ * @param {function} fn
+ *
+ * @returns undefined
+ */
 export function triggerAutorun(type, fn) {
+	if (storage.settings.autoruns.enabled === false) return;
 	if (["autorun_before", "autorun_after"].includes(type)) return;
 	triggerAutorun("autorun_before", (code) => eval(code));
 	const optimizations = storage["settings"]["autoruns"]["optimizations"];
@@ -47,6 +124,13 @@ export function triggerAutorun(type, fn) {
 			storage["stats"]["autoruns"][autorun.type]++;
 			autorun.runs ??= 0;
 			autorun.runs++;
+
+			if (autorun.once === true) {
+				autorun.enabled = false;
+			} else if (autorun.once === 1) {
+				autorun.deleting = true;
+				autorun.enabled = false;
+			}
 		} catch (e) {
 			e.message = `Failed to execute autorun ${autorun.name ?? "No Name"} (${index}${optimizations ? ", optimized" : ""}). ` + e.message;
 			console.error(e);
@@ -56,14 +140,28 @@ export function triggerAutorun(type, fn) {
 	}
 	triggerAutorun("autorun_after", (code) => eval(code));
 }
-common.makeDefaults(vendetta.plugin.storage, {
+common.makeDefaults(storage, {
 	autoruns: [
 		{
-			enabled: false,
-			type: "plugin_onLoad",
-			name: "example autorun (plugin_onLoad)",
+			createdAt: +new Date(),
+			name: "example autorun", // NOTE:settings: capitalize the first letter against their will
 			description: "Example autorun, for more autorun types >> return util.BUILTIN_AUTORUN_TYPES",
-			code: `/* eval()s this code when the plugin starts up */` + `alert("plugin_onLoad")`,
+			enabled: false,
+			customId: 0,
+			once: false,
+			type: "plugin_onLoad",
+			code: `alert("plugin_onLoad\nto disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugin.storage.autoruns.find(a => a.name === \"example autorun\").enabled = false")`,
+		},
+		{
+			builtin: true, // NOTE:settings: only show these with nerd mode on
+			createdAt: +new Date(),
+			name: "Filter 'deleting' autoruns",
+			description: undefined, // NOTE:settings: in this case don't show the description element in ui at all
+			enabled: true,
+			customId: 0,
+			once: false,
+			type: "plugin_onLoad",
+			code: "storage.autoruns = storage.autoruns.filter($=>!$?.deleting)",
 		},
 	],
 	stats: {
@@ -79,35 +177,36 @@ common.makeDefaults(vendetta.plugin.storage, {
 	settings: {
 		history: {
 			enabled: true,
-			saveContext: false,
-			saveOnError: false,
-			checkLatestDupes: true, // not functional
+			saveContext: false, // save the "interaction" and "plugin" variables passed to the evaluation
+			saveOnError: false, // whether to save the "interaction" & "plugin" variables
+			checkLatestDupes: true, // not functional 🔥, basically prevents from saving multiple /!eval's with the same args 'n output
 		},
 		autoruns: {
-			enabled: true,
-			optimization: false,
+			enabled: true, // whether to run autoruns at all
+			optimization: false, // false make proper index number in error messag (faulty code prop related)
 		},
 		output: {
-			location: 0, // 0: content, 1: embed
+			location: 0, // location for the output string itself. 0: content, 1: embed
 			trim: 15000, // Number: enabled, specifies end; false: disabled
-			fixPromiseProps: true,
-			hideSensitive: true,
+			fixPromiseProps: true, // makes the output not have minified prop names in await: false
+			hideSensitive: true, // hide sensitive props (only does for interaction.user
 			sourceEmbed: {
-				name: "Code",
-				enabled: true,
+				name: "Code", // title of the embed
+				enabled: true, // show the source code embed in the output message
 				codeblock: {
-					enabled: true,
-					escape: true,
-					lang: "js",
+					enabled: true, // use codeblock in the output
+					escape: true, // escape all ``'s so it can't be f#cked up
+					lang: "js", // language to use in the codeblock
 				},
 			},
 			info: {
 				enabled: true,
-				prettyTypeof: true,
+				prettyTypeof: true, // use the pretty typeof function i made
 				hints: true,
 			},
-			useToString: false,
+			useToString: false, // (value).toString() instead of inpect(value)
 			inspect: {
+				// this is passed as a whole to the inspect function's second argument. https://nodejs.org/api/util.html#:~:text=or%20Object.-,options,-%3CObject%3E
 				showHidden: false,
 				depth: 3,
 				maxArrayLength: 15,
@@ -116,16 +215,18 @@ common.makeDefaults(vendetta.plugin.storage, {
 				getters: false,
 			},
 			codeblock: {
+				// same as in the codeblock settings in sourceEmbed
 				enabled: true,
 				escape: true,
 				lang: "js",
 			},
 			errors: {
-				trim: true,
-				stack: true,
+				trim: true, // try remove unnecesary stack
+				stack: true, // show stack
 			},
 		},
 		defaults: {
+			// defult choices for the arguments if no value is passed
 			await: true,
 			global: false,
 			return: false,
@@ -133,6 +234,8 @@ common.makeDefaults(vendetta.plugin.storage, {
 		},
 		command: {
 			name: "!eval",
+			// command name
+			// /!eval code:...
 		},
 	},
 });
@@ -151,16 +254,13 @@ export const EMBED_COLOR = (color) => {
 let madeSendMessage,
 	UserStore,
 	plugin,
-	usedInSession = false;
+	usedInSession = false; // TODO: get rid of this
 function sendMessage() {
 	if (window.sendMessage) return window.sendMessage?.(...arguments);
 	if (!madeSendMessage) madeSendMessage = common.mSendMessage(vendetta);
 	return madeSendMessage(...arguments);
 }
-function tini(number) {
-	if (number < 100) return `${number}ms`;
-	return `${number / 1000}s`;
-}
+const tini = (number) => (number < 100 ? `${number}ms` : `${number / 1000}s`);
 async function execute(rawArgs, ctx) {
 	try {
 		const ranAt = +new Date();
@@ -229,7 +329,7 @@ async function execute(rawArgs, ctx) {
 		const evalEnv = {
 			interaction,
 			plugin,
-			util: { sendMessage, common, evaluate, BUILTIN_AUTORUN_TYPES, triggerAutorun },
+			util: { addAutorun, deleteAutorun, sendMessage, common, evaluate, BUILTIN_AUTORUN_TYPES, triggerAutorun },
 		};
 
 		triggerAutorun("evaluate_before", (code) => eval(code));
@@ -240,7 +340,7 @@ async function execute(rawArgs, ctx) {
 		if (history.enabled) {
 			thisEvaluation = {
 				_v: 0,
-				session: runs["plugin"],
+				session: runs["plugin"], // NOTE:settings: use this for time separators (like in discord message lists)
 				code,
 				errored,
 			};
@@ -250,19 +350,19 @@ async function execute(rawArgs, ctx) {
 			if (!interaction.dontSaveResult) {
 				const filter = [window, runs["history"], runs["sessionHistory"], vendetta.plugin.storage];
 				try {
-				thisEvaluation.result = common.cloneWithout(result, filter, "not saved");
+					thisEvaluation.result = common.cloneWithout(result, filter, "not saved");
 
-				if (history.saveContext) thisEvaluation.context = common.cloneWithout({ interaction, plugin }, filter, "not saved");
+					if (history.saveContext) thisEvaluation.context = common.cloneWithout({ interaction, plugin }, filter, "not saved"); // NOTE:settings: use this to show channel and server
 				} catch (error) {
 					// TODO: fix circular
-					error.message = "Not saved because of: "+error.message;
-					thisEvaluation.result = error
+					error.message = "Not saved because of: " + error.message;
+					thisEvaluation.result = error;
 				}
 			}
 			(() => {
-				if (!history.saveOnError && errored) return runs["failed"]++;
+				if (errored) return runs["failed"]++;
 				runs["succeeded"]++;
-
+				if (!history.saveOnError) return;
 				//if (history.checkLatestDupes && runs["sessionHistory"].at(-1)?.code === thisEvaluation.code) return;
 				runs["history"].push(thisEvaluation);
 				runs["sessionHistory"].push(thisEvaluation);
@@ -337,7 +437,7 @@ async function execute(rawArgs, ctx) {
 				};
 				message.embeds.push(sourceEmbed);
 
-				if (typeof name === "object" && "name" in name) sourceEmbed.provider = name;
+				if (typeof name === "object" && "name" in name) sourceEmbed.provider = name; // NOTE: idk if this storage entry saves properly after you restar (think makeDefaults)
 				if (typeof name === "string") sourceEmbed.title = name;
 				if (wrap) sourceEmbed.description = common.codeblock(code, language, escape);
 				if (true) {
@@ -392,6 +492,7 @@ async function execute(rawArgs, ctx) {
 }
 plugin = {
 	...vendetta.plugin,
+	// TODO: settings, // if you pr this - you are the main maintainer of it. ping me in Exyl's server's bot channel for me to open dms with you
 	patches: [],
 	onUnload() {
 		triggerAutorun("plugin_onUnload", (code) => eval(code));
@@ -416,7 +517,6 @@ plugin = {
 			)?.();
 		}
 		const { defaults, command } = storage.settings;
-		console.log("meow");
 		this.commandPatch = registerCommand(
 			common.cmdDisplays({
 				execute,
