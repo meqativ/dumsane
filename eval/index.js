@@ -268,6 +268,27 @@ ${text}
 	const AVATARS = {
 	  command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
 	};
+	function rng(min, max) {
+	  let precision = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : 0;
+	  if (typeof min !== "number" || isNaN(min)) {
+	    throw new Error("Invalid first argument, minimum: expected a number");
+	  }
+	  if (typeof max !== "number" || isNaN(max)) {
+	    throw new Error("Invalid second argument, maximum: expected a number");
+	  }
+	  if (typeof precision !== "number" || precision < 0) {
+	    throw new Error("Invalid third argument, precision: expected a positive number");
+	  }
+	  if (precision > 13) {
+	    throw new Error("Invalid third argument, precision: expected a number < 13");
+	  }
+	  if (precision !== 0 && precision % 1 !== 0) {
+	    throw new Error("Invalid third argument, precision: expected an integer");
+	  }
+	  const maxPrecision = Math.max((max.toString().split(".")[1] || "").length, (min.toString().split(".")[1] || "").length);
+	  const computedPrecision = typeof precision === "number" ? precision : maxPrecision;
+	  return parseFloat((Math.random() * (max - min) + min).toFixed(computedPrecision));
+	}
 
 	var common = /*#__PURE__*/Object.freeze({
 		__proto__: null,
@@ -286,7 +307,8 @@ ${text}
 		mSendMessage: mSendMessage,
 		makeDefaults: makeDefaults,
 		prettyTypeof: prettyTypeof,
-		processRows: processRows
+		processRows: processRows,
+		rng: rng
 	});
 
 	const AsyncFunction = async function() {
@@ -301,8 +323,7 @@ ${text}
 	  const args = [];
 	  if (!global)
 	    args.push(...Object.keys(that));
-	  args.push(code);
-	  let evalFunction = new AsyncFunction(...args);
+	  let evalFunction = new AsyncFunction(...args, code);
 	  Object.keys(that).forEach(function(name, index) {
 	    args[index] = that[name];
 	  });
@@ -355,7 +376,67 @@ ${text}
 	  "evaluate_before",
 	  "evaluate_after"
 	];
+	function addAutorun(type2, customId, code2) {
+	  let options = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : {};
+	  const { autoruns: autoruns2, settings: { output: { error: { stack } } } } = plugin$2.storage;
+	  if (!BUILTIN_AUTORUN_TYPES.includes(type2)) {
+	    const e = new Error(`Type "${type2}" is invalid${stack.enabled ? "" : ". Enable error stack to see valid types"}`);
+	    throw e.valid_types = [
+	      "1",
+	      "666"
+	    ], e;
+	  }
+	  if (typeof customId === "object")
+	    throw new Error("customId must not be the type of object");
+	  if (customId === "random")
+	    customId = rng(0, 1e6, 0);
+	  if (autoruns2.filter(function($) {
+	    return !$.builtin;
+	  }).find(function(a) {
+	    return a.customId === customId;
+	  }))
+	    throw new Error(`Custom id "${customId}" is already being used, please use a different one`);
+	  if (!code2 || typeof code2 !== "string")
+	    throw new Error("Invalid code passed");
+	  if (options.once !== void 0 && ![
+	    true,
+	    false,
+	    1
+	  ].includes(options.once))
+	    throw new Error("options.once must be a boolean or a 1");
+	  const newAutorun = {
+	    createdAt: +new Date(),
+	    name: options?.name,
+	    description: options?.description,
+	    enabled: options?.enabled ?? false,
+	    customId,
+	    once: options?.once ?? false,
+	    type: type2,
+	    code: code2
+	  };
+	  autoruns2.push(newAutorun);
+	  return newAutorun;
+	}
+	function deleteAutorun(autorun, builtin) {
+	  let aruns = plugin$2.storage.autoruns;
+	  if (builtin)
+	    aruns = aruns.filter(function($) {
+	      return !$.builtin;
+	    });
+	  const autorunFound = aruns.find(function(a) {
+	    return a.customId === (typeof autorun === "object") ? autorun?.customId : autorun;
+	  });
+	  if (!autorunFound) {
+	    const e = new Error("Autorun not found");
+	    throw e.autorun = autorun, e.autorunFound = autorunFound, e;
+	  }
+	  plugin$2.storage.autoruns = aruns.filter(function($) {
+	    return $.customId !== autorunFound.customId;
+	  });
+	}
 	function triggerAutorun(type, fn) {
+	  if (plugin$2.storage.settings.autoruns.enabled === false)
+	    return;
 	  if ([
 	    "autorun_before",
 	    "autorun_after"
@@ -385,6 +466,12 @@ ${text}
 	      plugin$2.storage["stats"]["autoruns"][autorun.type]++;
 	      autorun.runs ??= 0;
 	      autorun.runs++;
+	      if (autorun.once === true) {
+	        autorun.enabled = false;
+	      } else if (autorun.once === 1) {
+	        autorun.deleting = true;
+	        autorun.enabled = false;
+	      }
 	    } catch (e) {
 	      e.message = `Failed to execute autorun ${autorun.name ?? "No Name"} (${index}${optimizations ? ", optimized" : ""}). ` + e.message;
 	      console.error(e);
@@ -396,14 +483,29 @@ ${text}
 	    return eval(code);
 	  });
 	}
-	makeDefaults(vendetta.plugin.storage, {
+	makeDefaults(plugin$2.storage, {
 	  autoruns: [
 	    {
-	      enabled: false,
-	      type: "plugin_onLoad",
-	      name: "example autorun (plugin_onLoad)",
+	      createdAt: +new Date(),
+	      name: "example autorun",
 	      description: "Example autorun, for more autorun types >> return util.BUILTIN_AUTORUN_TYPES",
-	      code: `/* eval()s this code when the plugin starts up */alert("plugin_onLoad")`
+	      enabled: false,
+	      customId: 0,
+	      once: false,
+	      type: "plugin_onLoad",
+	      code: `alert("plugin_onLoad
+to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugin.storage.autoruns.find(a => a.name === "example autorun").enabled = false")`
+	    },
+	    {
+	      builtin: true,
+	      createdAt: +new Date(),
+	      name: "Filter 'deleting' autoruns",
+	      description: void 0,
+	      enabled: true,
+	      customId: 0,
+	      once: false,
+	      type: "plugin_onLoad",
+	      code: "storage.autoruns = storage.autoruns.filter($=>!$?.deleting)"
 	    }
 	  ],
 	  stats: {
@@ -448,6 +550,7 @@ ${text}
 	      },
 	      useToString: false,
 	      inspect: {
+	        // this is passed as a whole to the inspect function's second argument. https://nodejs.org/api/util.html#:~:text=or%20Object.-,options,-%3CObject%3E
 	        showHidden: false,
 	        depth: 3,
 	        maxArrayLength: 15,
@@ -456,6 +559,7 @@ ${text}
 	        getters: false
 	      },
 	      codeblock: {
+	        // same as in the codeblock settings in sourceEmbed
 	        enabled: true,
 	        escape: true,
 	        lang: "js"
@@ -466,6 +570,7 @@ ${text}
 	      }
 	    },
 	    defaults: {
+	      // defult choices for the arguments if no value is passed
 	      await: true,
 	      global: false,
 	      return: false,
@@ -492,11 +597,9 @@ ${text}
 	    madeSendMessage = mSendMessage(vendetta);
 	  return madeSendMessage(...arguments);
 	}
-	function tini(number) {
-	  if (number < 100)
-	    return `${number}ms`;
-	  return `${number / 1e3}s`;
-	}
+	const tini = function(number) {
+	  return number < 100 ? `${number}ms` : `${number / 1e3}s`;
+	};
 	async function execute(rawArgs, ctx) {
 	  try {
 	    const ranAt = +new Date();
@@ -569,6 +672,8 @@ ${text}
 	      interaction,
 	      plugin,
 	      util: {
+	        addAutorun,
+	        deleteAutorun,
 	        sendMessage,
 	        common,
 	        evaluate,
@@ -614,9 +719,11 @@ ${text}
 	        }
 	      }
 	      (function() {
-	        if (!history.saveOnError && errored)
+	        if (errored)
 	          return runs["failed"]++;
 	        runs["succeeded"]++;
+	        if (!history.saveOnError)
+	          return;
 	        runs["history"].push(thisEvaluation);
 	        runs["sessionHistory"].push(thisEvaluation);
 	      })();
@@ -777,6 +884,7 @@ ${text}
 	}
 	plugin = {
 	  ...vendetta.plugin,
+	  // TODO: settings, // if you pr this - you are the main maintainer of it. ping me in Exyl's server's bot channel for me to open dms with you
 	  patches: [],
 	  onUnload() {
 	    triggerAutorun("plugin_onUnload", function(code) {
@@ -808,7 +916,6 @@ ${e.stack}`);
 	      }), 1)?.();
 	    }
 	    const { defaults: defaults2, command } = plugin$2.storage.settings;
-	    console.log("meow");
 	    this.commandPatch = commands.registerCommand(cmdDisplays({
 	      execute: execute2,
 	      type: 1,
@@ -855,7 +962,9 @@ ${e.stack}`);
 	});
 
 	exports.EMBED_COLOR = EMBED_COLOR;
+	exports.addAutorun = addAutorun;
 	exports.default = plugin$1;
+	exports.deleteAutorun = deleteAutorun;
 	exports.triggerAutorun = triggerAutorun;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
