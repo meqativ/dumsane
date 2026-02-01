@@ -69,8 +69,7 @@
 	  2: "rejected",
 	  3: "adopted"
 	};
-	function codeblock(text) {
-	  let language = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "", escape = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false;
+	function codeblock(text, language = "", escape = false) {
 	  if (!text)
 	    throw new Error("No text to wrap in a codeblock provided");
 	  if (escape)
@@ -107,8 +106,7 @@ ${text}
 	  }
 	  return obj;
 	}
-	function generateRandomString(chars) {
-	  let length = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 27;
+	function generateRandomString(chars, length = 27) {
 	  if (typeof chars !== "string")
 	    throw new Error("Passed chars isn't a string");
 	  if (chars?.length <= 0)
@@ -155,10 +153,7 @@ ${text}
 	  }
 	  return newObj;
 	}
-	async function awaitPromise(promiseFn) {
-	  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	    args[_key - 1] = arguments[_key];
-	  }
+	async function awaitPromise(promiseFn, ...args) {
 	  let output = [
 	    null,
 	    null
@@ -175,15 +170,13 @@ ${text}
 	    return Array.isArray(row) && typeof row[0] === "string";
 	  }))
 	    return JSON.stringify(rows);
-	  return rows.sort(function(param, param1) {
-	    let [a] = param, [b] = param1;
+	  return rows.sort(function([a], [b]) {
 	    return a.length - b.length || a.localeCompare(b);
 	  }).map(function(row) {
 	    return row[0] === "" ? row[1] : row.join("\u2236 ");
 	  }).join("\n");
 	}
-	function fixPromiseProps(improperPromise) {
-	  let mutate = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false, removeOldKeys = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false;
+	function fixPromiseProps(improperPromise, mutate = false, removeOldKeys = false) {
 	  const originalKeys = Object.getOwnPropertyNames(improperPromise);
 	  if (originalKeys.length !== 4 || originalKeys.every(function(name, i) {
 	    return Promise_UNMINIFIED_PROPERTY_NAMES[i] === name;
@@ -268,8 +261,7 @@ ${text}
 	const AVATARS = {
 	  command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
 	};
-	function rng(min, max) {
-	  let precision = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : 0;
+	function rng(min, max, precision = 0) {
 	  if (typeof min !== "number" || isNaN(min)) {
 	    throw new Error("Invalid first argument, minimum: expected a number");
 	  }
@@ -313,8 +305,7 @@ ${text}
 
 	const AsyncFunction = async function() {
 	}.constructor;
-	async function evaluate(code) {
-	  let aweight = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true, global = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false, that = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : {};
+	async function evaluate(code, aweight = true, global = false, that = {}) {
 	  if (!code)
 	    throw new Error("No code to evaluate");
 	  let result, errored = false, timings = [
@@ -376,8 +367,7 @@ ${text}
 	  "evaluate_before",
 	  "evaluate_after"
 	];
-	function addAutorun(type2, customId, code2) {
-	  let options = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : {};
+	function addAutorun(type2, customId, code2, options = {}) {
 	  const { autoruns: autoruns2, settings: { output: { error: { stack } } } } = plugin$2.storage;
 	  if (!BUILTIN_AUTORUN_TYPES.includes(type2)) {
 	    const e = new Error(`Type "${type2}" is invalid${stack.enabled ? "" : ". Enable error stack to see valid types"}`);
@@ -587,7 +577,7 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	const { meta: { resolveSemanticColor } } = metro.findByProps("colors", "meta");
 	const ThemeStore = metro.findByStoreName("ThemeStore");
 	const EMBED_COLOR = function(color) {
-	  return parseInt(resolveSemanticColor(ThemeStore.theme, ui.semanticColors.BACKGROUND_SECONDARY).slice(1), 16);
+	  return parseInt(resolveSemanticColor(ThemeStore.theme, ui.semanticColors.BACKGROUND_BASE_LOWER).slice(1), 16);
 	};
 	let madeSendMessage, UserStore, plugin, usedInSession = false;
 	function sendMessage() {
@@ -908,7 +898,7 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 ${e.stack}`);
 	    }
 	  },
-	  command(execute2) {
+	  command(execute1) {
 	    var _this = this;
 	    if (this.commandPatch) {
 	      this.patches.splice(this.patches.findIndex(function($) {
@@ -917,7 +907,7 @@ ${e.stack}`);
 	    }
 	    const { defaults: defaults2, command } = plugin$2.storage.settings;
 	    this.commandPatch = commands.registerCommand(cmdDisplays({
-	      execute: execute2,
+	      execute: execute1,
 	      type: 1,
 	      inputType: 1,
 	      applicationId: "-1",
