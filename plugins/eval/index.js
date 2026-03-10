@@ -1,4 +1,6 @@
-import * as common from "../../common";
+/** biome-ignore-all lint/security/noGlobalEval: check plugin name */
+import * as common from "../../common/index.js";
+
 import evaluate from "../../common/evaluate.js";
 import { registerCommand } from "@vendetta/commands";
 import { findByProps, findByStoreName } from "@vendetta/metro";
@@ -52,17 +54,12 @@ const { inspect } = findByProps("inspect"),
  */
 export function addAutorun(type, customId, code, options = {}) {
 	const {
-		autoruns,
-		settings: {
-			output: {
-				error: { stack },
-			},
-		},
+		autoruns
 	} = storage;
 
 	if (!BUILTIN_AUTORUN_TYPES.includes(type)) {
-		const e = new Error(`Type "${type}" is invalid${stack.enabled ? "" : ". Enable error stack to see valid types"}`);
-		throw ((e.valid_types = ["1", "666"]), e);
+		const e = new Error(`Type "${type}" is invalid. Should be one of ${BUILTIN_AUTORUN_TYPES.join(", ")}`);
+		throw e;
 	}
 	if (typeof customId === "object") throw new Error("customId must not be the type of object");
 	if (customId === "random") customId = common.rng(0, 1e6, 0);
@@ -70,7 +67,7 @@ export function addAutorun(type, customId, code, options = {}) {
 	if (!code || typeof code !== "string") throw new Error("Invalid code passed");
 	if (options.once !== undefined && ![true, false, 1].includes(options.once)) throw new Error("options.once must be a boolean or a 1");
 	const newAutorun = {
-		createdAt: +new Date(),
+		createdAt: Date.now(),
 		name: options?.name,
 		description: options?.description,
 		enabled: options?.enabled ?? false,
@@ -93,7 +90,9 @@ export function deleteAutorun(autorun, builtin) {
 	const autorunFound = aruns.find((a) => (a.customId === (typeof autorun === "object") ? autorun?.customId : autorun));
 	if (!autorunFound) {
 		const e = new Error("Autorun not found");
-		throw ((e.autorun = autorun), (e.autorunFound = autorunFound), e);
+		e.autorun = autorun
+		e.autorunFound = autorunFound
+		throw e;
 	}
 	storage.autoruns = aruns.filter(($) => $.customId !== autorunFound.customId);
 }
@@ -105,20 +104,16 @@ export function deleteAutorun(autorun, builtin) {
  * @returns undefined
  */
 export function triggerAutorun(type, fn) {
+	if (fn === undefined) fn = eval
+	if (!vendetta?.plugin?.storage?.autoruns) return
 	if (storage.settings.autoruns.enabled === false) return;
 	if (["autorun_before", "autorun_after"].includes(type)) return;
 	triggerAutorun("autorun_before", (code) => eval(code));
-	const optimizations = storage["settings"]["autoruns"]["optimizations"];
-	let autoruns = storage["autoruns"];
-	if (optimizations) autoruns = autoruns.filter(($) => $.type === type);
-	autoruns = autoruns.filter(($) => $.enabled);
 	let index = 0;
-	for (const autorun of autoruns) {
+	for (const autorun of storage["autoruns"]) {
+		index++;
 		try {
-			if (!optimizations && autorun.type !== type) {
-				index++;
-				continue;
-			}
+			if (!autorun.enabled) continue;
 			fn(autorun.code);
 			storage["stats"]["autoruns"][autorun.type] ??= 0;
 			storage["stats"]["autoruns"][autorun.type]++;
@@ -132,36 +127,46 @@ export function triggerAutorun(type, fn) {
 				autorun.enabled = false;
 			}
 		} catch (e) {
-			e.message = `Failed to execute autorun ${autorun.name ?? "No Name"} (${index}${optimizations ? ", optimized" : ""}). ` + e.message;
+			e.message = `Failed to execute autorun <"${autorun.name ?? "No Name"}"> (${index}). ${e.message}`;
 			console.error(e);
 			console.log(e.stack);
 		}
-		index++;
 	}
 	triggerAutorun("autorun_after", (code) => eval(code));
 }
-common.makeDefaults(storage, {
+const defaultStorage = {
 	autoruns: [
 		{
-			createdAt: +new Date(),
+			createdAt: Date.now(),
 			name: "example autorun", // NOTE:settings: capitalize the first letter against their will
 			description: "Example autorun, for more autorun types >> return util.BUILTIN_AUTORUN_TYPES",
 			enabled: false,
 			customId: 0,
 			once: false,
 			type: "plugin_onLoad",
-			code: `alert("plugin_onLoad\nto disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugin.storage.autoruns.find(a => a.name === \"example autorun\").enabled = false")`,
+			code: `alert("plugin_onLoad\nto disable this popup, run: /"+vendetta.plugin.storage.settings.command.name+" code:vendetta.plugin.storage.autoruns.find(a => a.name === "example autorun").enabled = false")`,
 		},
 		{
 			builtin: true, // NOTE:settings: only show these with nerd mode on
-			createdAt: +new Date(),
+			createdAt: Date.now(),
 			name: "Filter 'deleting' autoruns",
 			description: undefined, // NOTE:settings: in this case don't show the description element in ui at all
 			enabled: true,
-			customId: 0,
+			customId: 1,
 			once: false,
 			type: "plugin_onLoad",
-			code: "storage.autoruns = storage.autoruns.filter($=>!$?.deleting)",
+			code: "if (vendetta?.plugin?.storage?.autoruns) vendetta.plugin.storage.autoruns = vendetta.plugin.storage.autoruns.filter($=>!$?.deleting)",
+		},
+		{
+			builtin: true, // NOTE:settings: only show these with nerd mode on
+			createdAt: Date.now(),
+			name: "Loaded message",
+			description: undefined, // NOTE:settings: in this case don't show the description element in ui at all
+			enabled: true,
+			customId: 2,
+			once: false,
+			type: "plugin_onLoad",
+			code: "vendetta.ui.toasts.showToast(\"/!eval plugin loaded\")",
 		},
 	],
 	stats: {
@@ -183,7 +188,6 @@ common.makeDefaults(storage, {
 		},
 		autoruns: {
 			enabled: true, // whether to run autoruns at all
-			optimization: false, // false make proper index number in error messag (faulty code prop related)
 		},
 		output: {
 			location: 0, // location for the output string itself. 0: content, 1: embed
@@ -238,8 +242,7 @@ common.makeDefaults(storage, {
 			// /!eval code:...
 		},
 	},
-});
-triggerAutorun("plugin_after_defaults", (code) => eval(code));
+};
 
 const {
 	meta: { resolveSemanticColor },
@@ -247,7 +250,11 @@ const {
 const ThemeStore = findByStoreName("ThemeStore");
 
 export const EMBED_COLOR = (color) => {
-	return parseInt(resolveSemanticColor(ThemeStore.theme, semanticColors.BACKGROUND_BASE_LOWER).slice(1), 16);
+	let colorKey = "BACKGROUND_BASE_LOWER"
+	if (color === "bad") colorKey = "STATUS_DANGER"
+	if (color === "alr") colorKey = "STATUS_POSITIVE"
+	print(colorKey)
+	return parseInt(resolveSemanticColor(ThemeStore.theme, semanticColors[colorKey]).slice(1), 16);
 };
 /* thanks acquite#0001 (<@581573474296791211>) */
 
@@ -255,15 +262,15 @@ let madeSendMessage,
 	UserStore,
 	plugin,
 	usedInSession = false; // TODO: get rid of this
-function sendMessage() {
-	if (window.sendMessage) return window.sendMessage?.(...arguments);
+function sendMessage(...args) {
+	if (window.sendMessage) return window.sendMessage?.(...args);
 	if (!madeSendMessage) madeSendMessage = common.mSendMessage(vendetta);
-	return madeSendMessage(...arguments);
+	return madeSendMessage(...args);
 }
 const tini = (number) => (number < 100 ? `${number}ms` : `${number / 1000}s`);
-async function execute(rawArgs, ctx) {
+async function runEvalCommand(rawArgs, ctx) {
 	try {
-		const ranAt = +new Date();
+		const ranAt = Date.now();
 		const { settings, stats } = storage;
 		const { history, defaults, output: outputSettings } = settings;
 		const { runs } = stats;
@@ -293,7 +300,7 @@ async function execute(rawArgs, ctx) {
 		const messageMods = {
 			...authorMods,
 			interaction: {
-				name: "/" + this.displayName,
+				name: `/${this.displayName}`,
 				user: currentUser,
 			},
 		};
@@ -370,7 +377,7 @@ async function execute(rawArgs, ctx) {
 		}
 
 		if (!silent) {
-			thisEvaluation.timing = { command: ranAt, evaluate: timings, process: [+new Date()] };
+			thisEvaluation.timing = { command: ranAt, evaluate: timings, process: [Date.now()] };
 			const message = {
 				channelId: channel.id,
 				content: "",
@@ -378,7 +385,7 @@ async function execute(rawArgs, ctx) {
 			};
 			const outputEmbed = {
 				type: "rich",
-				color: EMBED_COLOR(errored ? "dissatisfactory" : "satisfactory"),
+				color: EMBED_COLOR(errored ? "bad" : "alr"),
 			};
 			message.embeds.push(outputEmbed);
 
@@ -395,8 +402,8 @@ async function execute(rawArgs, ctx) {
 			if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < processedResult.length) processedResult = processedResult.slice(0, outputSettings["trim"]);
 
 			if (outputSettings["codeblock"].enabled) {
-				const { lang, escape } = outputSettings["codeblock"];
-				processedResult = common.codeblock(processedResult, lang, escape);
+				const { lang, escape: _escape } = outputSettings["codeblock"];
+				processedResult = common.codeblock(processedResult, lang, _escape);
 			}
 			if (outputSettings["location"] === 0) {
 				message.content = processedResult;
@@ -406,7 +413,7 @@ async function execute(rawArgs, ctx) {
 
 			if (outputSettings["info"].enabled) {
 				const { hints, prettyTypeof } = outputSettings.info;
-				let rows = [["", prettyTypeof ? common.prettyTypeof(result) : typeof result]];
+				const rows = [["", prettyTypeof ? common.prettyTypeof(result) : typeof result]];
 				if (hints) {
 					let hint;
 					if (result === undefined && !code.includes("return")) hint = `"return" the value to be shown here`;
@@ -427,7 +434,7 @@ async function execute(rawArgs, ctx) {
 
 			if (outputSettings["sourceEmbed"].enabled) {
 				const {
-					codeblock: { enabled: wrap, language, escape },
+					codeblock: { enabled: wrap, language, escape: _escape },
 					name,
 				} = outputSettings["sourceEmbed"];
 
@@ -439,21 +446,19 @@ async function execute(rawArgs, ctx) {
 
 				if (typeof name === "object" && "name" in name) sourceEmbed.provider = name; // NOTE: idk if this storage entry saves properly after you restar (think makeDefaults)
 				if (typeof name === "string") sourceEmbed.title = name;
-				if (wrap) sourceEmbed.description = common.codeblock(code, language, escape);
-				if (true) {
-					// outputSettings.sourceEmbed.info
-					const rows = [["length", code.length]];
-					sourceEmbed.rawSourceInfoRows = rows;
-					let lineCount = code.split("\n").length; // here lied a peanut brain moment
-					if (lineCount < 0) rows.push(["lines", lineCount]);
+				if (wrap) sourceEmbed.description = common.codeblock(code, language, _escape);
+				// outputSettings.sourceEmbed.info
+				const rows = [["length", code.length]];
+				sourceEmbed.rawSourceInfoRows = rows;
+				const lineCount = code.split("\n").length;
+				if (lineCount < 0) rows.push(["lines", lineCount]);
 
-					sourceEmbed.footer = {
-						text: common.processRows(rows),
-					};
-				}
+				sourceEmbed.footer = {
+					text: common.processRows(rows),
+				};
 			}
 			const sent = sendMessage(message, messageMods);
-			thisEvaluation.timing.process[1] = +new Date();
+			thisEvaluation.timing.process[1] = Date.now();
 
 			if (outputSettings["info"].enabled) {
 				const msgMods = {
@@ -490,34 +495,38 @@ async function execute(rawArgs, ctx) {
 	}
 	triggerAutorun("command_after", (code) => eval(code));
 }
-plugin = {
-	...vendetta.plugin,
-	// TODO: settings, // if you pr this - you are the main maintainer of it. ping me in Exyl's server's bot channel for me to open dms with you
-	patches: [],
+const patches = []
+export default {
 	onUnload() {
-		triggerAutorun("plugin_onUnload", (code) => eval(code));
-		this.patches.forEach((up) => up()); // unpatch every patch
-		this.patches = [];
+		for (const unpatch of patches) unpatch()
 	},
 	onLoad() {
+		for (const unpatch of patches) unpatch()
 		try {
-			triggerAutorun("plugin_onLoad", (code) => eval(code));
-			this.command(execute);
+			common.makeDefaults(vendetta.plugin.storage, defaultStorage);
+			try {
+				triggerAutorun("plugin_onLoad");
+			} catch(e) {
+				console.error(e);
+				console.log(e.stack);
+				alert(`There was an error while running autoruns "${vendetta.plugin.name}"\n${e.stack}`);
+			}
+			this.command(runEvalCommand);
 		} catch (e) {
 			console.error(e);
 			console.log(e.stack);
-			alert(`There was an error while loading the plugin "${plugin.name}"\n${e.stack}`);
+			alert(`There was an error while loading the plugin "${vendetta.plugin.name}"\n${e.stack}`);
 		}
 	},
 	command(execute) {
 		if (this.commandPatch) {
-			this.patches.splice(
-				this.patches.findIndex(($) => $ === this.commandPatch),
+			patches.splice(
+				patches.indexOf(this.commandPatch),
 				1
 			)?.();
 		}
 		const { defaults, command } = storage.settings;
-		this.commandPatch = registerCommand(
+		patches.push(registerCommand(
 			common.cmdDisplays({
 				execute,
 				type: 1,
@@ -555,9 +564,7 @@ plugin = {
 					},
 				],
 			})
-		);
-		this.patches.push(this.commandPatch);
+		));
 	},
 };
-export default plugin;
-triggerAutorun("plugin_after_exports", (code) => eval(code));
+// triggerAutorun("plugin_after_exports", (code) => eval(code));
