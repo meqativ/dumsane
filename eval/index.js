@@ -264,8 +264,8 @@ ${text}
 	  if (defaults === void 0)
 	    throw new Error("No defaults object passed to make defaults off of");
 	  for (const key in defaults) {
-	    if (typeof defaults[key] === "object" && !Array.isArray(defaults[key])) {
-	      if (typeof object[key] !== "object")
+	    if (typeof defaults[key] === "object" && !Array.isArray(defaults?.[key])) {
+	      if (typeof object?.[key] !== "object")
 	        object[key] = {};
 	      makeDefaults(object[key], defaults[key]);
 	    } else {
@@ -273,12 +273,6 @@ ${text}
 	    }
 	  }
 	  return object;
-	}
-	function initStorage(storage, defaults) {
-	  if (storage["__MQ"])
-	    return;
-	  makeDefaults(storage, defaults);
-	  storage["__MQ"] = true;
 	}
 	const EMOJIS = {
 	  getLoading() {
@@ -353,7 +347,6 @@ ${text}
 		fixPromiseProps: fixPromiseProps,
 		generateRandomString: generateRandomString,
 		getValueAtPath: getValueAtPath,
-		initStorage: initStorage,
 		mSendMessage: mSendMessage,
 		makeDefaults: makeDefaults,
 		prettyTypeof: prettyTypeof,
@@ -946,7 +939,7 @@ to disable this popup, run: /"+vendetta.plugin.storage.settings.command.name+" c
 	    for (const unpatch of patches)
 	      unpatch();
 	    try {
-	      initStorage(vendetta.plugin.storage, defaultStorage);
+	      makeDefaults(vendetta.plugin.storage, defaultStorage);
 	      try {
 	        triggerAutorun("plugin_onLoad");
 	      } catch (e) {
