@@ -7,7 +7,7 @@ import { sendTextMessage as sendText } from "../../common/index.js";
 import { storage } from "@vendetta/plugin";
 import { commands } from "@vendetta";
 import { getUwuifier } from "./uwuifier/index.js";
-import { initStorage } from "../../common/index.js";
+import { makeDefaults } from "../../common/index.js";
 const patches = [];
 const DEFAULT_STORAGE = {
 	stats: {
@@ -36,7 +36,7 @@ export default {
     for (const unpatch of patches) unpatch();
   },
   onLoad() {
-		initStorage(vendetta.plugin.storage, DEFAULT_STORAGE);
+		makeDefaults(vendetta.plugin.storage, DEFAULT_STORAGE);
     patches.push(
       commands.registerCommand(
         cmdDisplays({

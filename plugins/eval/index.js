@@ -503,7 +503,7 @@ export default {
 	onLoad() {
 		for (const unpatch of patches) unpatch()
 		try {
-			common.initStorage(vendetta.plugin.storage, defaultStorage);
+			common.makeDefaults(vendetta.plugin.storage, defaultStorage);
 			try {
 				triggerAutorun("plugin_onLoad");
 			} catch(e) {

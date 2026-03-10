@@ -5,7 +5,7 @@ import { showToast } from "@vendetta/ui/toasts";
 import { storage } from "@vendetta/plugin";
 let plugin = {}, RelationshipStore;
 
-common.initStorage(storage, {
+common.makeDefaults(storage, {
 	blockedWebhooks: [{name: "Example", id: "0", avatarURL: "https://github.com/meqativ.png"}],
 })
 plugin = {

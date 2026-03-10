@@ -246,20 +246,14 @@ export function makeDefaults(object, defaults) {
 	if (defaults === undefined) throw new Error("No defaults object passed to make defaults off of");
 
 	for (const key in defaults) {
-		if (typeof defaults[key] === "object" && !Array.isArray(defaults[key])) {
-			if (typeof object[key] !== "object") object[key] = {};
+		if (typeof defaults[key] === "object" && !Array.isArray(defaults?.[key])) {
+			if (typeof object?.[key] !== "object") object[key] = {};
 			makeDefaults(object[key], defaults[key]);
 		} else {
 			object[key] ??= defaults[key];
 		}
 	}
 	return object;
-}
-
-export function initStorage(storage, defaults) {
-	if (storage["__MQ"]) return;
-	makeDefaults(storage, defaults)
-	storage["__MQ"] = true
 }
 export const EMOJIS = {
 	getLoading() {
