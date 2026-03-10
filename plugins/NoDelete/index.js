@@ -23,24 +23,15 @@ common.makeDefaults(storage, {
 let MessageStore,
 	deleteable = [];
 
-
+const patches = []
 export default {
 	settings,
-	patches: [
-		//()=>deleteable=[]
-	],
 	onUnload() {
-		this.patches.forEach((up) => up()); // unpatch every patch
-		this.patches = [];
+		for (const unpatch of patches) unpatch()
 	},
 	onLoad() {
-		//		this.patches.push(
-		//			dispatcherPatch(),
-		//			contextMenuPatch()
-		//		);
-
 		try {
-			this.patches.push(
+			patches.push(
 				patchBefore("dispatch", FluxDispatcher, (args) => {
 					try {
 						if (!MessageStore) MessageStore = findByStoreName("MessageStore");
@@ -81,7 +72,7 @@ export default {
 						return args;
 					} catch (e) {
 						console.error(e);
-						alert("[Nodelete → dispatcher patch] died\n" + e.stack);
+						alert(`[Nodelete → dispatcher patch] died\n${e.stack}`);
 					}
 				})
 			);
@@ -91,24 +82,24 @@ export default {
 			 */
 			const contextMenuUnpatch = patchBefore("render", findByProps("ScrollView").View, (args) => {
 				try {
-					let a = findInReactTree(args, (r) => r.key === ".$UserProfileOverflow");
+					const a = findInReactTree(args, (r) => r.key === ".$UserProfileOverflow");
 					if (!a || !a.props || a.props.sheetKey !== "UserProfileOverflow") return;
 					const props = a.props.content.props;
-					const _labels = massive.optionLabels.map(Object.values).flat();
+					const _labels = massive.optionLabels.flatMap(Object.values);
 					if (props.options.some((option) => _labels.includes(option?.label))) return;
 
 					const focusedUserId = Object.keys(a._owner.stateNode._keyChildMapping)
 						.find((str) => a._owner.stateNode._keyChildMapping[str] && str.match(/(?<=\$UserProfile)\d+/))
 						?.slice?.(".$UserProfile".length);
 
-					let optionPosition = props.options.findLastIndex((option) => option.isDestructive);
+					const optionPosition = props.options.findLastIndex((option) => option.isDestructive);
 					if (!storage["ignore"]["users"].includes(focusedUserId)) {
 						props.options.splice(optionPosition + 1, 0, {
 							isDestructive: true,
 							label: getTranslation("optionLabels.0"), // START IGNORING
 							onPress: () => {
 								storage["ignore"]["users"].push(focusedUserId);
-								showToast(getTranslation("toastLabels.0").replaceAll("${user}", props.header.title));
+								showToast(getTranslation("toastLabels.0").replaceAll("{user}", props.header.title));
 
 								props.hideActionSheet();
 							},
@@ -121,7 +112,7 @@ export default {
 									storage["ignore"]["users"].findIndex((userId) => userId === focusedUserId),
 									1
 								);
-								showToast(getTranslation("toastLabels.1").replaceAll("${user}", props.header.title));
+								showToast(getTranslation("toastLabels.1").replaceAll("{user}", props.header.title));
 
 								props.hideActionSheet();
 							},
@@ -132,16 +123,16 @@ export default {
 					let successful = false;
 					try {
 						successful = contextMenuUnpatch();
-					} catch (e) {
+					} catch (_) {
 						successful = false;
 					}
-					alert(`[NoDelete → context menu patch] failed. Patch ${successful ? "dis" : "en"}abled\n` + e.stack);
+					alert(`[NoDelete → context menu patch] failed. Patch ${successful ? "dis" : "en"}abled\n${e.stack}`);
 				}
 			});
-			this.patches.push(contextMenuUnpatch);
+			patches.push(contextMenuUnpatch);
 		} catch (e) {
 			console.error(e);
-			alert("[NoDelete] dead\n" + e.stack);
+			alert(`[NoDelete] dead\n${e.stack}`);
 		}
 	},
 };
