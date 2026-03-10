@@ -1,38 +1,21 @@
-import { getUwuifier } from "./uwuifier/index.js";
 import Settings from "./settings.jsx";
 import { cmdDisplays } from "../../common/index.js";
-import { findByProps, findByStoreName } from "@vendetta/metro";
+import { findByProps } from "@vendetta/metro";
 import { before } from '@vendetta/patcher'
-
-const { sendMessage, sendBotMessage } = findByProps("sendBotMessage")
-const { getChannelId: getFocusedChannelId } = findByStoreName("SelectedChannelStore");
+import { sendTextMessage as sendText  } from "../../common/index.js";
+import { storage } from "@vendetta/plugin";
+import { commands } from "@vendetta";
+import { getUwuifier } from "./uwuifier/index.js";
 const patches = [];
+
 export default {
   settings: Settings,
   onUnload() {
 		for (const unpatch of patches) unpatch()
   },
   onLoad() {
-    const {
-      plugin: { storage },
-      commands,
-    } = vendetta;
-
     patches.push(commands.registerCommand(
       cmdDisplays({
-        execute: (rawArgs) => {
-          const args = new Map(rawArgs.map((o) => [o.name, o]));
-					const input = args.get("input")?.value;
-					const ephemeral = !(args.get("send")?.value ?? true);
-					if (typeof input !== "string") throw new Error("No text to uwuify passed");
-
-          const uwuified = getUwuifier().uwuifySentence(input);
-					if (ephemeral) {
-						sendBotMessage(getFocusedChannelId(), uwuified)
-					} else {
-						sendMessage(getFocusedChannelId(), {content:uwuified, _uwuified: true}, void 0, {nonce: Date.now().toString()})
-					}
-        },
         type: 1,
         applicationId: "-1",
         inputType: 1,
@@ -52,12 +35,20 @@ export default {
             description: "Whether to send the message as you or show it as an ephemeral message from clyde",
           },
         ],
+        execute: (rawArgs) => {
+          const args = new Map(rawArgs.map((o) => [o.name, o]));
+					const input = args.get("input")?.value;
+					const output = getUwuifier().uwuifySentence(input);
+					const ephemeral = !(args.get("send")?.value ?? true);
+
+					sendText("currentChannel", output, ephemeral);
+        },
       })
     ));
 
 		const Messages = findByProps('sendMessage', 'receiveMessage')
 		patches.push(before('sendMessage', Messages, args => {
-			if (storage["cfg.convert_messages"] && !args[1]?._uwuified) args[1].content = getUwuifier().uwuifySentence(args[1].content)
+			if (storage["cfg.convert_messages"] && !args[1]?._command_output) args[1].content = getUwuifier().uwuifySentence(args[1].content)
 		}))
   },
 };

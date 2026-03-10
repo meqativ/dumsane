@@ -1,4 +1,7 @@
 export { mSendMessage } from "./mSendMessage.js";
+import { findByProps, findByStoreName } from "@vendetta/metro";
+const { getChannelId: getCurrentChannelId } = findByStoreName("SelectedChannelStore");
+const { sendMessage: sendUserMessage, sendBotMessage } = findByProps("sendBotMessage")
 export const ZWD = "\u200d",
 	Promise_UNMINIFIED_PROPERTY_NAMES = ["_deferredState", "_state", "_value", "_deferreds"],
 	PROMISE_STATE_NAMES = {
@@ -269,4 +272,19 @@ export function rng(min, max, precision = 0) {
 	const maxPrecision = Math.max((max.toString().split(".")[1] || "").length, (min.toString().split(".")[1] || "").length);
 	const computedPrecision = typeof precision === "number" ? precision : maxPrecision;
 	return parseFloat((Math.random() * (max - min) + min).toFixed(computedPrecision));
+}
+
+
+export function sendTextMessage(channel, message, ephemeral) {
+	if (channel === "currentChannel") {
+		channel = getCurrentChannelId()
+	}
+	if (typeof message !== "string") {
+		message = message?.content
+		if (!message) throw new Error("No text to send")
+	}
+	if (ephemeral) {
+		return sendBotMessage(channel, message)
+	}
+	sendUserMessage(channel, {content: message, _command_output: true}, void 0, {nonce: Date.now().toString()})
 }
