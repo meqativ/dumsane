@@ -64,10 +64,12 @@ export default {
             const input = args.get("input")?.value;
             const output = getUwuifier().uwuifySentence(input);
             const ephemeral = !(args.get("send")?.value ?? storage['settings']['defaults']['send']);
-						storage['stats']['history'].unshift({
+						const history = storage['stats']['history']
+						history.unshift({
 							timestamp: Date.now(),
 							input
 						})
+						if (history.length > 25) history.pop() // this doesn't Limit the history to be under 25, e.g. if someone edits their storage to have 5000 items it will just break the plugin but i dont think it matters much rn
             sendText("currentChannel", output, ephemeral);
 					} catch (e) {
 						console.error(e);
