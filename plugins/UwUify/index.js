@@ -1,6 +1,6 @@
 import { getUwuifier } from "./uwuifier/index.js";
 import Settings from "./settings.jsx";
-import { cmdDisplays } from "../../common";
+import { cmdDisplays } from "../../common/index.js";
 import { findByProps, findByStoreName } from "@vendetta/metro";
 import { before } from '@vendetta/patcher'
 
