@@ -1,0 +1,7 @@
+{
+	"name": "SearchLink",
+	"description": "Lets you make a link to a search using various services. Adds the /search command",
+	"authors": [{ "name": "meqativ :3", "id": "744276454946242723" }],
+	"main": "./index.js",
+	"vendetta": { "icon": "ic_application_command_24px" }
+}
