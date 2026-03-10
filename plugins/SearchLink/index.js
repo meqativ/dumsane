@@ -4,7 +4,7 @@ import { cmdDisplays } from "../../common/index.js";
 import { sendTextMessage as sendText } from "../../common/index.js";
 import { storage } from "@vendetta/plugin";
 import { commands } from "@vendetta";
-import { getService, getServiceNames, getServices, initStorage } from "./storage.js";
+import { getService, getServiceNames, initStorage } from "./storage.js";
 const patches = [];
 
 export function search(storage, serviceid, query) {
@@ -42,7 +42,7 @@ export default {
 					{
 						type: 3,
 						name: "service",
-						description: `Use a different search engine/service (default: {defaultId})`.replaceAll("{defaultId}", storage['settings']['defaults']['engine']),
+						description: `Use a different search engine/service (default: {defaultId})`.replaceAll("{defaultId}", storage['settings']['defaults']['service']),
 						choices: getServiceNames(storage).map(
 							serviceName => {
 								const service = getService(storage, serviceName);
