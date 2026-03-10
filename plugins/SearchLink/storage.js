@@ -74,6 +74,10 @@ const DEFAULT_STORAGE = {
         name: "Let Me GPT That For You!",
         urlTemplate: "https://letmegpt.com/?q={query}",
       },
+      googleit: {
+        name: "Google.it",
+        urlTemplate: "https://google.it/search?q={query}",
+      },
     },
   },
 };
