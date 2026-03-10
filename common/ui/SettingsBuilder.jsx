@@ -4,7 +4,7 @@ import { getValueAtPath, setValueAtPath } from "../../common";
 
 const { FormRow, FormSwitch } = Forms;
 
-export default function SettingsBuilder({ config, storage }) {
+export default function renderSimpleSettings(storage, config) {
 	return config.map((item, index) => {
 		const key = item?.storage_path ?? item?.label ?? item?.id ?? index;
 
