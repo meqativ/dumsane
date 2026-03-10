@@ -19,14 +19,6 @@ export default {
   },
   onLoad() {
 		initStorage(storage);
-			try {
-		alert(JSON.stringify(storage))
-		alert(JSON.stringify(getServices(storage)))
-			} catch (e) {
-				console.error(e);
-				console.log(e.stack);
-				alert(`There was an error while loading the plugin\n${e.stack}`);
-			}
     patches.push(commands.registerCommand(
       cmdDisplays({
         type: 1,
