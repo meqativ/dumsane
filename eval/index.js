@@ -1,4 +1,4 @@
-(function (exports, commands, metro, plugin$2, ui) {
+(function (exports, commands, metro, plugin$1, ui) {
 	'use strict';
 
 	function mSendMessage(vendetta) {
@@ -368,19 +368,16 @@ ${text}
 	  "evaluate_after"
 	];
 	function addAutorun(type2, customId, code2, options = {}) {
-	  const { autoruns: autoruns2, settings: { output: { error: { stack } } } } = plugin$2.storage;
+	  const { autoruns } = plugin$1.storage;
 	  if (!BUILTIN_AUTORUN_TYPES.includes(type2)) {
-	    const e = new Error(`Type "${type2}" is invalid${stack.enabled ? "" : ". Enable error stack to see valid types"}`);
-	    throw e.valid_types = [
-	      "1",
-	      "666"
-	    ], e;
+	    const e = new Error(`Type "${type2}" is invalid. Should be one of ${BUILTIN_AUTORUN_TYPES.join(", ")}`);
+	    throw e;
 	  }
 	  if (typeof customId === "object")
 	    throw new Error("customId must not be the type of object");
 	  if (customId === "random")
 	    customId = rng(0, 1e6, 0);
-	  if (autoruns2.filter(function($) {
+	  if (autoruns.filter(function($) {
 	    return !$.builtin;
 	  }).find(function(a) {
 	    return a.customId === customId;
@@ -395,7 +392,7 @@ ${text}
 	  ].includes(options.once))
 	    throw new Error("options.once must be a boolean or a 1");
 	  const newAutorun = {
-	    createdAt: +new Date(),
+	    createdAt: Date.now(),
 	    name: options?.name,
 	    description: options?.description,
 	    enabled: options?.enabled ?? false,
@@ -404,11 +401,11 @@ ${text}
 	    type: type2,
 	    code: code2
 	  };
-	  autoruns2.push(newAutorun);
+	  autoruns.push(newAutorun);
 	  return newAutorun;
 	}
 	function deleteAutorun(autorun, builtin) {
-	  let aruns = plugin$2.storage.autoruns;
+	  let aruns = plugin$1.storage.autoruns;
 	  if (builtin)
 	    aruns = aruns.filter(function($) {
 	      return !$.builtin;
@@ -418,14 +415,20 @@ ${text}
 	  });
 	  if (!autorunFound) {
 	    const e = new Error("Autorun not found");
-	    throw e.autorun = autorun, e.autorunFound = autorunFound, e;
+	    e.autorun = autorun;
+	    e.autorunFound = autorunFound;
+	    throw e;
 	  }
-	  plugin$2.storage.autoruns = aruns.filter(function($) {
+	  plugin$1.storage.autoruns = aruns.filter(function($) {
 	    return $.customId !== autorunFound.customId;
 	  });
 	}
 	function triggerAutorun(type, fn) {
-	  if (plugin$2.storage.settings.autoruns.enabled === false)
+	  if (fn === void 0)
+	    fn = eval;
+	  if (!vendetta?.plugin?.storage?.autoruns)
+	    return;
+	  if (plugin$1.storage.settings.autoruns.enabled === false)
 	    return;
 	  if ([
 	    "autorun_before",
@@ -435,25 +438,15 @@ ${text}
 	  triggerAutorun("autorun_before", function(code) {
 	    return eval(code);
 	  });
-	  const optimizations = plugin$2.storage["settings"]["autoruns"]["optimizations"];
-	  let autoruns = plugin$2.storage["autoruns"];
-	  if (optimizations)
-	    autoruns = autoruns.filter(function($) {
-	      return $.type === type;
-	    });
-	  autoruns = autoruns.filter(function($) {
-	    return $.enabled;
-	  });
 	  let index = 0;
-	  for (const autorun of autoruns) {
+	  for (const autorun of plugin$1.storage["autoruns"]) {
+	    index++;
 	    try {
-	      if (!optimizations && autorun.type !== type) {
-	        index++;
+	      if (!autorun.enabled)
 	        continue;
-	      }
 	      fn(autorun.code);
-	      plugin$2.storage["stats"]["autoruns"][autorun.type] ??= 0;
-	      plugin$2.storage["stats"]["autoruns"][autorun.type]++;
+	      plugin$1.storage["stats"]["autoruns"][autorun.type] ??= 0;
+	      plugin$1.storage["stats"]["autoruns"][autorun.type]++;
 	      autorun.runs ??= 0;
 	      autorun.runs++;
 	      if (autorun.once === true) {
@@ -463,20 +456,19 @@ ${text}
 	        autorun.enabled = false;
 	      }
 	    } catch (e) {
-	      e.message = `Failed to execute autorun ${autorun.name ?? "No Name"} (${index}${optimizations ? ", optimized" : ""}). ` + e.message;
+	      e.message = `Failed to execute autorun <"${autorun.name ?? "No Name"}"> (${index}). ${e.message}`;
 	      console.error(e);
 	      console.log(e.stack);
 	    }
-	    index++;
 	  }
 	  triggerAutorun("autorun_after", function(code) {
 	    return eval(code);
 	  });
 	}
-	makeDefaults(plugin$2.storage, {
+	const defaultStorage = {
 	  autoruns: [
 	    {
-	      createdAt: +new Date(),
+	      createdAt: Date.now(),
 	      name: "example autorun",
 	      description: "Example autorun, for more autorun types >> return util.BUILTIN_AUTORUN_TYPES",
 	      enabled: false,
@@ -484,18 +476,29 @@ ${text}
 	      once: false,
 	      type: "plugin_onLoad",
 	      code: `alert("plugin_onLoad
-to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugin.storage.autoruns.find(a => a.name === "example autorun").enabled = false")`
+to disable this popup, run: /"+vendetta.plugin.storage.settings.command.name+" code:vendetta.plugin.storage.autoruns.find(a => a.name === "example autorun").enabled = false")`
 	    },
 	    {
 	      builtin: true,
-	      createdAt: +new Date(),
+	      createdAt: Date.now(),
 	      name: "Filter 'deleting' autoruns",
 	      description: void 0,
 	      enabled: true,
-	      customId: 0,
+	      customId: 1,
 	      once: false,
 	      type: "plugin_onLoad",
-	      code: "storage.autoruns = storage.autoruns.filter($=>!$?.deleting)"
+	      code: "if (vendetta?.plugin?.storage?.autoruns) vendetta.plugin.storage.autoruns = vendetta.plugin.storage.autoruns.filter($=>!$?.deleting)"
+	    },
+	    {
+	      builtin: true,
+	      createdAt: Date.now(),
+	      name: "Loaded message",
+	      description: void 0,
+	      enabled: true,
+	      customId: 2,
+	      once: false,
+	      type: "plugin_onLoad",
+	      code: 'vendetta.ui.toasts.showToast("/!eval plugin loaded")'
 	    }
 	  ],
 	  stats: {
@@ -516,8 +519,7 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	      checkLatestDupes: true
 	    },
 	    autoruns: {
-	      enabled: true,
-	      optimization: false
+	      enabled: true
 	    },
 	    output: {
 	      location: 0,
@@ -570,30 +572,33 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	      name: "!eval"
 	    }
 	  }
-	});
-	triggerAutorun("plugin_after_defaults", function(code) {
-	  return eval(code);
-	});
+	};
 	const { meta: { resolveSemanticColor } } = metro.findByProps("colors", "meta");
 	const ThemeStore = metro.findByStoreName("ThemeStore");
 	const EMBED_COLOR = function(color) {
-	  return parseInt(resolveSemanticColor(ThemeStore.theme, ui.semanticColors.BACKGROUND_BASE_LOWER).slice(1), 16);
+	  let colorKey = "BACKGROUND_BASE_LOWER";
+	  if (color === "bad")
+	    colorKey = "STATUS_DANGER";
+	  if (color === "alr")
+	    colorKey = "STATUS_POSITIVE";
+	  print(colorKey);
+	  return parseInt(resolveSemanticColor(ThemeStore.theme, ui.semanticColors[colorKey]).slice(1), 16);
 	};
 	let madeSendMessage, UserStore, plugin, usedInSession = false;
-	function sendMessage() {
+	function sendMessage(...args2) {
 	  if (window.sendMessage)
-	    return window.sendMessage?.(...arguments);
+	    return window.sendMessage?.(...args2);
 	  if (!madeSendMessage)
 	    madeSendMessage = mSendMessage(vendetta);
-	  return madeSendMessage(...arguments);
+	  return madeSendMessage(...args2);
 	}
 	const tini = function(number) {
 	  return number < 100 ? `${number}ms` : `${number / 1e3}s`;
 	};
-	async function execute(rawArgs, ctx) {
+	async function runEvalCommand(rawArgs, ctx) {
 	  try {
-	    const ranAt = +new Date();
-	    const { settings, stats } = plugin$2.storage;
+	    const ranAt = Date.now();
+	    const { settings, stats } = plugin$1.storage;
 	    const { history, defaults, output: outputSettings } = settings;
 	    const { runs } = stats;
 	    triggerAutorun("command_before", function(code) {
@@ -624,7 +629,7 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	    const messageMods = {
 	      ...authorMods,
 	      interaction: {
-	        name: "/" + this.displayName,
+	        name: `/${this.displayName}`,
 	        user: currentUser
 	      }
 	    };
@@ -723,7 +728,7 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	        command: ranAt,
 	        evaluate: timings,
 	        process: [
-	          +new Date()
+	          Date.now()
 	        ]
 	      };
 	      const message = {
@@ -733,7 +738,7 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	      };
 	      const outputEmbed = {
 	        type: "rich",
-	        color: EMBED_COLOR(errored ? "dissatisfactory" : "satisfactory")
+	        color: EMBED_COLOR(errored ? "bad" : "alr")
 	      };
 	      message.embeds.push(outputEmbed);
 	      if (outputSettings["fixPromiseProps"] && result?.constructor?.name === "Promise")
@@ -750,8 +755,8 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	      if (typeof outputSettings["trim"] === "number" && outputSettings["trim"] < processedResult.length)
 	        processedResult = processedResult.slice(0, outputSettings["trim"]);
 	      if (outputSettings["codeblock"].enabled) {
-	        const { lang, escape } = outputSettings["codeblock"];
-	        processedResult = codeblock(processedResult, lang, escape);
+	        const { lang, escape: _escape } = outputSettings["codeblock"];
+	        processedResult = codeblock(processedResult, lang, _escape);
 	      }
 	      if (outputSettings["location"] === 0) {
 	        message.content = processedResult;
@@ -760,7 +765,7 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	      }
 	      if (outputSettings["info"].enabled) {
 	        const { hints, prettyTypeof: prettyTypeof$1 } = outputSettings.info;
-	        let rows = [
+	        const rows = [
 	          [
 	            "",
 	            prettyTypeof$1 ? prettyTypeof(result) : typeof result
@@ -800,7 +805,7 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	        }
 	      }
 	      if (outputSettings["sourceEmbed"].enabled) {
-	        const { codeblock: { enabled: wrap, language, escape }, name } = outputSettings["sourceEmbed"];
+	        const { codeblock: { enabled: wrap, language, escape: _escape }, name } = outputSettings["sourceEmbed"];
 	        const sourceEmbed = {
 	          type: "rich",
 	          color: EMBED_COLOR("source")
@@ -811,28 +816,26 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	        if (typeof name === "string")
 	          sourceEmbed.title = name;
 	        if (wrap)
-	          sourceEmbed.description = codeblock(code, language, escape);
-	        if (true) {
-	          const rows = [
-	            [
-	              "length",
-	              code.length
-	            ]
-	          ];
-	          sourceEmbed.rawSourceInfoRows = rows;
-	          let lineCount = code.split("\n").length;
-	          if (lineCount < 0)
-	            rows.push([
-	              "lines",
-	              lineCount
-	            ]);
-	          sourceEmbed.footer = {
-	            text: processRows(rows)
-	          };
-	        }
+	          sourceEmbed.description = codeblock(code, language, _escape);
+	        const rows = [
+	          [
+	            "length",
+	            code.length
+	          ]
+	        ];
+	        sourceEmbed.rawSourceInfoRows = rows;
+	        const lineCount = code.split("\n").length;
+	        if (lineCount < 0)
+	          rows.push([
+	            "lines",
+	            lineCount
+	          ]);
+	        sourceEmbed.footer = {
+	          text: processRows(rows)
+	        };
 	      }
 	      const sent = sendMessage(message, messageMods);
-	      thisEvaluation.timing.process[1] = +new Date();
+	      thisEvaluation.timing.process[1] = Date.now();
 	      if (outputSettings["info"].enabled) {
 	        const msgMods = {
 	          ...messageMods,
@@ -872,42 +875,40 @@ to disable this popup, run: /"+plugin.storage.settings.command.name+" code:plugi
 	    return eval(code);
 	  });
 	}
-	plugin = {
-	  ...vendetta.plugin,
-	  // TODO: settings, // if you pr this - you are the main maintainer of it. ping me in Exyl's server's bot channel for me to open dms with you
-	  patches: [],
+	const patches = [];
+	var index = {
 	  onUnload() {
-	    triggerAutorun("plugin_onUnload", function(code) {
-	      return eval(code);
-	    });
-	    this.patches.forEach(function(up) {
-	      return up();
-	    });
-	    this.patches = [];
+	    for (const unpatch of patches)
+	      unpatch();
 	  },
 	  onLoad() {
+	    for (const unpatch of patches)
+	      unpatch();
 	    try {
-	      triggerAutorun("plugin_onLoad", function(code) {
-	        return eval(code);
-	      });
-	      this.command(execute);
+	      makeDefaults(vendetta.plugin.storage, defaultStorage);
+	      try {
+	        triggerAutorun("plugin_onLoad");
+	      } catch (e) {
+	        console.error(e);
+	        console.log(e.stack);
+	        alert(`There was an error while running autoruns "${vendetta.plugin.name}"
+${e.stack}`);
+	      }
+	      this.command(runEvalCommand);
 	    } catch (e) {
 	      console.error(e);
 	      console.log(e.stack);
-	      alert(`There was an error while loading the plugin "${plugin.name}"
+	      alert(`There was an error while loading the plugin "${vendetta.plugin.name}"
 ${e.stack}`);
 	    }
 	  },
-	  command(execute1) {
-	    var _this = this;
+	  command(execute) {
 	    if (this.commandPatch) {
-	      this.patches.splice(this.patches.findIndex(function($) {
-	        return $ === _this.commandPatch;
-	      }), 1)?.();
+	      patches.splice(patches.indexOf(this.commandPatch), 1)?.();
 	    }
-	    const { defaults: defaults2, command } = plugin$2.storage.settings;
-	    this.commandPatch = commands.registerCommand(cmdDisplays({
-	      execute: execute1,
+	    const { defaults: defaults2, command } = plugin$1.storage.settings;
+	    patches.push(commands.registerCommand(cmdDisplays({
+	      execute,
 	      type: 1,
 	      inputType: 1,
 	      applicationId: "-1",
@@ -942,18 +943,13 @@ ${e.stack}`);
 	          description: `await the evaluation? (default: ${defaults2["await"]})`
 	        }
 	      ]
-	    }));
-	    this.patches.push(this.commandPatch);
+	    })));
 	  }
 	};
-	var plugin$1 = plugin;
-	triggerAutorun("plugin_after_exports", function(code) {
-	  return eval(code);
-	});
 
 	exports.EMBED_COLOR = EMBED_COLOR;
 	exports.addAutorun = addAutorun;
-	exports.default = plugin$1;
+	exports.default = index;
 	exports.deleteAutorun = deleteAutorun;
 	exports.triggerAutorun = triggerAutorun;
 
