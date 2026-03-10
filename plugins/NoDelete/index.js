@@ -10,7 +10,7 @@ import { getTranslation, massive } from "./translations.js";
 //import { dispatcherPatch } from "./patches/dispatcher.js";
 //import { contextMenuPatch } from "./patches/contextMenu.js"
 
-common.makeDefaults(storage, {
+common.initStorage(storage, {
 	ignore: {
 		users: [],
 		channels: [],

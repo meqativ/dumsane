@@ -1,75 +1,104 @@
 import { reloadUwuifier } from "./uwuifier";
-const { ReactNative } = vendetta.metro.common;
-const {
-  plugin: { storage },
-  storage: { useProxy },
-  ui: {
-    components: { Forms },
-  },
-} = vendetta;
+import { ReactNative } from "@vendetta/metro/common";
+import { storage } from "@vendetta/plugin";
+import { useProxy } from "@vendetta/storage";
+import { Forms } from "@vendetta/ui/components";
 const { FormRow, FormSwitch } = Forms;
-
-const Button = vendetta.metro.findByProps(
-  "ButtonColors",
-  "ButtonLooks",
-  "ButtonSizes"
-).default;
+import { Button } from "@vendetta/ui/components";
+import { getValueAtPath, setValueAtPath } from "../../common";
 
 export default function Settings() {
-  useProxy(storage);
-  return (
-    <ReactNative.ScrollView style={{ flex: 1 }}>
-      {[
-        { label: "Add faces", default: true, id: "cfg.spaces.faces" },
-        { label: "Add actions", default: true, id: "cfg.spaces.actions" },
-        { label: "Add stutters", default: true, id: "cfg.spaces.stutters" },
-        { label: "Add words", default: true, id: "cfg.words" },
-        { label: "Add exclamations", default: false, id: "cfg.exclamations" },
-        {
-          id: "reload",
-          style: { height: 5, margin: 8 },
-          name: "Reload uwuifier (press this after toggling options above)",
-          onPress: () => {
-            reloadUwuifier(storage);
-            vendetta.ui.toasts.showToast(
-              `Reloaded uwuifier`,
-              vendetta.ui.assets.getAssetIDByName("check")
-            );
-          },
-        },
-        { label: "Convert message before sending", default: true, id: "cfg.convert_messages" }
-      ].map((config) => {
-        if (config?.id === "reload") {
-          return (
-            <Button
-              style={config.style}
-              text={config.name ?? "Unnamed"}
-              color="brand"
-              size="small"
-              disabled={false}
-              onPress={config.onPress ?? (() => {})}
-            />
-          );
-        }
-        if ("id" in config && !(config.id in storage))
-          storage[config.id] = config.default;
-        return (
-          <FormRow
-            label={config?.label ?? config?.id ?? "no name"}
-            trailing={
-              "id" in config ? (
-                <FormSwitch
-                  value={storage[config.id] ?? config.default}
-                  onValueChange={(value) => {
-storage[config.id] = value;
-                    config?.onValueChange?.(value);
-                  }}
-                />
-              ) : undefined
-            }
-          />
-        );
-      })}
-    </ReactNative.ScrollView>
-  );
-};
+	useProxy(storage);
+	return (
+		<ReactNative.ScrollView style={{ flex: 1 }}>
+			{[
+				{
+					label: "Add faces",
+					type: "number",
+					storage_path: "settings.uwuifier.spaces.faces",
+				},
+				{
+					label: "Add actions",
+					type: "number",
+					storage_path: "settings.uwuifier.spaces.actions",
+				},
+				{
+					label: "Add stutters",
+					type: "number",
+					storage_path: "settings.uwuifier.spaces.stutters",
+				},
+				{
+					label: "Add words",
+					type: "number",
+					storage_path: "settings.uwuifier.words",
+				},
+				{
+					label: "Add exclamations",
+					type: "number",
+					storage_path: "settings.uwuifier.exclamations",
+				},
+				{
+					type: "button",
+					style: { height: 5, margin: 8 },
+					label: "Reload uwuifier (press this after toggling options above)",
+					onPress: () => {
+						reloadUwuifier(storage);
+						vendetta.ui.toasts.showToast(
+							`Reloaded uwuifier`,
+							vendetta.ui.assets.getAssetIDByName("check"),
+						);
+					},
+				},
+				{
+					type: "spacer",
+					style: {height:5}
+				},
+				{
+					label: "Convert message before sending",
+					type: "toggle",
+					storage_path: "settings.convert_messages",
+				},
+			].map((config) => {
+				if (config?.type === "button") {
+					return (
+						<Button
+							style={config?.style ?? undefined}
+							text={config?.label ?? "Unnamed"}
+							color="brand"
+							size="small"
+							disabled={false}
+							onPress={config?.onPress ?? (() => {})}
+						/>
+					);
+				}
+				//TODO: steal proper number input from somewhere (i want a slider)
+				if (["number", "toggle"].includes(config?.type)) {
+					return (
+						<FormRow
+							label={config?.label ?? config?.storage_path ?? "Unnamed"}
+							style={config?.style ?? undefined}
+							trailing={
+								"storage_path" in config ? (
+									<FormSwitch
+										value={getValueAtPath(storage, config.storage_path)}
+										onValueChange={(value) => {
+											console.log(`changing to ${value}, current: ${getValueAtPath(storage, config.storage_path)}`)
+											setValueAtPath(storage, config.storage_path, value)
+											config?.onValueChange?.(value);
+										}}
+									/>
+								) : undefined
+							}
+						/>
+					);
+				}
+				return (
+					<FormRow
+						label={`${config?.label ?? config?.id ?? "no name"}(unknown type of config entry)`}
+						style={config?.style ?? undefined}
+					/>
+				);
+			})}
+		</ReactNative.ScrollView>
+	);
+}

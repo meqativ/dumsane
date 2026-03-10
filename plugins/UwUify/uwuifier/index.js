@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/useLiteralKeys: ilike it*/
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -199,20 +200,21 @@ __decorate([
 __decorate([
     InitModifierParam()
 ], Uwuifier.prototype, "_exclamationsModifier", void 0);
-let state = {
+const state = {
 	uwuifier: new Uwuifier()
 }
 export function getUwuifier() {
 	return state.uwuifier
 }
 export function reloadUwuifier(storage) {
+	const settings = storage['settings']['uwuifier']
 	state.uwuifier = new Uwuifier({
 		spaces: {
-			faces: !storage["cfg.spaces.faces"] ? 0 : 0.5,
-			actions: !storage["cfg.spaces.actions"] ? 0 : 0.075,
-			stutters: !storage["cfg.spaces.stutters"] ? 0 : 0.1,
+			faces: !settings['spaces']['faces'] ? 0 : 0.5,
+			actions: !settings['spaces']['actions'] ? 0 : 0.075,
+			stutters: !settings['spaces']['stutters'] ? 0 : 0.1,
 		},
-		words: !storage["cfg.words"] ? 0 : 1,
-		exclamations: !storage["cfg.exclamations"] ? 0 : 1,
+		words: !settings['words'] ? 0 : 1,
+		exclamations: !settings['exclamations'] ? 0 : 1,
 	});
 }

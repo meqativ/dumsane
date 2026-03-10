@@ -18,7 +18,7 @@ export const PLUGIN_FORUM_POST_URL = "||not proxied||",
 			avatarURL: common.AVATARS.command,
 		},
 	};
-common.makeDefaults(vendetta.plugin.storage, 
+common.initStorage(vendetta.plugin.storage, 
 {
 	stats: {
 		localRuns: 0,

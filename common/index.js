@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/useLiteralKeys: i like it */
 export { mSendMessage } from "./mSendMessage.js";
 import { findByProps, findByStoreName } from "@vendetta/metro";
 const { getChannelId: getCurrentChannelId } = findByStoreName("SelectedChannelStore");
@@ -11,9 +12,9 @@ export const ZWD = "\u200d",
 		3: "adopted",
 	};
 
-export function codeblock(text, language = "", escape = false) {
+export function codeblock(text, language = "", _escape = false) {
 	if (!text) throw new Error("No text to wrap in a codeblock provided");
-	if (escape) text = text.replaceAll("```", `\`${ZWD}\`\``);
+	if (_escape) text = text.replaceAll("```", `\`${ZWD}\`\``);
 	return `\`\`\`${language}\n${text}\n\`\`\``;
 }
 
@@ -30,12 +31,12 @@ export function codeblock(text, language = "", escape = false) {
  *   description: "mrrrp",
  * }, {
  *   names: {
- *     ru: "мяу"
+ *     uk: "няв"
  *   },
  *   description: {
- *     ru: "муррр"
+ *     uk: "нявканя"
  *   }
- * }, "ru")
+ * }, "uk")
  */
 export function cmdDisplays(obj, translations, locale) {
 	if (!obj?.name || !obj?.description) throw new Error(`No name(${obj?.name}) or description(${obj?.description}) in the passed command (command name: ${obj?.name})`);
@@ -44,7 +45,7 @@ export function cmdDisplays(obj, translations, locale) {
 	obj.displayDescription ??= translations?.names?.[locale] ?? obj.description;
 	if (obj.options) {
 		if (!Array.isArray(obj.options)) throw new Error(`Options is not an array (received: ${typeof obj.options})`);
-		for (var optionIndex = 0; optionIndex < obj.options.length; optionIndex++) {
+		for (let optionIndex = 0; optionIndex < obj.options.length; optionIndex++) {
 			const option = obj.options[optionIndex];
 			// TODO: Handle subcommands (type 1 or 2 probably i forgor)
 			if (!option?.name || !option?.description) throw new Error(`No name(${option?.name}) or description(${option?.description} in the option with index ${optionIndex}`);
@@ -52,7 +53,7 @@ export function cmdDisplays(obj, translations, locale) {
 			option.displayDescription ??= translations?.options?.[optionIndex]?.descriptions?.[locale] ?? option.description;
 			if (option?.choices) {
 				if (!Array.isArray(option?.choices)) throw new Error(`Choices is not an array (received: ${typeof option.choices})`);
-				for (var choiceIndex = 0; choiceIndex < option.choices.length; choiceIndex++) {
+				for (let choiceIndex = 0; choiceIndex < option.choices.length; choiceIndex++) {
 					const choice = option.choices[choiceIndex];
 					if (!choice?.name) throw new Error(`No name of choice with index ${choiceIndex} in option with index ${optionIndex}`);
 					choice.displayName ??= translations?.options?.[optionIndex]?.choices?.[choiceIndex]?.names?.[locale] ?? choice.name;
@@ -61,6 +62,36 @@ export function cmdDisplays(obj, translations, locale) {
 		}
 	}
 	return obj;
+}
+
+export function resolvePath(obj, path) {
+  const keys = path.split('.');
+  let current = obj;
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    if (current === null || typeof current !== 'object') {
+      throw new Error(`Cannot resolve key "${key}" because the previous property is not an object.`);
+    }
+    if (!(key in current)) {
+      throw new Error(`Key "${key}" was not found in the path.`);
+    }
+    if (i === keys.length - 1) {
+      return { parent: current, key: key };
+    }
+    current = current[key];
+  }
+}
+
+export function getValueAtPath(obj, path) {
+  const { parent, key } = resolvePath(obj, path);
+  return parent[key];
+}
+
+export function setValueAtPath(obj, path, value) {
+  const { parent, key } = resolvePath(obj, path);
+  parent[key] = value;
+  return obj; 
 }
 export function generateRandomString(chars, length = 27) {
 	if (typeof chars !== "string") throw new Error("Passed chars isn't a string");
@@ -120,7 +151,7 @@ export function cloneWithout(value, without, replace) {
  * await awaitPromise(log, "error") // [ null, Error ]
  */
 export async function awaitPromise(promiseFn, ...args) {
-	let output = [null, null];
+	const output = [null, null];
 	try {
 		output[0] = await promiseFn(...args);
 	} catch (error) {
@@ -225,6 +256,11 @@ export function makeDefaults(object, defaults) {
 	return object;
 }
 
+export function initStorage(storage, defaults) {
+	if (storage["__MQ"]) return;
+	makeDefaults(storage, defaults)
+	storage["__MQ"] = true
+}
 export const EMOJIS = {
 	getLoading() {
 		return Math.random() < 0.01 ? this.aol : this.loadingDiscordSpinner;
@@ -254,10 +290,10 @@ export const AVATARS = {
  * @throws {Error} If the arguments are invalid or precision is greater than 13
  */
 export function rng(min, max, precision = 0) {
-	if (typeof min !== "number" || isNaN(min)) {
+	if (typeof min !== "number" || Number.isNaN(min)) {
 		throw new Error("Invalid first argument, minimum: expected a number");
 	}
-	if (typeof max !== "number" || isNaN(max)) {
+	if (typeof max !== "number" || Number.isNaN(max)) {
 		throw new Error("Invalid second argument, maximum: expected a number");
 	}
 	if (typeof precision !== "number" || precision < 0) {
