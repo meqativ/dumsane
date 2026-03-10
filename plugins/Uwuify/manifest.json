@@ -1,6 +1,6 @@
 {
-	"name": "uwuify",
-	"description": "Uwuifies text. /uwuify or your messages",
+	"name": "UwUify",
+	"description": "Lets you UwUify text. As a filter on all your messages or through the /uwuify command",
 	"authors": [{ "name": "meqativ :3", "id": "744276454946242723" }],
 	"main": "./index.js",
 	"vendetta": { "icon": "ic_application_command_24px" }

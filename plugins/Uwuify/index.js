@@ -36,14 +36,14 @@ export default {
         type: 1,
         applicationId: "-1",
         inputType: 1,
-        name: `uwuify${Date.now()}`,
+        name: `uwuify`,
         description: "UwUify some text",
         options: [
           {
             type: 3,
             required: true,
             name: "input",
-            description: "Text to be uwuified",
+            description: "Text to be UwUified",
           },
           {
             type: 5,

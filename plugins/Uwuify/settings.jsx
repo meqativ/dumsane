@@ -37,7 +37,7 @@ export default function Settings() {
             );
           },
         },
-        { label: "Convert before sending message", default: false, id: "cfg.convert_messages" }
+        { label: "Convert message before sending", default: true, id: "cfg.convert_messages" }
       ].map((config) => {
         if (config?.id === "reload") {
           return (
