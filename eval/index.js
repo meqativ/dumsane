@@ -1,4 +1,4 @@
-(function (exports, commands, metro, plugin$1, ui) {
+(function (exports, metro, commands, plugin$1, ui) {
 	'use strict';
 
 	function mSendMessage(vendetta) {
@@ -58,6 +58,8 @@
 	  };
 	}
 
+	const { getChannelId: getCurrentChannelId } = metro.findByStoreName("SelectedChannelStore");
+	const { sendMessage: sendUserMessage, sendBotMessage } = metro.findByProps("sendBotMessage");
 	const ZWD = "\u200D", Promise_UNMINIFIED_PROPERTY_NAMES = [
 	  "_deferredState",
 	  "_state",
@@ -69,10 +71,10 @@
 	  2: "rejected",
 	  3: "adopted"
 	};
-	function codeblock(text, language = "", escape = false) {
+	function codeblock(text, language = "", _escape = false) {
 	  if (!text)
 	    throw new Error("No text to wrap in a codeblock provided");
-	  if (escape)
+	  if (_escape)
 	    text = text.replaceAll("```", `\`${ZWD}\`\``);
 	  return `\`\`\`${language}
 ${text}
@@ -86,7 +88,7 @@ ${text}
 	  if (obj.options) {
 	    if (!Array.isArray(obj.options))
 	      throw new Error(`Options is not an array (received: ${typeof obj.options})`);
-	    for (var optionIndex = 0; optionIndex < obj.options.length; optionIndex++) {
+	    for (let optionIndex = 0; optionIndex < obj.options.length; optionIndex++) {
 	      const option = obj.options[optionIndex];
 	      if (!option?.name || !option?.description)
 	        throw new Error(`No name(${option?.name}) or description(${option?.description} in the option with index ${optionIndex}`);
@@ -95,7 +97,7 @@ ${text}
 	      if (option?.choices) {
 	        if (!Array.isArray(option?.choices))
 	          throw new Error(`Choices is not an array (received: ${typeof option.choices})`);
-	        for (var choiceIndex = 0; choiceIndex < option.choices.length; choiceIndex++) {
+	        for (let choiceIndex = 0; choiceIndex < option.choices.length; choiceIndex++) {
 	          const choice = option.choices[choiceIndex];
 	          if (!choice?.name)
 	            throw new Error(`No name of choice with index ${choiceIndex} in option with index ${optionIndex}`);
@@ -104,6 +106,35 @@ ${text}
 	      }
 	    }
 	  }
+	  return obj;
+	}
+	function resolvePath(obj, path) {
+	  const keys = path.split(".");
+	  let current = obj;
+	  for (let i = 0; i < keys.length; i++) {
+	    const key = keys[i];
+	    if (current === null || typeof current !== "object") {
+	      throw new Error(`Cannot resolve key "${key}" because the previous property is not an object.`);
+	    }
+	    if (!(key in current)) {
+	      throw new Error(`Key "${key}" was not found in the path.`);
+	    }
+	    if (i === keys.length - 1) {
+	      return {
+	        parent: current,
+	        key
+	      };
+	    }
+	    current = current[key];
+	  }
+	}
+	function getValueAtPath(obj, path) {
+	  const { parent, key } = resolvePath(obj, path);
+	  return parent[key];
+	}
+	function setValueAtPath(obj, path, value) {
+	  const { parent, key } = resolvePath(obj, path);
+	  parent[key] = value;
 	  return obj;
 	}
 	function generateRandomString(chars, length = 27) {
@@ -154,7 +185,7 @@ ${text}
 	  return newObj;
 	}
 	async function awaitPromise(promiseFn, ...args) {
-	  let output = [
+	  const output = [
 	    null,
 	    null
 	  ];
@@ -243,6 +274,12 @@ ${text}
 	  }
 	  return object;
 	}
+	function initStorage(storage, defaults) {
+	  if (storage["__MQ"])
+	    return;
+	  makeDefaults(storage, defaults);
+	  storage["__MQ"] = true;
+	}
 	const EMOJIS = {
 	  getLoading() {
 	    return Math.random() < 0.01 ? this.aol : this.loadingDiscordSpinner;
@@ -262,10 +299,10 @@ ${text}
 	  command: "https://cdn.discordapp.com/attachments/1099116247364407337/1112129955053187203/command.png"
 	};
 	function rng(min, max, precision = 0) {
-	  if (typeof min !== "number" || isNaN(min)) {
+	  if (typeof min !== "number" || Number.isNaN(min)) {
 	    throw new Error("Invalid first argument, minimum: expected a number");
 	  }
-	  if (typeof max !== "number" || isNaN(max)) {
+	  if (typeof max !== "number" || Number.isNaN(max)) {
 	    throw new Error("Invalid second argument, maximum: expected a number");
 	  }
 	  if (typeof precision !== "number" || precision < 0) {
@@ -280,6 +317,25 @@ ${text}
 	  const maxPrecision = Math.max((max.toString().split(".")[1] || "").length, (min.toString().split(".")[1] || "").length);
 	  const computedPrecision = typeof precision === "number" ? precision : maxPrecision;
 	  return parseFloat((Math.random() * (max - min) + min).toFixed(computedPrecision));
+	}
+	function sendTextMessage(channel, message, ephemeral) {
+	  if (channel === "currentChannel") {
+	    channel = getCurrentChannelId();
+	  }
+	  if (typeof message !== "string") {
+	    message = message?.content;
+	    if (!message)
+	      throw new Error("No text to send");
+	  }
+	  if (ephemeral) {
+	    return sendBotMessage(channel, message);
+	  }
+	  sendUserMessage(channel, {
+	    content: message,
+	    _command_output: true
+	  }, void 0, {
+	    nonce: Date.now().toString()
+	  });
 	}
 
 	var common = /*#__PURE__*/Object.freeze({
@@ -296,11 +352,16 @@ ${text}
 		codeblock: codeblock,
 		fixPromiseProps: fixPromiseProps,
 		generateRandomString: generateRandomString,
+		getValueAtPath: getValueAtPath,
+		initStorage: initStorage,
 		mSendMessage: mSendMessage,
 		makeDefaults: makeDefaults,
 		prettyTypeof: prettyTypeof,
 		processRows: processRows,
-		rng: rng
+		resolvePath: resolvePath,
+		rng: rng,
+		sendTextMessage: sendTextMessage,
+		setValueAtPath: setValueAtPath
 	});
 
 	const AsyncFunction = async function() {
@@ -885,7 +946,7 @@ to disable this popup, run: /"+vendetta.plugin.storage.settings.command.name+" c
 	    for (const unpatch of patches)
 	      unpatch();
 	    try {
-	      makeDefaults(vendetta.plugin.storage, defaultStorage);
+	      initStorage(vendetta.plugin.storage, defaultStorage);
 	      try {
 	        triggerAutorun("plugin_onLoad");
 	      } catch (e) {
@@ -957,4 +1018,4 @@ ${e.stack}`);
 
 	return exports;
 
-})({}, vendetta.commands, vendetta.metro, vendetta.plugin, vendetta.ui);
+})({}, vendetta.metro, vendetta.commands, vendetta.plugin, vendetta.ui);
