@@ -1,13 +1,13 @@
 console.log("Initialising...\n");
-import { readFile, writeFile, readdir } from "fs/promises";
-import { extname } from "path";
-import { createHash } from "crypto";
+import { readdir, readFile, writeFile } from "fs/promises";
+import { createHash } from "node:crypto";
+import { extname } from "node:path";
 
-import { rollup } from "rollup";
-import esbuild from "rollup-plugin-esbuild";
 import commonjs from "@rollup/plugin-commonjs";
 import nodeResolve from "@rollup/plugin-node-resolve";
 import swc from "@swc/core";
+import { rollup } from "rollup";
+import esbuild from "rollup-plugin-esbuild";
 
 const extensions = [".js", ".jsx", ".mjs", ".ts", ".tsx", ".cts", ".mts"];
 const repoPluginName = "PluginRepo";
@@ -18,7 +18,7 @@ const minifyBlacklist = [
 const ignoredWarnings = [
 	"MISSING_NAME_OPTION_FOR_IIFE_EXPORT",
 	(minify, { code }) => !minify && code === "EVAL",
-	(minify, { code, exporter }) => code === "UNRESOLVED_IMPORT" && exporter && exporter.includes("@vendetta"),
+	(_, { code, exporter }) => code === "UNRESOLVED_IMPORT" && exporter && exporter.includes("@vendetta"),
 ];
 let onlyBuild = process.argv.slice(2, process.argv.length);
 if (onlyBuild[0] === "all") {
@@ -72,7 +72,7 @@ if (pluggers.length === 0) {
 	console.log("No plugins found");
 	process.exit(1);
 }
-for (let plug of pluggers) {
+for (const plug of pluggers) {
 	built.total++;
 	const manifest = JSON.parse(await readFile(`./plugins/${plug}/manifest.json`));
 	const outPath = `./dist/${plug === repoPluginName ? "" : plug + "/"}index.js`;
@@ -82,7 +82,7 @@ for (let plug of pluggers) {
 		plugins[3] = esbuild({ minify });
 		const bundle = await rollup({
 			input: `./plugins/${plug}/${manifest.main}`,
-			onwarn: (warning, defaultOnWarn) => {
+			onwarn: (warning) => {
 				if (ignoredWarnings.some(($) => (typeof $ === "function" ? $(minify, warning) : $ === warning.code))) return;
 				if (warning.code === "UNRESOLVED_IMPORT" && warning?.exporter.includes("@vendetta")) return;
 
@@ -110,7 +110,7 @@ for (let plug of pluggers) {
 		const toHash = await readFile(outPath);
 		manifest.hash = createHash("sha256").update(toHash).digest("hex");
 		manifest.main = "index.js";
-		await writeFile(`./dist/${plug === repoPluginName ? "" : plug + "/"}manifest.json`, JSON.stringify(manifest));
+		await writeFile(`./dist/${plug === repoPluginName ? "" : `${plug}/`}manifest.json`, JSON.stringify(manifest));
 
 		console.log(prefix, `Successfully built ${manifest.name !== plug ? `"${manifest.name}"` : ``}@${plug}!\n`);
 		built.succeeded++;
