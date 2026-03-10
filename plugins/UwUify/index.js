@@ -30,7 +30,7 @@ export default {
 					if (ephemeral) {
 						sendBotMessage(getFocusedChannelId(), uwuified)
 					} else {
-						sendMessage(getFocusedChannelId(), {content:uwuified}, void 0, {nonce: Date.now().toString()})
+						sendMessage(getFocusedChannelId(), {content:uwuified, _uwuified: true}, void 0, {nonce: Date.now().toString()})
 					}
         },
         type: 1,
@@ -57,7 +57,7 @@ export default {
 
 		const Messages = findByProps('sendMessage', 'receiveMessage')
 		patches.push(before('sendMessage', Messages, args => {
-			if (storage["cfg.convert_messages"]) args[1].content = getUwuifier().uwuifySentence(args[1].content)
+			if (storage["cfg.convert_messages"] && !args[1]?._uwuified) args[1].content = getUwuifier().uwuifySentence(args[1].content)
 		}))
   },
 };
