@@ -199,3 +199,20 @@ __decorate([
 __decorate([
     InitModifierParam()
 ], Uwuifier.prototype, "_exclamationsModifier", void 0);
+let state = {
+	uwuifier: new Uwuifier()
+}
+export function getUwuifier() {
+	return state.uwuifier
+}
+export function reloadUwuifier(storage) {
+	state.uwuifier = new Uwuifier({
+		spaces: {
+			faces: !storage["cfg.spaces.faces"] ? 0 : 0.5,
+			actions: !storage["cfg.spaces.actions"] ? 0 : 0.075,
+			stutters: !storage["cfg.spaces.stutters"] ? 0 : 0.1,
+		},
+		words: !storage["cfg.words"] ? 0 : 1,
+		exclamations: !storage["cfg.exclamations"] ? 0 : 1,
+	});
+}

@@ -1,4 +1,5 @@
-const { React, ReactNative } = vendetta.metro.common;
+import { reloadUwuifier } from "./uwuifier";
+const { ReactNative } = vendetta.metro.common;
 const {
   plugin: { storage },
   storage: { useProxy },
@@ -6,7 +7,7 @@ const {
     components: { Forms },
   },
 } = vendetta;
-const { FormRow, FormSection, FormSwitch } = Forms;
+const { FormRow, FormSwitch } = Forms;
 
 const Button = vendetta.metro.findByProps(
   "ButtonColors",
@@ -14,26 +15,20 @@ const Button = vendetta.metro.findByProps(
   "ButtonSizes"
 ).default;
 
-export default (
-  props,
-  { patches, reloadUwuifier, startMessageTransfoworming }
-) => {
+export default function Settings() {
   useProxy(storage);
   return (
     <ReactNative.ScrollView style={{ flex: 1 }}>
       {[
-        { label: "faces", default: true, id: "cfg.spaces.faces" },
-        { label: "actions", default: true, id: "cfg.spaces.actions" },
-        { label: "stutters", default: true, id: "cfg.spaces.stutters" },
-        { label: "words", default: true, id: "cfg.words" },
-        { label: "exclamations", default: false, id: "cfg.exclamations" },
-        {
-          label: "Strength sliders will come when i figure out how to make em",
-        },
+        { label: "Add faces", default: true, id: "cfg.spaces.faces" },
+        { label: "Add actions", default: true, id: "cfg.spaces.actions" },
+        { label: "Add stutters", default: true, id: "cfg.spaces.stutters" },
+        { label: "Add words", default: true, id: "cfg.words" },
+        { label: "Add exclamations", default: false, id: "cfg.exclamations" },
         {
           id: "reload",
           style: { height: 5, margin: 8 },
-          name: "Reload uwuifier",
+          name: "Reload uwuifier (press this after toggling options above)",
           onPress: () => {
             reloadUwuifier(storage);
             vendetta.ui.toasts.showToast(
@@ -42,18 +37,7 @@ export default (
             );
           },
         },
-        /*{ label: "Uwuify messages", default: false, id: "uwuify_messages", onValueChange: (val) => { 
-				if (val===false) {
-					let p = patches?.[1];
-					if (p) {
-						p();
-						patches.splice(1, 1)
-					}
-				} else {
-					this.startMessageTransfoworming(storage);
-				}
-				}
-			}//*/
+        { label: "Convert before sending message", default: false, id: "cfg.convert_messages" }
       ].map((config) => {
         if (config?.id === "reload") {
           return (
@@ -78,7 +62,7 @@ export default (
                   value={storage[config.id] ?? config.default}
                   onValueChange={(value) => {
 storage[config.id] = value;
-                    cfg?.onValueChange?.(value);
+                    config?.onValueChange?.(value);
                   }}
                 />
               ) : undefined

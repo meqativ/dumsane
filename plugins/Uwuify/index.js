@@ -1,70 +1,63 @@
-import Uwuifier from "./uwuifier/index.js";
+import { getUwuifier } from "./uwuifier/index.js";
 import Settings from "./settings.jsx";
 import { cmdDisplays } from "../../common";
-let uwuifier = new Uwuifier();
-const pluwugin = {
-  reloadUwuifier,
-  patches: [],
-  startMessageTransfoworming(storage) {
-    /*	TODO	
-		 *	patches[1] = msg patch*/
-  },
-  reloadUwuifier(storage) {
-    uwuifier = new Uwuifier({
-      spaces: {
-        faces: !storage["cfg.spaces.faces"] ? 0 : 0.5,
-        actions: !storage["cfg.spaces.actions"] ? 0 : 0.075,
-        stutters: !storage["cfg.spaces.stutters"] ? 0 : 0.1,
-      },
-      words: !storage["cfg.words"] ? 0 : 1,
-      exclamations: !storage["cfg.exclamations"] ? 0 : 1,
-    });
-  },
-  settings(props) {
-    return Settings(props, this);
-  },
+import { findByProps, findByStoreName } from "@vendetta/metro";
+import { before } from '@vendetta/patcher'
+
+const { sendMessage, sendBotMessage } = findByProps("sendBotMessage")
+const { getChannelId: getFocusedChannelId } = findByStoreName("SelectedChannelStore");
+const patches = [];
+export default {
+  settings: Settings,
   onUnload() {
-    this.patches.every((p) => (p(), true));
+		for (const unpatch of patches) unpatch()
   },
   onLoad() {
     const {
       plugin: { storage },
       commands,
-      logger,
     } = vendetta;
 
-    this.patches[0] = commands.registerCommand(
+    patches.push(commands.registerCommand(
       cmdDisplays({
-        execute: (optionsA, context) => {
-          const options = new Map(
-            optionsA.map((option) => [option.name, option])
-          );
+        execute: (rawArgs) => {
+          const args = new Map(rawArgs.map((o) => [o.name, o]));
+					const input = args.get("input")?.value;
+					const ephemeral = !(args.get("send")?.value ?? true);
+					if (typeof input !== "string") throw new Error("No text to uwuify passed");
 
-          const uwuified = uwuifier.uwuifySentence(options.get("text").value);
-          return { content: !options.get("epheneral")?.value ? uwuified : "h".repeat(6969) }; //	TODO: handle epheneral properly
+          const uwuified = getUwuifier().uwuifySentence(input);
+					if (ephemeral) {
+						sendBotMessage(getFocusedChannelId(), uwuified)
+					} else {
+						sendMessage(getFocusedChannelId(), {content:uwuified}, void 0, {nonce: Date.now().toString()})
+					}
         },
         type: 1,
         applicationId: "-1",
         inputType: 1,
-        name: "uwuify",
-        description: "UwUifies your text",
+        name: `uwuify${Date.now()}`,
+        description: "UwUify some text",
         options: [
           {
             type: 3,
             required: true,
-            name: "text",
-            description: "",
+            name: "input",
+            description: "Text to be uwuified",
           },
           {
             type: 5,
             required: false,
-            name: "ephemeral",
-            description: "Whether to send it here as a message from you, or an ephemeral message.",
+            name: "send",
+            description: "Whether to send the message as you or show it as an ephemeral message from clyde",
           },
         ],
       })
-    );
+    ));
 
-    if (storage["uwuify_messages"]) startMessageTransfoworming(storage);
+		const Messages = findByProps('sendMessage', 'receiveMessage')
+		patches.push(before('sendMessage', Messages, args => {
+			if (storage["cfg.convert_messages"]) args[1].content = getUwuifier().uwuifySentence(args[1].content)
+		}))
   },
 };
