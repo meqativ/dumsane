@@ -102,15 +102,15 @@ const DEFAULT_STORAGE = {
       send: true,
     },
     customServices: {
-      lmgt4u: {
+      "#Let Me Google That For You!": {
         name: "Let Me Google That For You!",
         urlTemplate: "https://letmegooglethat.com/?q={query}",
       },
-      lmgptt4u: {
+      "#Let Me GPT That For You!": {
         name: "Let Me GPT That For You!",
         urlTemplate: "https://letmegpt.com/?q={query}",
       },
-      googleit: {
+      "#Google.it": {
         name: "Google.it",
         urlTemplate: "https://google.it/search?q={query}",
       },
