@@ -6,6 +6,42 @@ const BUILTIN_SERVICES = {
     name: "Google",
     urlTemplate: "https://google.com/search?q={query}",
   },
+  googleaimode: {
+    name: "Google (AI Mode)",
+    urlTemplate: "https://google.com/search?udm=50&q={query}",
+  },
+  googleimages: {
+    name: "Google Images",
+    urlTemplate: "https://google.com/search?udm=2&q={query}",
+  },
+	wikipedia: {
+		name: "Wikipedia",
+		urlTemplate: "https://wikipedia.org/w/index.php?search={query}"
+	},
+	github: {
+		name: "GitHub",
+		urlTemplate: "https://github.com/search?q={query}",
+	},
+	reddit: {
+		name: "Reddit",
+		urlTemplate: "https://www.reddit.com/search?q={query}",
+	},
+	brave: {
+		name: "Brave",
+		urlTemplate: "https://search.brave.com/search?q={query}",
+	},
+  askchatgpt: {
+    name: "Ask ChatGPT",
+    urlTemplate: "https://chatgpt.com/?q={query}",
+  },
+  askmistral: {
+    name: "Ask Mistral",
+    urlTemplate: "https://chat.mistral.ai/chat?q={query}",
+  },
+  askclaude: {
+    name: "Ask Claude",
+    urlTemplate: "https://claude.ai/new?q={query}",
+  },
   ddg: {
     name: "DuckDuckGo",
     urlTemplate: "https://duckduckgo.com/?q={query}",
