@@ -63,6 +63,16 @@ export default {
 					const ephemeral = !(args.get("send")?.value ?? storage['settings']["defaults"]["send"]);
 					
 					sendText("currentChannel", output, ephemeral);
+					
+					storage['stats']['global']++
+					storage['stats']['amounts'][service]++
+					const history = storage['stats']['history']
+
+					history.unshift({
+						timestamp: Date.now(),
+						service, query
+					})
+					if (history.length > 25) history.pop() 
         },
       })
     ));
