@@ -53,16 +53,23 @@ export default class Uwuifier {
                 "*cries*",
                 "*screams*",
                 "*sweats*",
-                "*twerks*",
                 "*runs away*",
                 "*screeches*",
                 "*walks away*",
-             //   "*sees bulge*",
                 "*looks at you*",
-               // "*notices buldge*",
-                "*starts twerking*",
-                "*huggles tightly*",//:trolleyzoom:
+                "*huggles tightly*",
                 "*boops your nose*",
+								"*stares cutely*",
+								"*blushes softly*",
+								"*licks nose*",
+								"*nuzzles closer*",
+								
+								// questionable
+								"*licks neck*",
+                "*twerks*",
+                "*starts twerking*",
+             		// "*sees bulge*",
+                // "*notices buldge*",
             ]
         });
         Object.defineProperty(this, "uwuMap", {
