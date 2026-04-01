@@ -12,7 +12,7 @@ import esbuild from "rollup-plugin-esbuild";
 const extensions = [".js", ".jsx", ".mjs", ".ts", ".tsx", ".cts", ".mts"];
 const repoPluginName = "PluginRepo";
 const minifyBlacklist = [
-	"eval",
+	"eval", "SearchLink"
 	/*"Vibrate", "selfexplode", "Uwuify"*/
 ];
 const ignoredWarnings = [
