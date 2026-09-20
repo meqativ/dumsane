@@ -1,0 +1,1 @@
+(function(n){"use strict";var o={onLoad:async function(){console.log("fast one loaded!")},onUnload:async function(){console.log("fast one unloaded!")}};return n.default=o,Object.defineProperty(n,"__esModule",{value:!0}),n})({});

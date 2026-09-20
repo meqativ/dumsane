@@ -1,0 +1,1 @@
+{"name":"SlowPlugin","description":"console.log(starting...); \nawait sleep(5s); \nconsole.log(started)","authors":[{"name":"meqativ","id":"744276454946242723"}],"main":"index.js","vendetta":{"icon":"ic_clock"},"hash":"073d6bee618c7671fc724055cd5c9580f3f05e287d51ae6ae170ae7db579607c"}
