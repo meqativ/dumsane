@@ -42,11 +42,11 @@ export default () => {
 
 	const AddUserModal = () => {
 		const [input, setInput] = React.useState("");
-
+		const _description = `Enter the Discord ID of the user you want to ignore.\nTo get the id:\nFirst, go to Discord Settings → Advanced → Turn on "Developer Mode"\n2. Open the profile of the user you wanna block\n3. Press the three dots at the top right, then press "Copy User ID". 🎉`
 		return (
 			<AlertModal
 				title="Add User by ID"
-				content="Enter the numeric Discord ID of the user you want to ignore."
+				content={_description}
 				extraContent={
 					<TextInput
 						placeholder="User ID"
