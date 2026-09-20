@@ -216,14 +216,15 @@ export function getUwuifier() {
 	return state.uwuifier
 }
 export function reloadUwuifier(storage) {
-	const settings = storage['settings']['uwuifier']
-	state.uwuifier = new Uwuifier({
-		spaces: {
-			faces: !settings['spaces']['faces'] ? 0 : 0.5,
-			actions: !settings['spaces']['actions'] ? 0 : 0.075,
-			stutters: !settings['spaces']['stutters'] ? 0 : 0.1,
-		},
-		words: !settings['words'] ? 0 : 1,
-		exclamations: !settings['exclamations'] ? 0 : 1,
-	});
+    const settings = storage['settings']['uwuifier'];
+    const getNum = (v) => isNaN(parseFloat(v)) ? 0 : parseFloat(v);
+    state.uwuifier = new Uwuifier({
+        spaces: {
+            faces: getNum(settings['spaces']['faces']),
+            actions: getNum(settings['spaces']['actions']),
+            stutters: getNum(settings['spaces']['stutters']),
+        },
+        words: getNum(settings['words']),
+        exclamations: getNum(settings['exclamations']),
+    });
 }

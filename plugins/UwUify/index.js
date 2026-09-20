@@ -8,7 +8,9 @@ import { storage } from "@vendetta/plugin";
 import { commands } from "@vendetta";
 import { getUwuifier } from "./uwuifier/index.js";
 import { makeDefaults } from "../../common/index.js";
+
 const patches = [];
+
 const DEFAULT_STORAGE = {
 	stats: {
 		global_counter: 0,
@@ -17,12 +19,12 @@ const DEFAULT_STORAGE = {
 	settings: {
 		uwuifier: {
 			spaces: {
-				faces: true,
-				actions: true,
-				stutters: true
+				faces: 0.05,
+				actions: 0.075,
+				stutters: 0.1
 			},
-			words: true,
-			exclamations: false
+			words: 1,
+			exclamations: 0
 		},
 		convert_messages: true,
 		defaults: {
@@ -30,63 +32,90 @@ const DEFAULT_STORAGE = {
 		},
 	},
 };
-export default {
-  settings: Settings,
-  onUnload() {
-    for (const unpatch of patches) unpatch();
-  },
-  onLoad() {
-		makeDefaults(vendetta.plugin.storage, DEFAULT_STORAGE);
-    patches.push(
-      commands.registerCommand(
-        cmdDisplays({
-          type: 1,
-          applicationId: "-1",
-          inputType: 1,
-          name: `uwuify`,
-          description: "UwUify some text",
-          options: [
-            {
-              type: 3,
-              required: true,
-              name: "input",
-              description: "Text to be UwUified",
-            },
-            {
-              type: 5,
-              required: false,
-              name: "send",
-              description: `Whether to send the uwuified text as an actual message in chat (default: {default_action})`.replaceAll("{default_action}", storage['settings']['defaults']['send']),
-            },
-          ],
-          execute: (rawArgs) => {try{
-            const args = new Map(rawArgs.map((o) => [o.name, o]));
-            const input = args.get("input")?.value;
-            const output = getUwuifier().uwuifySentence(input);
-            const ephemeral = !(args.get("send")?.value ?? storage['settings']['defaults']['send']);
-						const history = storage['stats']['history']
-						history.unshift({
-							timestamp: Date.now(),
-							input
-						})
-						if (history.length > 25) history.pop() // this doesn't Limit the history to be under 25, e.g. if someone edits their storage to have 5000 items it will just break the plugin but i dont think it matters much rn
-            sendText("currentChannel", output, ephemeral);
-					} catch (e) {
-						console.error(e);
-						console.log(e.stack);
-						alert(`There was an error while running the command\n${e.stack}`);
-					}
-          },
-        }),
-      ),
-    );
 
-    const Messages = findByProps("sendMessage", "receiveMessage");
-    patches.push(
-      before("sendMessage", Messages, (args) => {
-        if (storage['settings']["convert_messages"] && !args[1]?._command_output)
-          args[1].content = getUwuifier().uwuifySentence(args[1].content);
-      }),
-    );
-  },
+export default {
+	settings: Settings,
+	onUnload() {
+		for (const unpatch of patches) unpatch();
+	},
+	onLoad() {
+		const uwuifierSettings = vendetta.plugin.storage.settings?.uwuifier;
+		if (uwuifierSettings) {
+			if (typeof uwuifierSettings.words === "boolean") {
+				uwuifierSettings.words = uwuifierSettings.words ? 1 : 0;
+			}
+			if (typeof uwuifierSettings.exclamations === "boolean") {
+				uwuifierSettings.exclamations = uwuifierSettings.exclamations ? 1 : 0;
+			}
+			if (uwuifierSettings.spaces) {
+				if (typeof uwuifierSettings.spaces.faces === "boolean") {
+					uwuifierSettings.spaces.faces = uwuifierSettings.spaces.faces ? 0.05 : 0;
+				}
+				if (typeof uwuifierSettings.spaces.actions === "boolean") {
+					uwuifierSettings.spaces.actions = uwuifierSettings.spaces.actions ? 0.075 : 0;
+				}
+				if (typeof uwuifierSettings.spaces.stutters === "boolean") {
+					uwuifierSettings.spaces.stutters = uwuifierSettings.spaces.stutters ? 0.1 : 0;
+				}
+			}
+		}
+
+		makeDefaults(vendetta.plugin.storage, DEFAULT_STORAGE);
+
+		patches.push(
+			commands.registerCommand(
+				cmdDisplays({
+					type: 1,
+					applicationId: "-1",
+					inputType: 1,
+					name: `uwuify`,
+					description: "UwUify some text",
+					options: [
+						{
+							type: 3,
+							required: true,
+							name: "input",
+							description: "Text to be UwUified",
+						},
+						{
+							type: 5,
+							required: false,
+							name: "send",
+							description: `Whether to send the uwuified text as an actual message in chat (default: {default_action})`.replaceAll("{default_action}", storage['settings']['defaults']['send']),
+						},
+					],
+					execute: (rawArgs) => {
+						try {
+							const args = new Map(rawArgs.map((o) => [o.name, o]));
+							const input = args.get("input")?.value;
+							const output = getUwuifier().uwuifySentence(input);
+							const ephemeral = !(args.get("send")?.value ?? storage['settings']['defaults']['send']);
+							const history = storage['stats']['history'];
+
+							history.unshift({
+								timestamp: Date.now(),
+								input
+							});
+
+							if (history.length > 25) history.pop(); // this doesn't Limit the history to be under 25, e.g. if someone edits their storage to have 5000 items it will just break the plugin but i dont think it matters much rn
+
+							sendText("currentChannel", output, ephemeral);
+						} catch (e) {
+							console.error(e);
+							console.log(e.stack);
+							alert(`There was an error while running the command\n${e.stack}`);
+						}
+					},
+				}),
+			),
+		);
+
+		const Messages = findByProps("sendMessage", "receiveMessage");
+		patches.push(
+			before("sendMessage", Messages, (args) => {
+				if (storage['settings']["convert_messages"] && !args[1]?._command_output)
+					args[1].content = getUwuifier().uwuifySentence(args[1].content);
+			}),
+		);
+	},
 };
