@@ -133,7 +133,9 @@ export default class Uwuifier {
         const uwuifiedSentence = words.map((word, index) => {
             const seed = new Seed(word);
             const random = seed.random();
-            const [firstCharacter] = word;
+            const [firstCharacter,...otherChars] = word;
+						if (firstCharacter === "<" && otherChars.at(-1) === ">") return word;
+						
             if (random <= faceThreshold && this.faces) {
                 // Add random face before the word
                 word += " " + this.faces[seed.randomInt(0, this.faces.length - 1)];
