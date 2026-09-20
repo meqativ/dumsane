@@ -4,9 +4,9 @@ import { FluxDispatcher, moment } from "@vendetta/metro/common";
 import { storage } from "@vendetta/plugin";
 import { before as patchBefore } from "@vendetta/patcher";
 import { findByProps, findByStoreName } from "@vendetta/metro";
-import { findInReactTree } from "@vendetta/utils";
-import { showToast } from "@vendetta/ui/toasts";
-import { getTranslation, massive } from "./translations.js";
+// import { findInReactTree } from "@vendetta/utils";
+// import { showToast } from "@vendetta/ui/toasts";
+// import { getTranslation, massive } from "./translations.js";
 //import { dispatcherPatch } from "./patches/dispatcher.js";
 //import { contextMenuPatch } from "./patches/contextMenu.js"
 
@@ -51,7 +51,7 @@ export default {
 						}
 						deleteable.push(event.id);
 
-						let automodMessage = getTranslation("thisMessageWasDeleted");
+						let automodMessage = "This message was deleted";
 						if (storage["timestamps"]) automodMessage += ` (${moment().format(storage["ew"] ? "hh:mm:ss.SS a" : "HH:mm:ss.SS")})`;
 
 						// overwrite the message delete event with the automod edit fail one
@@ -79,7 +79,6 @@ export default {
 
 			/* thanks fres#2400 (<@843448897737064448>) for example patch
 			 * add ignore user button
-			 */
 			const contextMenuUnpatch = patchBefore("render", findByProps("ScrollView").View, (args) => {
 				try {
 					const a = findInReactTree(args, (r) => r.key === ".$UserProfileOverflow");
@@ -130,6 +129,7 @@ export default {
 				}
 			});
 			patches.push(contextMenuUnpatch);
+			 */
 		} catch (e) {
 			console.error(e);
 			alert(`[NoDelete] dead\n${e.stack}`);
