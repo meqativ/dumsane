@@ -11,25 +11,19 @@ jobs:
           contents: write
 
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v4
 
-            - name: Prepare environment
-              uses: actions/setup-node@v6
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
               with:
-                  node-version: "24"
-
-            - run: npm install --global pnpm
+                  bun-version: "latest"
 
             - name: Install deps
-              run: pnpm m i
+              run: bun install
 
             - name: Build plugin(s)
-              run: node ./build.mjs
+              run: bun run build
 
-              # Foolproof feature:
-              # - Copies over README so that the root of the deployed website shows it
-              # - Changes 404 page to README so that you don't get lost while clicking links
-              # If you remove this step then you should probably remove the enable_jekyll option in the next one
             - name: Copy additional files
               run: |
                   cp README.md dist/README.md
@@ -37,13 +31,9 @@ jobs:
                   printf -- "> **Note:** You accessed a link that returned a 404, probably by clicking one of the plugin links. You're supposed to copy the link address and add it into Vendetta.\n\n" >> dist/404.md
                   cat README.md >> dist/404.md
 
-              # Documentation: https://github.com/peaceiris/actions-gh-pages
             - name: Deploy to GitHub Pages
               uses: peaceiris/actions-gh-pages@v4
               with:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   publish_dir: ./dist
-                  # Makes it so the md files in the previous step get processed by GitHub Pages
                   enable_jekyll: true
-                  # This creates the CNAME file required to host GitHub Pages on a custom domain
-                  # cname: example.com
